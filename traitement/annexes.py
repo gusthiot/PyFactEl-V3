@@ -201,22 +201,6 @@ class Annexes(object):
                 %(labo)s - %(utilisateur)s - %(date)s
                 ''' % dico_nom
 
-            structure_recap_projet = r'''{|l|r|r|'''
-            contenu_recap_projet = r'''
-                \hline
-                Projet & \multicolumn{1}{l|}{Procédés} '''
-            for categorie in generaux.codes_d3():
-                structure_recap_projet += r'''r|'''
-                contenu_recap_projet += r''' & \multicolumn{1}{l|}{
-                ''' + Latex.echappe_caracteres(coefprests.obtenir_noms_categories(categorie)) + r'''}'''
-            structure_recap_projet += r'''}'''
-            legende_recap_projet = r'''Récapitulatif compte ''' + intitule_compte
-            contenu_recap_projet += r''' & \multicolumn{1}{l|}{Total projet} \\
-                \hline
-                '''
-            client_compte_projet = sommes.sommes_projets[code_client][id_compte]
-            contenu_projet = ""
-
             # ## RES
             structure_res = r'''{|l|l|l|l|l|l|}'''
             dico_res = {'compte': intitule_compte}
@@ -241,106 +225,126 @@ class Annexes(object):
                 contenu_rsv = Latex.long_tableau(contenu_res, structure_res, legende_res)
             # ## res
 
-            for num_projet in sorted(client_compte_projet.keys()):
-                # ## PROJET
-                sp = sommes.sommes_projets[code_client][id_compte][num_projet]
-                intitule_projet = num_projet + " - " + Latex.echappe_caracteres(sp['intitule'])
+            structure_recap_projet = r'''{|l|r|r|'''
+            contenu_recap_projet = r'''
+                \hline
+                Projet & \multicolumn{1}{l|}{Procédés} '''
+            for categorie in generaux.codes_d3():
+                structure_recap_projet += r'''r|'''
+                contenu_recap_projet += r''' & \multicolumn{1}{l|}{
+                ''' + Latex.echappe_caracteres(coefprests.obtenir_noms_categories(categorie)) + r'''}'''
+            structure_recap_projet += r'''}'''
+            legende_recap_projet = r'''Récapitulatif compte ''' + intitule_compte
+            contenu_recap_projet += r''' & \multicolumn{1}{l|}{Total projet} \\
+                \hline
+                '''
+            contenu_projet = ""
 
-                dico_recap_projet = {'num': intitule_projet, 'procede': "%.2f" % sp['mp']}
+            if code_client in sommes.sommes_projets:
+                if id_compte in sommes.sommes_projets[code_client]:
+                    print(code_client, id_compte)
+                    client_compte_projet = sommes.sommes_projets[code_client][id_compte]
 
-                total = sp['mp']
-                contenu_recap_projet += r'''
-                    \hline
-                    %(num)s & %(procede)s''' % dico_recap_projet
-                for categorie in generaux.codes_d3():
-                    total += sp['tot_cat'][categorie]
-                    contenu_recap_projet += r''' & ''' + "%.2f" % sp['tot_cat'][categorie]
-                dico_recap_projet['total'] = "%.2f" % total
+                    for num_projet in sorted(client_compte_projet.keys()):
+                        # ## PROJET
+                        sp = sommes.sommes_projets[code_client][id_compte][num_projet]
+                        intitule_projet = num_projet + " - " + Latex.echappe_caracteres(sp['intitule'])
 
-                contenu_recap_projet += r''' & %(total)s \\
-                    \hline
-                    ''' % dico_recap_projet
+                        dico_recap_projet = {'num': intitule_projet, 'procede': "%.2f" % sp['mp']}
 
-                ## CAE
-                structure_cae = r'''{|l|l|l|c|c|c|c|c|c|c|c|c|c|}'''
-                dico_cae = {'compte': intitule_compte, 'projet': intitule_projet}
-                contenu_cae = r'''
-                    \hline
-                    \multicolumn{3}{|l|}{%(compte)s / %(projet)s} & & \multicolumn{2}{c|}{hh:mm} &
-                    \multicolumn{2}{c|}{CHF/h} & Montant & \multicolumn{2}{c|}{Déductions} & Montant & Montant \\
-                    \cline{1-8}
-                    \cline{10-11}
-                    Date & Heure & Equipement & & mach. & oper. & mach. & MO & machine &
-                    spé. & HC & MO & net \\
-                    \hline
-                    ''' % dico_cae
-                nombre_cae = 0
-                legende_cae = r'''Récapitulatif Utilisation machines : ''' + intitule_compte + r''' / ''' +\
-                              intitule_projet
+                        total = sp['mp']
+                        contenu_recap_projet += r'''
+                            \hline
+                            %(num)s & %(procede)s''' % dico_recap_projet
+                        for categorie in generaux.codes_d3():
+                            total += sp['tot_cat'][categorie]
+                            contenu_recap_projet += r''' & ''' + "%.2f" % sp['tot_cat'][categorie]
+                        dico_recap_projet['total'] = "%.2f" % total
 
-                cae_proj = acces.acces_pour_projet(num_projet, id_compte, code_client)
-                resultats = [0, 0, 0, 0, 0]
-                for cae in cae_proj:
-                    nombre_cae += 1
-                    machine = machines.donnees[cae['id_machine']]
-                    coefmachine = coefmachines.donnees[client['id_classe_tarif'] + machine['categorie']]
-                    ligne, resultat = Annexes.ligne_cae(cae, machine, coefmachine)
-                    resultats[0] += resultat[0]
-                    resultats[1] += resultat[1]
-                    resultats[2] += resultat[2]
-                    resultats[3] += resultat[3]
-                    resultats[4] += resultat[4]
-                    contenu_cae += ligne
+                        contenu_recap_projet += r''' & %(total)s \\
+                            \hline
+                            ''' % dico_recap_projet
 
-                contenu_cae += r'''
-                    \multicolumn{8}{|r|}{Total} & ''' + Outils.format_si_nul(resultats[0]) + r'''
-                    & ''' + Outils.format_si_nul(resultats[1]) + r'''
-                    & ''' + Outils.format_si_nul(resultats[2]) + r'''
-                    & ''' + Outils.format_si_nul(resultats[3]) + r'''
-                    & ''' + Outils.format_si_nul(resultats[4]) + r''' \\
-                    \hline
-                    '''
+                        ## CAE
+                        structure_cae = r'''{|l|l|l|c|c|c|c|c|c|c|c|c|c|}'''
+                        dico_cae = {'compte': intitule_compte, 'projet': intitule_projet}
+                        contenu_cae = r'''
+                            \hline
+                            \multicolumn{3}{|l|}{%(compte)s / %(projet)s} & & \multicolumn{2}{c|}{hh:mm} &
+                            \multicolumn{2}{c|}{CHF/h} & Montant & \multicolumn{2}{c|}{Déductions} & Montant & Montant \\
+                            \cline{1-8}
+                            \cline{10-11}
+                            Date & Heure & Equipement & & mach. & oper. & mach. & MO & machine &
+                            spé. & HC & MO & net \\
+                            \hline
+                            ''' % dico_cae
+                        nombre_cae = 0
+                        legende_cae = r'''Récapitulatif Utilisation machines : ''' + intitule_compte + r''' / ''' +\
+                                      intitule_projet
 
-                if nombre_cae > 0:
-                    contenu_projet += Latex.long_tableau(contenu_cae, structure_cae, legende_cae)
-                ## cae
+                        cae_proj = acces.acces_pour_projet(num_projet, id_compte, code_client)
+                        resultats = [0, 0, 0, 0, 0]
+                        for cae in cae_proj:
+                            nombre_cae += 1
+                            machine = machines.donnees[cae['id_machine']]
+                            coefmachine = coefmachines.donnees[client['id_classe_tarif'] + machine['categorie']]
+                            ligne, resultat = Annexes.ligne_cae(cae, machine, coefmachine)
+                            resultats[0] += resultat[0]
+                            resultats[1] += resultat[1]
+                            resultats[2] += resultat[2]
+                            resultats[3] += resultat[3]
+                            resultats[4] += resultat[4]
+                            contenu_cae += ligne
 
-                # ## LIV
-                structure_liv = r'''{|l|l|l|l|r|r|r|r|}'''
-                dico_liv = {'compte': intitule_compte, 'projet': intitule_projet}
-                contenu_liv = r'''
-                    \hline
-                    \multicolumn{2}{|l|}{%(compte)s / %(projet)s} & & & & & &  \\
-                    \hline
-                    Date livr. & Désignation & Q & Unité & \multicolumn{1}{l|}{PU} & \multicolumn{1}{l|}{Montant}
-                    & \multicolumn{1}{l|}{Rabais} & \multicolumn{1}{l|}{Total} \\
-                    \hline
-                    ''' % dico_liv
-                nombre_liv = 0
-                legende_liv = r'''Récapitulatif Livraisons : ''' + intitule_compte + r''' / ''' + intitule_projet
+                        contenu_cae += r'''
+                            \multicolumn{8}{|r|}{Total} & ''' + Outils.format_si_nul(resultats[0]) + r'''
+                            & ''' + Outils.format_si_nul(resultats[1]) + r'''
+                            & ''' + Outils.format_si_nul(resultats[2]) + r'''
+                            & ''' + Outils.format_si_nul(resultats[3]) + r'''
+                            & ''' + Outils.format_si_nul(resultats[4]) + r''' \\
+                            \hline
+                            '''
 
-                liv_proj_cat = livraisons.livraisons_pour_projet_par_categorie(num_projet, id_compte, code_client,
-                                                                               prestations)
-                resultats = 0
-                for categorie in generaux.codes_d3():
-                    if categorie in liv_proj_cat:
-                        livs = liv_proj_cat[categorie]
-                        for liv in livs:
-                            nombre_liv += 1
-                            ligne, resultat = Annexes.ligne_liv(liv)
-                            resultats += resultat
-                            contenu_liv += ligne
+                        if nombre_cae > 0:
+                            contenu_projet += Latex.long_tableau(contenu_cae, structure_cae, legende_cae)
+                        ## cae
 
-                contenu_liv += r'''
-                    \multicolumn{7}{|r|}{Total} & ''' + Outils.format_si_nul(resultats) + r'''\\
-                    \hline
-                    '''
+                        # ## LIV
+                        structure_liv = r'''{|l|l|l|l|r|r|r|r|}'''
+                        dico_liv = {'compte': intitule_compte, 'projet': intitule_projet}
+                        contenu_liv = r'''
+                            \hline
+                            \multicolumn{2}{|l|}{%(compte)s / %(projet)s} & & & & & &  \\
+                            \hline
+                            Date livr. & Désignation & Q & Unité & \multicolumn{1}{l|}{PU} & \multicolumn{1}{l|}{Montant}
+                            & \multicolumn{1}{l|}{Rabais} & \multicolumn{1}{l|}{Total} \\
+                            \hline
+                            ''' % dico_liv
+                        nombre_liv = 0
+                        legende_liv = r'''Récapitulatif Livraisons : ''' + intitule_compte + r''' / ''' + intitule_projet
 
-                if nombre_liv > 0:
-                    contenu_projet += Latex.long_tableau(contenu_liv, structure_liv, legende_liv)
-                # ## liv
+                        liv_proj_cat = livraisons.livraisons_pour_projet_par_categorie(num_projet, id_compte, code_client,
+                                                                                       prestations)
+                        resultats = 0
+                        for categorie in generaux.codes_d3():
+                            if categorie in liv_proj_cat:
+                                livs = liv_proj_cat[categorie]
+                                for liv in livs:
+                                    nombre_liv += 1
+                                    ligne, resultat = Annexes.ligne_liv(liv)
+                                    resultats += resultat
+                                    contenu_liv += ligne
 
-                # ## projet
+                        contenu_liv += r'''
+                            \multicolumn{7}{|r|}{Total} & ''' + Outils.format_si_nul(resultats) + r'''\\
+                            \hline
+                            '''
+
+                        if nombre_liv > 0:
+                            contenu_projet += Latex.long_tableau(contenu_liv, structure_liv, legende_liv)
+                        # ## liv
+
+                        # ## projet
 
             sco = sommes.sommes_comptes[code_client][id_compte]
 
@@ -426,8 +430,8 @@ class Annexes(object):
             machines_utilisees = {}
             somme_res_compte = {}
             if code_client in reservations.sommes:
-                if id_compte in reservations.sommes[code_client]:
-                    somme_res_compte = reservations.sommes[code_client][id_compte]
+                if id_compte in reservations.sommes[code_client]['comptes']:
+                    somme_res_compte = reservations.sommes[code_client]['comptes'][id_compte]
                     for key in somme_res_compte.keys():
                         machines_utilisees[key] = {'machine': machines.donnees[key]['nom']}
             somme_cae_compte = {}
@@ -583,8 +587,8 @@ class Annexes(object):
                         'machine': Latex.echappe_caracteres(machine['machine']),
                         'pen_hp': "%.1f" % som_m['pen_hp'], 'pen_hc': "%.1f" % som_m['pen_hc'],
                         'mont_hp': Outils.format_si_nul(som_m['m_hp']), 'mont_hc': Outils.format_si_nul(som_m['m_hc']),
-                        'pu_hp': Outils.format_si_nul(reservations.sommes[code_client][id_machine]['pu_hp']),
-                        'pu_hc': Outils.format_si_nul(reservations.sommes[code_client][id_machine]['pu_hc'])}
+                        'pu_hp': Outils.format_si_nul(reservations.sommes[code_client]['machines'][id_machine]['pu_hp']),
+                        'pu_hc': Outils.format_si_nul(reservations.sommes[code_client]['machines'][id_machine]['pu_hc'])}
 
                     if som_m['pen_hp'] > 0:
                         contenu_frais_client += r'''%(machine)s & HP &  %(pen_hp)s & %(pu_hp)s & %(mont_hp)s \\
@@ -603,7 +607,7 @@ class Annexes(object):
 
             contenu += Latex.tableau(contenu_frais_client, structure_frais_client, legende_frais_client)
 
-        dico_recap_compte = {'procedes': "%.2f" % scl['mt'], 'total': "%.2f" % scl['somme_t']}
+        dico_recap_compte = {'procedes': "%.2f" % scl['mt'], 'total': "%.2f" % (scl['somme_t']-scl['r'])}
 
         contenu_recap_compte += r'''Total article & & %(procedes)s''' % dico_recap_compte
 

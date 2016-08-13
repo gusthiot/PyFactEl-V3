@@ -81,7 +81,7 @@ reservations.calcul_montants(machines, coefmachines, clients, verification)
 acces.calcul_montants(machines, coefmachines, comptes, clients, verification)
 
 sommes = Sommes(verification, generaux)
-sommes.calculer_toutes(livraisons, reservations, acces, prestations, comptes, clients, machines)
+sommes.calculer_toutes(livraisons, reservations, acces, prestations, clients, machines)
 
 if edition.version == '0':
     dossier_csv = Outils.chemin_dossier([dossier_enregistrement, "csv_0"], plateforme, generaux)

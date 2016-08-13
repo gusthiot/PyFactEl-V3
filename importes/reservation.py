@@ -104,27 +104,24 @@ class Reservation(Fichier):
             donnee['duree_fact_hp'] = duree_fact_hp
             donnee['duree_fact_hc'] = duree_fact_hc
 
-            # if code_client not in self.sommes:
-            #     self.sommes[code_client] = {}
-            # scl = self.sommes[code_client]
-            # if id_compte not in scl:
-            #     scl[id_compte] = {}
-            # sco = scl[id_compte]
-            # if id_machine not in sco:
-            #     sco[id_machine] = {'res_hp': 0, 'ann_hp': 0,
-            #                     'res_hc': 0, 'ann_hc': 0}
-            #
-            # if donnee['si_supprime'] == 'OUI':
-            #     sco[id_machine]['ann_hp'] += duree_fact_hp
-            #     sco[id_machine]['ann_hc'] += duree_fact_hc
-            # else:
-            #     sco[id_machine]['res_hp'] += duree_fact_hp
-            #     sco[id_machine]['res_hc'] += duree_fact_hc
-            #
-            # if id_machine not in scl:
-            #     pu_hp = round(coefmachine['coef_r'] * machine['t_h_reservation_hp'], 2)
-            #     pu_hc = round(coefmachine['coef_r'] * machine['t_h_reservation_hc'], 2)
-            #     scl[id_machine] = {'pu_hp': pu_hp, 'pu_hc': pu_hc}
+            if code_client not in self.sommes:
+                self.sommes[code_client] = {'client': {}, 'machines': {}}
+            scl = self.sommes[code_client]
+            if id_machine not in scl['client']:
+                scl['client'][id_machine] = {'res_hp': 0, 'ann_hp': 0,
+                                'res_hc': 0, 'ann_hc': 0}
+
+            if donnee['si_supprime'] == 'OUI':
+                scl['client'][id_machine]['ann_hp'] += duree_fact_hp
+                scl['client'][id_machine]['ann_hc'] += duree_fact_hc
+            else:
+                scl['client'][id_machine]['res_hp'] += duree_fact_hp
+                scl['client'][id_machine]['res_hc'] += duree_fact_hc
+
+            if id_machine not in scl['machines']:
+                pu_hp = round(coefmachine['coef_r'] * machine['t_h_reservation_hp'], 2)
+                pu_hc = round(coefmachine['coef_r'] * machine['t_h_reservation_hc'], 2)
+                scl['machines'][id_machine] = {'pu_hp': pu_hp, 'pu_hc': pu_hc}
 
             donnees_list.append(donnee)
 
