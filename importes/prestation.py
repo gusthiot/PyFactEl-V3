@@ -7,7 +7,7 @@ class Prestation(Fichier):
     Classe pour l'importation des données de Prestations du catalogue
     """
 
-    cles = ['annee', 'mois', 'id_prestation', 'designation', 'categorie', 'unite_prest', 'prix_unit',
+    cles = ['annee', 'mois', 'id_prestation', 'no_prestation', 'designation', 'categorie', 'unite_prest', 'prix_unit',
             'val_moy_achat', 'cout_unit', 'prix_rev_unit']
     nom_fichier = "prestation.csv"
     libelle = "Prestations"

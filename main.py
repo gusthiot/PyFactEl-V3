@@ -16,7 +16,18 @@ Options:
 import sys
 from docopt import docopt
 
-from importes import Client, Acces, CoefMachine, CoefPrest, Compte, Livraison, Machine, Prestation, Reservation, DossierSource, DossierDestination
+from importes import (Client,
+                      Acces,
+                      CoefMachine,
+                      CoefPrest,
+                      Compte,
+                      Livraison,
+                      Machine,
+                      Prestation,
+                      Reservation,
+                      Couts,
+                      DossierSource,
+                      DossierDestination)
 from outils import Outils
 from parametres import Edition, Generaux
 from traitement import Annexes, BilanMensuel, Facture, Sommes, Verification
@@ -47,17 +58,18 @@ livraisons = Livraison(dossier_source)
 machines = Machine(dossier_source)
 prestations = Prestation(dossier_source)
 reservations = Reservation(dossier_source)
+couts = Couts(dossier_source)
 
 generaux = Generaux(dossier_source)
 
 verification = Verification()
 
 if verification.verification_date(edition, acces, clients, coefmachines, coefprests, comptes, livraisons, machines,
-                                  prestations, reservations) > 0:
+                                  prestations, reservations, couts) > 0:
     sys.exit("Erreur dans les dates")
 
 if verification.verification_cohérence(generaux, edition, acces, clients, coefmachines, coefprests, comptes, livraisons,
-                                       machines, prestations, reservations) > 0:
+                                       machines, prestations, reservations, couts) > 0:
     sys.exit("Erreur dans la cohérence")
 
 dossier_enregistrement = Outils.chemin_dossier([generaux.chemin, edition.annee,
@@ -65,7 +77,7 @@ dossier_enregistrement = Outils.chemin_dossier([generaux.chemin, edition.annee,
 dossier_lien = Outils.lien_dossier([generaux.lien, edition.annee, Outils.mois_string(edition.mois)],
                                    plateforme, generaux)
 livraisons.calcul_montants(prestations, coefprests, comptes, clients, verification)
-reservations.calcul_montants(machines, coefmachines, comptes, clients, verification)
+reservations.calcul_montants(machines, coefmachines, clients, verification)
 acces.calcul_montants(machines, coefmachines, comptes, clients, verification)
 
 sommes = Sommes(verification, generaux)

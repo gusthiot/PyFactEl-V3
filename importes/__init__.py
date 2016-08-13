@@ -8,4 +8,5 @@ from .livraison import Livraison
 from .machine import Machine
 from .acces import Acces
 from .reservation import Reservation
+from .couts import Couts
 from .dossier import DossierSource, DossierDestination

@@ -7,7 +7,7 @@ class Compte(Fichier):
     Classe pour l'importation des données de Comptes Cmi
     """
 
-    cles = ['annee', 'mois', 'id_compte', 'intitule', 'categorie', 'code_client', 'abrev_labo']
+    cles = ['annee', 'mois', 'id_compte', 'intitule', 'code_client', 'abrev_labo']
     nom_fichier = "compte.csv"
     libelle = "Comptes"
     

@@ -8,7 +8,7 @@ class Livraison(Fichier):
     """
 
     cles = ['annee', 'mois', 'id_compte', 'intitule_compte', 'code_client', 'abrev_labo', 'id_user', 'nom_user',
-            'prenom_user', 'num_projet', 'intitule_projet', 'id_prestation', 'designation', 'date_livraison',
+            'prenom_user', 'id_prestation', 'designation', 'date_livraison',
             'quantite', 'unite', 'rabais', 'responsable', 'id_livraison', 'date_commande', 'date_prise', 'remarque']
     nom_fichier = "lvr.csv"
     libelle = "Livraison Prestations"
@@ -115,10 +115,9 @@ class Livraison(Fichier):
             donnees_list.append(donnee)
         self.donnees = donnees_list
 
-    def livraisons_pour_projet_par_categorie(self, num_projet, id_compte, code_client, prestations):
+    def livraisons_pour_compte_par_categorie(self, id_compte, code_client, prestations):
         """
-        retourne les livraisons pour un projet donné, pour une catégorie de prestations donnée
-        :param num_projet: lenuméro de projet
+        retourne les livraisons pour un compte donné, pour une catégorie de prestations donnée
         :param id_compte: l'id du compte
         :param code_client: le code du client
         :param prestations: prestations importées et vérifiées
@@ -134,8 +133,7 @@ class Livraison(Fichier):
 
         donnees_dico = {}
         for donnee in self.donnees:
-            if (donnee['id_compte'] == id_compte) and (donnee['code_client'] == code_client) \
-                    and (donnee['num_projet'] == num_projet):
+            if (donnee['id_compte'] == id_compte) and (donnee['code_client'] == code_client):
                 categorie = prestations.donnees[donnee['id_prestation']]['categorie']
                 if categorie not in donnees_dico:
                     donnees_dico[categorie] = []

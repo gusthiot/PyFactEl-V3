@@ -135,6 +135,4 @@ class CoefPrest(Fichier):
             print("msg : " + msg)
             Outils.affiche_message(msg)
             return 1
-
-
         return 0

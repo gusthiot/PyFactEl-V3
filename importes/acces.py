@@ -8,7 +8,7 @@ class Acces(Fichier):
     """
 
     cles = ['annee', 'mois', 'id_compte', 'intitule_compte', 'code_client', 'abrev_labo', 'id_user', 'nom_user',
-            'prenom_user', 'num_projet', 'intitule_projet', 'id_machine', 'nom_machine', 'date_login',
+            'prenom_user', 'id_machine', 'nom_machine', 'date_login',
             'duree_machine_hp', 'duree_machine_hc', 'duree_operateur_hp', 'duree_operateur_hc', 'id_op', 'nom_op',
             'remarque_op', 'remarque_staff']
     nom_fichier = "cae.csv"
@@ -166,17 +166,15 @@ class Acces(Fichier):
             donnees_list.append(donnee)
         self.donnees = donnees_list
 
-    def acces_pour_projet(self, num_projet, id_compte, code_client):
+    def acces_pour_compte(self, id_compte, code_client):
         """
-        retourne toutes les données cae pour un projet donné
-        :param num_projet: le numéro du projet
+        retourne toutes les données cae pour un compte donné
         :param id_compte: l'id du compte du projet
         :param code_client: le code client du compte
         :return: les données cae pour le projet donné
         """
         donnees_list = []
         for donnee in self.donnees:
-            if (donnee['id_compte'] == id_compte) and (donnee['code_client'] == code_client) \
-                    and (donnee['num_projet'] == num_projet):
+            if (donnee['id_compte'] == id_compte) and (donnee['code_client'] == code_client):
                 donnees_list.append(donnee)
         return donnees_list

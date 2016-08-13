@@ -3,7 +3,7 @@ from erreurs import ErreurConsistance
 from collections import namedtuple
 
 _champs_article = ["code_d", "code_sap", "quantite", "unite", "type_prix",
-                   "type_rabais", "texte_sap"]
+                   "type_rabais", "texte_sap", "intitule_long", "intitule_court", "eligible_U1", "eligible_U2", "eligible_U3"]
 Article = namedtuple("Article", _champs_article)
 
 class Generaux(object):
@@ -14,8 +14,8 @@ class Generaux(object):
     nom_fichier = "paramgen.csv"
     libelle = "Paramètres Généraux"
     cles_obligatoires = ['origine', 'code_int', 'code_ext', 'commerciale', 'canal', 'secteur', 'devise', 'financier', 'fonds',
-            'entete', 'poste_emolument', 'poste_reservation',  'lien', 'chemin', 'code_t', 'code_n', 'nature_client', 'code_d', 'code_sap', 'quantite',
-            'unite', 'type_prix', 'type_rabais', 'texte_sap', 'modes', 'min_fact_rese']
+            'entete', 'poste_emolument', 'poste_reservation',  'lien', 'chemin', 'code_t', 'code_n', 'nature_client', 'avantage_DS', 'avantage_HC', 'annexe_cout', 'code_d', 'code_sap', 'quantite',
+            'unite', 'type_prix', 'type_rabais', 'texte_sap', 'intitule_long', 'intitule_court', 'eligible_U1', 'eligible_U2', 'eligible_U3', 'modes', 'min_fact_rese']
     cles_autorisees = cles_obligatoires + ['code_sap_qas']
 
     def __init__(self, dossier_source, prod2qual=None):
@@ -79,9 +79,14 @@ class Generaux(object):
                 len(self._donnees['quantite'])) or (len(self._donnees['code_d']) !=
                 len(self._donnees['unite'])) or (len(self._donnees['code_d']) !=
                 len(self._donnees['type_prix'])) or (len(self._donnees['code_d']) !=
+                len(self._donnees['intitule_long'])) or (len(self._donnees['code_d']) !=
+                len(self._donnees['intitule_court'])) or (len(self._donnees['code_d']) !=
+                len(self._donnees['eligible_U1'])) or (len(self._donnees['code_d']) !=
+                len(self._donnees['eligible_U2'])) or (len(self._donnees['code_d']) !=
+                len(self._donnees['eligible_U3'])) or (len(self._donnees['code_d']) !=
                 len(self._donnees['type_rabais'])) or (len(self._donnees['code_d']) != len(self._donnees['texte_sap'])):
             erreurs += "le nombre de colonees doit être le même pour le code D, le code SAP, la quantité, l'unité, " \
-                   "le type de prix, le type de rabais et le texte SAP\n"
+                   "le type de prix, le type de rabais, le texte SAP, l'intitulé long, l'intitulé court, l'éligible U1, l'éligible U2 et l'éligible U3\n"
 
         if erreurs != "":
             Outils.fatal(ErreurConsistance(), self.libelle + "\n" + erreurs)
@@ -132,6 +137,17 @@ class Generaux(object):
         return self._donnees['nature_client'][
             self._donnees['code_n'].index(nature_client)]
 
+    def avantage_ds_par_code_n(self, avantage_ds):
+        return self._donnees['avantage_DS'][
+            self._donnees['code_n'].index(avantage_ds)]
+
+    def avantage_hc_par_code_n(self, avantage_hc):
+        return self._donnees['avantage_HC'][
+            self._donnees['code_n'].index(avantage_hc)]
+
+    def annexe_cout_par_code_n(self, annexe_cout):
+        return self._donnees['annexe_cout'][
+            self._donnees['code_n'].index(annexe_cout)]
 
 def ajoute_accesseur_pour_valeur_unique(cls, nom, cle_csv=None):
     if cle_csv is None:
