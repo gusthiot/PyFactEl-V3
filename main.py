@@ -83,6 +83,11 @@ acces.calcul_montants(machines, coefmachines, comptes, clients, verification)
 sommes = Sommes(verification, generaux)
 sommes.calculer_toutes(livraisons, reservations, acces, prestations, clients, machines)
 
+
+Outils.affiche_message("Import, vérification et sommes OK !!!")
+sys.exit()
+
+
 if edition.version == '0':
     dossier_csv = Outils.chemin_dossier([dossier_enregistrement, "csv_0"], plateforme, generaux)
 else:
