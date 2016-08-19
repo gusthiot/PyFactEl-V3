@@ -176,14 +176,6 @@ class Sommes(object):
                         somme['sommes_cat_r'][categorie] += som_co['sommes_cat_r'][categorie]
                         somme['tot_cat'][categorie] += som_co['tot_cat'][categorie]
 
-                client = clients.donnees[code_client]
-
-                somme['somme_eq'], somme['somme_t'], somme['em'], somme['er0'], somme['er'] = \
-                    Rabais.rabais_emolument(somme['r'], somme['mt'], somme['mot'], somme['tot_cat'],
-                                            client['emol_base_mens'], client['emol_fixe'], client['coef'],
-                                            client['emol_sans_activite'])
-                somme['e'] = somme['em'] - somme['er']
-
             # réservations
             for code_client in reservations.sommes:
                 if code_client not in spcl:
@@ -201,8 +193,9 @@ class Sommes(object):
                         somme_cae_compte = acces.sommes[code_client][id_compte]
                         for id_mach in somme_cae_compte:
                             if id_mach not in somme_cae:
-                                somme_cae[id_mach] = 0
-                            somme_cae[id_mach] += somme_cae_compte[id_mach]
+                                somme_cae[id_mach] = {'duree_hp': 0, 'duree_hc': 0}
+                            somme_cae[id_mach]['duree_hp'] += somme_cae_compte[id_mach]['duree_hp']
+                            somme_cae[id_mach]['duree_hc'] += somme_cae_compte[id_mach]['duree_hc']
                 for key in somme_cae.keys():
                     if key not in machines_utilisees:
                         machines_utilisees.append(key)
@@ -222,6 +215,8 @@ class Sommes(object):
                     else:
                         pen_hp = mini_hp
                         pen_hc = mini_hc
+                    if mach_u not in reservations.sommes[code_client]['machines']:
+                        print("wtf ? ", mach_u, reservations.sommes[code_client]['machines'])
                     m_hp = round(pen_hp / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hp']
                     m_hc = round(pen_hc / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hc']
                     somme['res'][mach_u] = {'pen_hp': round(pen_hp / 60, 1),
@@ -232,6 +227,12 @@ class Sommes(object):
                 somme['rr'] = Rabais.rabais_reservation_petit_montant(somme['rm'], self.min_fact_rese)
                 somme['r'] = somme['rm'] - somme['rr']
 
+                client = clients.donnees[code_client]
+                somme['somme_eq'], somme['somme_t'], somme['em'], somme['er0'], somme['er'] = \
+                Rabais.rabais_emolument(somme['r'], somme['mt'], somme['mot'], somme['tot_cat'],
+                                        client['emol_base_mens'], client['emol_fixe'], client['coef'],
+                                        client['emol_sans_activite'])
+                somme['e'] = somme['em'] - somme['er']
 
             # print("")
             # print("spcl")

@@ -14,7 +14,6 @@ class CoefPrest(Fichier):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.classes = []
-        self.noms_cat = {}
 
     def obtenir_classes(self):
         """
@@ -27,21 +26,6 @@ class CoefPrest(Fichier):
             Outils.affiche_message(info)
             return []
         return self.classes
-
-    def obtenir_noms_categories(self, categorie):
-        """
-        retourne le nom lié à une catégorie
-        :return: nom lié à une catégorie
-        """
-        if self.verifie_coherence == 0:
-            info = self.libelle + ". vous devez vérifier la cohérence avant de pouvoir obtenir les catégories"
-            print(info)
-            Outils.affiche_message(info)
-            return []
-        if categorie not in self.noms_cat:
-            return categorie
-        else:
-            return self.noms_cat[categorie]
 
     def contient_categorie(self, categorie):
         """
@@ -106,9 +90,6 @@ class CoefPrest(Fichier):
                 else:
                     msg += "Couple categorie '" + donnee['categorie'] + "' et classe de tarif '" + \
                            donnee['id_classe_tarif'] + "' de la ligne " + str(ligne) + " pas unique\n"
-
-            if donnee['categorie'] not in self.noms_cat:
-                self.noms_cat[donnee['categorie']] = donnee['nom_categorie']
 
             donnee['coefficient'], info = Outils.est_un_nombre(donnee['coefficient'], "le coefficient", ligne)
             msg += info

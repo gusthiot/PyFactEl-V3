@@ -108,8 +108,7 @@ class Reservation(Fichier):
                 self.sommes[code_client] = {'client': {}, 'machines': {}}
             scl = self.sommes[code_client]
             if id_machine not in scl['client']:
-                scl['client'][id_machine] = {'res_hp': 0, 'ann_hp': 0,
-                                'res_hc': 0, 'ann_hc': 0}
+                scl['client'][id_machine] = {'res_hp': 0, 'ann_hp': 0, 'res_hc': 0, 'ann_hc': 0}
 
             if donnee['si_supprime'] == 'OUI':
                 scl['client'][id_machine]['ann_hp'] += duree_fact_hp

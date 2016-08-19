@@ -84,8 +84,8 @@ sommes = Sommes(verification, generaux)
 sommes.calculer_toutes(livraisons, reservations, acces, prestations, clients, machines)
 
 
-Outils.affiche_message("Import, vérification et sommes OK !!!")
-sys.exit()
+# Outils.affiche_message("Import, vérification et sommes OK !!!")
+# sys.exit()
 
 
 if edition.version == '0':
@@ -120,7 +120,7 @@ if Latex.possibles():
                     dossier_annexes, plateforme, coefprests, coefmachines, generaux)
 
 BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces,
-                   reservations, livraisons, comptes)
+                   reservations, livraisons)
 
 for fichier in [acces.nom_fichier, clients.nom_fichier, coefmachines.nom_fichier, coefprests.nom_fichier,
                   comptes.nom_fichier, livraisons.nom_fichier, machines.nom_fichier, prestations.nom_fichier,

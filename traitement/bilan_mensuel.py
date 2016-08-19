@@ -7,8 +7,7 @@ class BilanMensuel(object):
     """
 
     @staticmethod
-    def bilan(dossier_destination, edition, sommes, clients, generaux, acces, reservations, livraisons,
-              comptes):
+    def bilan(dossier_destination, edition, sommes, clients, generaux, acces, reservations, livraisons):
         """
         création du bilan
 
@@ -20,7 +19,6 @@ class BilanMensuel(object):
         :param acces: accès importés
         :param reservations: réservations importés
         :param livraisons: livraisons importées
-        :param comptes: comptes importés
         """
 
         if sommes.calculees == 0:
@@ -36,8 +34,7 @@ class BilanMensuel(object):
 
             ligne = ["année", "mois", "référence", "code client", "code client sap", "abrév. labo", "nom labo",
                      "type client", "nature client", "Em base", "somme EQ", "rabais Em", "règle", "nb utilisateurs",
-                     "nb tot comptes", "nb comptes cat 1", "nb comptes cat 2", "nb comptes cat 3", "nb comptes cat 4",
-                     "total M cat 1", "total M cat 2", "total M cat 3", "total M cat 4", "MAt", "MOt", "DSt", "DHt",
+                     "MAt", "MOt", "DSt", "DHt",
                      "Et", "Rt", "Mt"]
             for categorie in generaux.codes_d3():
                 ligne.append(categorie + "t")
@@ -46,29 +43,16 @@ class BilanMensuel(object):
 
             for code_client in sorted(sommes.sommes_clients.keys()):
                 scl = sommes.sommes_clients[code_client]
-                sca = sommes.sommes_categories[code_client]
                 client = clients.donnees[code_client]
                 nature = generaux.nature_client_par_code_n(client['type_labo'])
                 reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
                 nb_u = len(BilanMensuel.utilisateurs(acces, livraisons, reservations, code_client))
-                cptes = BilanMensuel.comptes(acces, livraisons, reservations, code_client)
-                cat = {'1': 0, '2': 0, '3': 0, '4': 0}
-                nb_c = 0
-                for cpte in cptes:
-                    nb_c += 1
-                    cat[comptes.donnees[cpte]['categorie']] += 1
-
-                mk = {'1': 0, '2': 0, '3': 0, '4': 0}
-                for num in mk.keys():
-                    if num in sca:
-                        mk[num] = sca[num]['mk']
 
                 total = scl['somme_t'] + scl['e']
 
                 ligne = [edition.annee, edition.mois, reference, code_client, client['code_sap'], client['abrev_labo'],
                          client['nom_labo'], 'U', client['type_labo'], scl['em'], "%.2f" % scl['somme_eq'], scl['er'],
-                         client['emol_sans_activite'], nb_u, nb_c, cat['1'], cat['2'], cat['3'], cat['4'],
-                         "%.2f" % mk['1'], "%.2f" % mk['2'], "%.2f" % mk['3'], "%.2f" % mk['4'], "%.2f" % scl['mat'],
+                         client['emol_sans_activite'], nb_u, "%.2f" % scl['mat'],
                          scl['mot'], scl['dst'], scl['dht'], scl['e'], scl['r'], "%.2f" % scl['mt']]
                 for categorie in generaux.codes_d3():
                     ligne.append(scl['tot_cat'][categorie])

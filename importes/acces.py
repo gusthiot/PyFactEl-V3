@@ -158,10 +158,9 @@ class Acces(Fichier):
                 scl[id_compte] = {}
             sco = scl[id_compte]
             if id_machine not in sco:
-                sco[id_machine] = {'duree_hp': donnee['duree_machine_hp'], 'duree_hc': donnee['duree_machine_hc']}
-            else:
-                sco[id_machine]["duree_hp"] += donnee['duree_machine_hp']
-                sco[id_machine]['duree_hc'] += donnee['duree_machine_hc']
+                sco[id_machine] = {'duree_hp': 0, 'duree_hc': 0}
+            sco[id_machine]['duree_hp'] += donnee['duree_machine_hp']
+            sco[id_machine]['duree_hc'] += donnee['duree_machine_hc']
 
             donnees_list.append(donnee)
         self.donnees = donnees_list
