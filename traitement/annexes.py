@@ -162,6 +162,24 @@ class Annexes(object):
             \hline
             '''
 
+        contenu_procedes_client = r'''
+            \cline{2-6}
+            \multicolumn{1}{r}{} & \multicolumn{5}{|c|}{Procédés} \\
+            \hline
+            Compte & Machine & Déduc. Mach. & Net Machine & M.O. opérateur & Montant net \\
+            \hline
+            '''
+
+        contenu_prestations_client_tab = {}
+        for article in generaux.articles_d3:
+            contenu_prestations_client_tab[article.code_d] = r'''
+                \cline{2-4}
+                \multicolumn{1}{c}{} & \multicolumn{3}{|c|}{''' + article. intitule_long + r'''} \\
+                \hline
+                Compte & Montant & Rabais & Montant net \\
+                \hline
+                '''
+
         client_comptes = sommes.sommes_comptes[code_client]
         contenu_compte_annexe3 = ""
         contenu_compte_annexe4 = ""
@@ -173,16 +191,6 @@ class Annexes(object):
             sco = sommes.sommes_comptes[code_client][id_compte]
             compte = comptes.donnees[id_compte]
             intitule_compte = id_compte + " - " + Latex.echappe_caracteres(compte['intitule'])
-
-            # ## Annexe 3
-
-            dico_nom = {'labo': Latex.echappe_caracteres(client['abrev_labo']),
-                        'compte': Latex.echappe_caracteres(compte['intitule']),
-                        'date': edition.mois_txt + " " + str(edition.annee)}
-            contenu_compte_annexe3 += r'''
-                \clearpage
-                Annexe 3 : %(labo)s - %(compte)s - %(date)s
-                ''' % dico_nom
 
             # ## ligne récapitulatif comptes pour client
 
@@ -196,41 +204,105 @@ class Annexes(object):
                 contenu_recap_compte += r''' & ''' + "%.2f" % sco['tot_cat'][categorie]
 
             contenu_recap_compte += r'''& %(total)s \\
-                    \hline
-                    ''' % dico_recap_compte
+                \hline
+                ''' % dico_recap_compte
+
+            # ## ligne coûts procédés pour client
+
+            dico_procedes_client = {'intitule': intitule_compte, 'maij': "%.2f" % sco['somme_j_mai'],
+                                    'dtij': "%.2f" % sco['somme_j_mr'],
+                                    'nmij': "%.2f" % (sco['somme_j_mai'] - sco['somme_j_mr']),
+                                    'moij': "%.2f" % sco['somme_j_moi'], 'mj': "%.2f" % sco['mj']}
+            contenu_procedes_client += r'''
+                %(intitule)s & %(maij)s & %(dtij)s & %(nmij)s & %(moij)s & %(mj)s \\
+                \hline
+                ''' % dico_procedes_client
+
+            # ## ligne prestations livrées pour client
+
+            for article in generaux.articles_d3:
+                dico_prestations_client = {'intitule': intitule_compte,
+                                           'cmj': "%.2f" % sco['sommes_cat_m'][article.code_d],
+                                           'crj': "%.2f" % sco['sommes_cat_r'][article.code_d],
+                                           'cj': "%.2f" % sco['tot_cat'][article.code_d]}
+                contenu_prestations_client_tab[article.code_d] += r'''
+                %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
+                \hline
+                ''' % dico_prestations_client
+
+            # ## Annexe 3
+
+            dico_nom = {'labo': Latex.echappe_caracteres(client['abrev_labo']),
+                        'compte': Latex.echappe_caracteres(compte['intitule']),
+                        'date': edition.mois_txt + " " + str(edition.annee)}
+            contenu_compte_annexe3 += r'''
+                \clearpage
+                Annexe 3 : %(labo)s - %(compte)s - %(date)s
+                ''' % dico_nom
 
             # ## récapitulatif postes pour compte
 
-            structure_recap_poste = r'''{|l|r|r|r|}'''
+            structure_recap_poste = r'''{|l|c|c|c|c|c|}'''
             legende_recap_poste = r'''Récapitulatif postes pour compte ''' + intitule_compte
 
-            dico_recap_poste = {'maij': "%.2f" % sco['somme_j_mai'], 'moij': "%.2f" % sco['somme_j_moi'],
-                                'mrj': "%.2f" % sco['somme_j_mr'], 'mj': "%.2f" % sco['mj']}
+            dico_recap_poste = {'mm': "%.2f" % sco['somme_j_mm'], 'mr': "%.2f" % sco['somme_j_mr'],
+                                'maij': "%.2f" % sco['somme_j_mai'], 'dsij': "%.2f" % sco['somme_j_dsi'],
+                                'dhij': "%.2f" % sco['somme_j_dhi'], 'mj': "%.2f" % sco['mj'],
+                                'nmij': "%.2f" % (sco['somme_j_mai']-sco['somme_j_mr']),
+                                'moij': "%.2f" % sco['somme_j_moi']}
 
             contenu_recap_poste = r'''
+                \cline{2-6}
+                \multicolumn{1}{r|}{} & Montant & Déduc. Sp. & Déduc. HC & Rabais T. & Net \\
                 \hline
-                Compte : ''' + intitule_compte + r''' & \multicolumn{1}{l|}{Montant} & \multicolumn{1}{l|}{Rabais}
-                & \multicolumn{1}{l|}{Total} \\
+                Procédés & %(mm)s &  &  & %(mr)s & %(mj)s \\
                 \hline
-                Machine & %(maij)s & \multirow{2}{*}{%(mrj)s} & \multirow{2}{*}{%(mj)s} \\
-                \cline{1-2}
-                Main d'oeuvre & %(moij)s &  &  \\
+                \hspace{5mm} \textit{Machine} & \textit{%(maij)s} & \textit{%(dsij)s} & \textit{%(dhij)s}  &
+                    \textit{%(mr)s}  & \textit{%(nmij)s} \\
+                \hline
+                \hspace{5mm} \textit{Main d'oeuvre} & \textit{%(moij)s} &  &  &  & \textit{%(moij)s}  \\
                 \hline
                 ''' % dico_recap_poste
 
             for article in generaux.articles_d3:
-                categorie = article.code_d
                 contenu_recap_poste += Latex.echappe_caracteres(article.intitule_long)
-                contenu_recap_poste += r''' & ''' + "%.2f" % sco['sommes_cat_m'][categorie]
-                contenu_recap_poste += r''' & ''' + "%.2f" % sco['sommes_cat_r'][categorie]
-                contenu_recap_poste += r''' & ''' + "%.2f" % sco['tot_cat'][categorie]
+                contenu_recap_poste += r''' & ''' + "%.2f" % sco['sommes_cat_m'][article.code_d]
+                contenu_recap_poste += r''' & & &  ''' + "%.2f" % sco['sommes_cat_r'][article.code_d]
+                contenu_recap_poste += r''' & ''' + "%.2f" % sco['tot_cat'][article.code_d]
                 contenu_recap_poste += r''' \\
                     \hline
                     '''
 
+            total = 0
+            contenu_recap_poste += r'''\multicolumn{5}{|r|}{Total} & ''' + "%.2f" % total + r'''\\
+                \hline
+                '''
+
             contenu_compte_annexe3 += Latex.tableau(contenu_recap_poste, structure_recap_poste, legende_recap_poste)
 
             # ## T2 : durée utilisée compte
+
+            structure_utilise_compte = r'''{|l|c|c|c|c|c|c|c|c|c|c|c|}'''
+            legende_utilise_compte = r'''Procédés (machine + main d'oeuvre) pour compte ''' + intitule_compte
+
+            contenu_utilise_compte = r'''
+                \cline{3-11}
+                \multicolumn{2}{c}{} & \multicolumn{2}{|c|}{Machine} & \multicolumn{2}{l|}{PU [CHF/h]} & \multicolumn{5}{l|}{Montant [CHF]} \\
+                \hline
+                ''' + intitule_compte + r''' & & Mach. & Oper. & Mach. & Oper. & Machine & Déduc. Sp. & Déduc. HC & Net & M.O. \\
+                \hline
+                '''
+
+            dico_utilise_compte = {'maij': "%.2f" % sco['somme_j_mai'], 'dsij': "%.2f" % sco['somme_j_dsi'],
+                                   'dhij': "%.2f" % sco['somme_j_dhi'], 'moij': "%.2f" % sco['somme_j_moi'],
+                                   'nmij': "%.2f" % (sco['somme_j_mai']-sco['somme_j_mr'])
+                                }
+            contenu_utilise_compte += r'''
+                \multicolumn{6}{|r|}{Total} & %(maij)s & %(dsij)s & %(dhij)s & %(nmij)s & %(moij)s \\
+                \hline
+                ''' % dico_utilise_compte
+
+            contenu_compte_annexe3 += Latex.tableau(contenu_utilise_compte, structure_utilise_compte, legende_utilise_compte)
 
             # ## Annexe 4
 
@@ -244,11 +316,88 @@ class Annexes(object):
 
             # ## T1 : prestations livrées compte
 
+            structure_prestations_compte = r'''{|l|l|c|c|c|c|c|c|}'''
+            legende_prestations_compte = r'''Détails prestations livrées pour compte ''' + intitule_compte
+
+            contenu_prestations_compte = r'''
+                \hline
+                \multicolumn{2}{|l|}{''' + intitule_compte + r'''} & Q & Unité & PU & Montant & Rabais & Total \\
+                \hline
+                '''
+            i = 0
+            for article in generaux.articles_d3:
+                dico_prestations_compte = {'smj': "%.2f" % sco['sommes_cat_m'][article.code_d],
+                                           'srj': "%.2f" % sco['sommes_cat_r'][article.code_d],
+                                           'sj': "%.2f" % sco['tot_cat'][article.code_d]}
+                if i == 0:
+                    i += 1
+                else:
+                    contenu_prestations_compte += r'''\multicolumn{8}{c}{} \\
+                        \hline
+                        '''
+                contenu_prestations_compte += r'''
+                    \multicolumn{5}{|l|}{''' + article.intitule_long + r'''} & %(smj)s & %(srj)s & %(sj)s \\
+                    \hline
+                    ''' % dico_prestations_compte
+
+            contenu_compte_annexe4 += Latex.tableau(contenu_prestations_compte, structure_prestations_compte, legende_prestations_compte)
+
             # ## T2 : coûts éligibles
+
+            structure_eligibles_compte = r'''{|c|c|c|c|}'''
+            for i in range(1,4):
+                legende_eligibles_compte = r'''Coûts d'utilisation (U''' + str(i) + r''') pour compte ''' + intitule_compte
+
+                contenu_eligibles_compte = r'''
+                    \hline
+                    Mach. U''' + str(i) + r''' & M.O. & Prest. Livr. & Total \\
+                    \hline
+                    '''
+
+                contenu_compte_annexe4 += Latex.tableau(contenu_eligibles_compte, structure_eligibles_compte, legende_eligibles_compte)
 
             # ## T3 : coûts éligibles machines
 
+            structure_machines_compte = r'''{|l|c|c|c|c|c|c|c|}'''
+            for i in range(1,4):
+                legende_machines_compte = r'''Coûts procédés éligibles (U''' + str(i) + r''') pour compte ''' + intitule_compte
+
+                contenu_machines_compte = r'''
+                    \cline{3-8}
+                    \multicolumn{2}{r}{} & \multicolumn{2}{|c|}{Machine} & \multicolumn{2}{c|}{PU [CHF/h]} & \multicolumn{2}{c|}{Montant [CHF]} \\
+                    \hline
+                    ''' + intitule_compte + r''' & Mach. & Oper. & PU''' + str(i) + r''' & M.O. & Mach.& U''' + str(i) + r''' & M.O. \\
+                    \hline
+                    '''
+
+                contenu_machines_compte += r'''
+                    \multicolumn{6}{|r|}{Total} & & \\
+                    \hline
+                    '''
+
+                contenu_compte_annexe4 += Latex.tableau(contenu_machines_compte, structure_machines_compte, legende_machines_compte)
+
             # ## T4 : coûts éligibles prestations
+
+            structure_livraisons_compte = r'''{|l|c|}'''
+            legende_livraisons_compte = r'''Prestations livrées éligibles pour compte ''' + intitule_compte
+
+            contenu_livraisons_compte = r'''
+                \hline
+                '''
+            total = 0
+            for article in generaux.articles_d3:
+                total += sco['tot_cat'][article.code_d]
+                contenu_livraisons_compte += r'''
+                    ''' + article.intitule_long + r'''&''' + "%.2f" % sco['tot_cat'][article.code_d] + r''' \\
+                    \hline
+                    '''
+            contenu_livraisons_compte += r'''
+                Total Pres. Livr. &''' + "%.2f" % total + r''' \\
+                \hline
+                '''
+
+            contenu_compte_annexe4 += Latex.tableau(contenu_livraisons_compte, structure_livraisons_compte, legende_livraisons_compte)
 
             # ## compte
 
@@ -292,12 +441,11 @@ class Annexes(object):
             ''' % dico_recap_poste_cl
 
         for article in generaux.articles_d3:
-            categorie = article.code_d
             contenu_recap_poste_cl += Latex.echappe_caracteres(article.intitule_long)
             contenu_recap_poste_cl += r''' & '''
-            contenu_recap_poste_cl += "%.2f" % scl['sommes_cat_m'][categorie] + r''' & '''
-            contenu_recap_poste_cl += "%.2f" % scl['sommes_cat_r'][categorie] + r''' & '''
-            contenu_recap_poste_cl += "%.2f" % scl['tot_cat'][categorie] + r''' \\
+            contenu_recap_poste_cl += "%.2f" % scl['sommes_cat_m'][article.code_d] + r''' & '''
+            contenu_recap_poste_cl += "%.2f" % scl['sommes_cat_r'][article.code_d] + r''' & '''
+            contenu_recap_poste_cl += "%.2f" % scl['tot_cat'][article.code_d] + r''' \\
                 \hline
                 '''
 
@@ -332,51 +480,92 @@ class Annexes(object):
         # ## pénalités réservation
 
         if scl['r'] > 0:
-            structure_frais_client = r'''{|l|c|r|r|r|}'''
-            legende_frais_client = r'''Frais de réservation/utilisation par machine pour client : ''' + intitule_client
+            structure_frais_client = r'''{|l|c|c|c|c|c|c|r|r|}'''
+            legende_frais_client = r'''Pénalités réservation pour client : ''' + intitule_client
 
             contenu_frais_client = r'''
-                    \hline
-                    Equipement & & Pénalités [h] & PU & Montant \\
-                    \hline
-                    '''
-            machines_utilisees = {}
-            for key in scl['res']:
-                machines_utilisees[key] = {'machine': machines.donnees[key]['nom']}
-
-            for machine_t in sorted(machines_utilisees.items(), key=lambda k_v: k_v[1]['machine']):
-                machine = machine_t[1]
-                id_mach = machine_t[0]
-                som_m = scl['res'][id_mach]
-                if som_m['pen_hp'] > 0 or som_m['pen_hc'] > 0:
-
-                    dico_frais_client = {
-                        'machine': Latex.echappe_caracteres(machine['machine']),
-                        'pen_hp': "%.1f" % som_m['pen_hp'], 'pen_hc': "%.1f" % som_m['pen_hc'],
-                        'mont_hp': Outils.format_si_nul(som_m['m_hp']), 'mont_hc': Outils.format_si_nul(som_m['m_hc']),
-                        'pu_hp': Outils.format_si_nul(reservations.sommes[code_client]['machines'][id_mach]['pu_hp']),
-                        'pu_hc': Outils.format_si_nul(reservations.sommes[code_client]['machines'][id_mach]['pu_hc'])}
-
-                    if som_m['pen_hp'] > 0:
-                        contenu_frais_client += r'''%(machine)s & HP &  %(pen_hp)s & %(pu_hp)s & %(mont_hp)s \\
-                            \hline
-                            ''' % dico_frais_client
-
-                    if som_m['pen_hc'] > 0:
-                        contenu_frais_client += r'''%(machine)s & HC &  %(pen_hc)s & %(pu_hc)s & %(mont_hc)s \\
-                            \hline
-                            ''' % dico_frais_client
+                \cline{3-9}
+                \multicolumn{2}{c}{} & \multicolumn{3}{|c|}{Réservation} & Utilis. & Pénal. & PU & Montant \\
+                \cline{3-9}
+                \multicolumn{2}{c|}{} & Durée & Taux & Util Min & Durée & Durée & CHF/h & CHF \\
+                \hline
+                '''
+            # machines_utilisees = {}
+            # for key in scl['res']:
+            #     machines_utilisees[key] = {'machine': machines.donnees[key]['nom']}
+            #
+            # for machine_t in sorted(machines_utilisees.items(), key=lambda k_v: k_v[1]['machine']):
+            #     machine = machine_t[1]
+            #     id_mach = machine_t[0]
+            #     som_m = scl['res'][id_mach]
+            #     if som_m['pen_hp'] > 0 or som_m['pen_hc'] > 0:
+            #
+            #         dico_frais_client = {
+            #             'machine': Latex.echappe_caracteres(machine['machine']),
+            #             'pen_hp': "%.1f" % som_m['pen_hp'], 'pen_hc': "%.1f" % som_m['pen_hc'],
+            #             'mont_hp': Outils.format_si_nul(som_m['m_hp']), 'mont_hc': Outils.format_si_nul(som_m['m_hc']),
+            #             'pu_hp': Outils.format_si_nul(reservations.sommes[code_client]['machines'][id_mach]['pu_hp']),
+            #             'pu_hc': Outils.format_si_nul(reservations.sommes[code_client]['machines'][id_mach]['pu_hc'])}
+            #
+            #         if som_m['pen_hp'] > 0:
+            #             contenu_frais_client += r'''%(machine)s & HP &  %(pen_hp)s & %(pu_hp)s & %(mont_hp)s \\
+            #                 \hline
+            #                 ''' % dico_frais_client
+            #
+            #         if som_m['pen_hc'] > 0:
+            #             contenu_frais_client += r'''%(machine)s & HC &  %(pen_hc)s & %(pu_hc)s & %(mont_hc)s \\
+            #                 \hline
+            #                 ''' % dico_frais_client
+            #
+            # contenu_frais_client += r'''
+            #     \multicolumn{4}{|r|}{Total} & ''' + Outils.format_si_nul(scl['r']) + r'''\\
+            #     \hline
+            #     '''
 
             contenu_frais_client += r'''
-                \multicolumn{4}{|r|}{Total} & ''' + Outils.format_si_nul(scl['r']) + r'''\\
+                \multicolumn{8}{|r|}{Total} & ''' + "%.2f" % scl['r'] + r''' \\
                 \hline
                 '''
 
-        #    contenu += Latex.tableau(contenu_frais_client, structure_frais_client, legende_frais_client)
+            contenu += Latex.tableau(contenu_frais_client, structure_frais_client, legende_frais_client)
 
-        # ## T4 : coûts procédés
+        # ## coûts procédés
 
-        # ## T5 : prestations livrées
+        structure_procedes_client = r'''{|l|c|c|c|c|c|}'''
+        legende_procedes_client = r'''Récapitulatif des coûts procédés pour client : ''' + intitule_client
+
+        dico_procedes_client = {'mat': "%.2f" % scl['mat'], 'dti': "%.2f" % scl['somme_t_mr'],
+                                'nmi': "%.2f" % (scl['mat']-scl['somme_t_mr']),
+                                'mot': "%.2f" % scl['mot'], 'mt': "%.2f" % scl['mt']}
+        contenu_procedes_client += r'''
+            Total article & %(mat)s & %(dti)s & %(nmi)s & %(mot)s & %(mt)s \\
+            \hline
+            ''' % dico_procedes_client
+
+        contenu += Latex.tableau(contenu_procedes_client, structure_procedes_client, legende_procedes_client)
+
+        # ## prestations livrées
+
+        structure_prestations_client = r'''{|l|c|c|c|}'''
+        legende_prestations_client = r'''Récapitulatif des prestations livrées pour client : ''' + intitule_client
+
+        contenu_prestations_client = ""
+        i = 0
+        for article in generaux.articles_d3:
+            dico_prestations_client = {'cmt': "%.2f" % scl['sommes_cat_m'][article.code_d],
+                                       'crt': "%.2f" % scl['sommes_cat_r'][article.code_d],
+                                       'ct': "%.2f" % scl['tot_cat'][article.code_d]}
+            contenu_prestations_client_tab[article.code_d] += r'''
+            Total article & %(cmt)s & %(crt)s & %(ct)s \\
+            \hline
+            ''' % dico_prestations_client
+            if i == 0:
+                i += 1
+            else:
+                contenu_prestations_client += r'''\multicolumn{4}{c}{} \\'''
+            contenu_prestations_client += contenu_prestations_client_tab[article.code_d]
+
+        contenu += Latex.tableau(contenu_prestations_client, structure_prestations_client, legende_prestations_client)
 
         # ## récapitulatif comptes pour client
 
@@ -390,8 +579,8 @@ class Annexes(object):
             contenu_recap_compte += r''' & ''' + "%.2f" % scl['tot_cat'][categorie]
 
         contenu_recap_compte += r'''& %(total)s \\
-                \hline
-                ''' % dico_recap_compte
+            \hline
+            ''' % dico_recap_compte
 
         contenu += Latex.tableau(contenu_recap_compte, structure_recap_compte, legende_recap_compte)
 
@@ -408,7 +597,31 @@ class Annexes(object):
 
         # ## T1 : durée réservée client
 
+        structure_reserve_client = r'''{|c|c|c|c|c|}'''
+        legende_reserve_client = r'''Détail réservations machines pour client : ''' + intitule_client
+
+        contenu_reserve_client = r'''
+            \cline{4-5}
+            \multicolumn{3}{c}{} & \multicolumn{2}{|c|}{Durée réservée} \\
+            \cline{4-5}
+            \multicolumn{3}{c|}{} & HP & HC \\
+            \hline
+            '''
+
+        contenu += Latex.tableau(contenu_reserve_client, structure_reserve_client, legende_reserve_client)
+
         # ## T2 : durée utilisée client
+
+        structure_utilise_client = r'''{|l|c|c|}'''
+        legende_utilise_client = r'''Récapitulatif heures machines par utilisateur pour client : ''' + intitule_client
+
+        contenu_utilise_client = r'''
+            \cline{2-3}
+            \multicolumn{1}{c|}{} & HP & HC \\
+            \hline
+            '''
+
+        contenu += Latex.tableau(contenu_utilise_client, structure_utilise_client, legende_utilise_client)
 
         contenu += contenu_compte_annexe3
         contenu += contenu_compte_annexe4

@@ -215,10 +215,13 @@ class Sommes(object):
                     else:
                         pen_hp = mini_hp
                         pen_hc = mini_hc
-                    if mach_u not in reservations.sommes[code_client]['machines']:
-                        print("wtf ? ", mach_u, reservations.sommes[code_client]['machines'])
-                    m_hp = round(pen_hp / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hp']
-                    m_hc = round(pen_hc / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hc']
+                    if mach_u in somme_res:
+                        m_hp = round(pen_hp / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hp']
+                        m_hc = round(pen_hc / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hc']
+                    else:
+                        m_hp = 0
+                        m_hc = 0
+
                     somme['res'][mach_u] = {'pen_hp': round(pen_hp / 60, 1),
                                             'pen_hc': round(pen_hc / 60, 1),
                                             'm_hp': m_hp, 'm_hc': m_hc}
