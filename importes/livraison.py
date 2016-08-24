@@ -16,6 +16,7 @@ class Livraison(Fichier):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.comptes = {}
+        self.sommes = {}
 
     def obtenir_comptes(self):
         """
@@ -67,6 +68,9 @@ class Livraison(Fichier):
                 msg += "le prestation id '" + donnee['id_prestation'] + "' de la ligne " + str(ligne) +\
                        " n'est pas référencé\n"
 
+            id_prestation, info = Outils.est_un_nombre(donnee['id_prestation'], " (doit-il ?) "
+                                                                                          "Le id prestation", ligne)
+            msg += info
             donnee['quantite'], info = Outils.est_un_nombre(donnee['quantite'], "la quantité", ligne)
             msg += info
             donnee['rabais'], info = Outils.est_un_nombre(donnee['rabais'], "le rabais", ligne)
@@ -88,12 +92,11 @@ class Livraison(Fichier):
             return 1
         return 0
 
-    def calcul_montants(self, prestations, coefprests, comptes, clients, verification):
+    def calcul_montants(self, prestations, coefprests, clients, verification):
         """
         calcule le 'montant' et le 'rabais_r' et les ajoute aux données
         :param prestations: prestations importées et vérifiées
         :param coefprests: coefficients prestations importés et vérifiés
-        :param comptes: comptes importés et vérifiés
         :param clients: clients importés et vérifiés
         :param verification: pour vérifier si les dates et les cohérences sont correctes
         """
@@ -104,15 +107,43 @@ class Livraison(Fichier):
             return
 
         donnees_list = []
+        pos = 0
         for donnee in self.donnees:
+            id_prestation = int(donnee['id_prestation'])
+            id_compte = donnee['id_compte']
+            id_user = donnee['id_user']
+            code_client = donnee['code_client']
             prestation = prestations.donnees[donnee['id_prestation']]
-            compte = comptes.donnees[donnee['id_compte']]
-            client = clients.donnees[compte['code_client']]
+            client = clients.donnees[code_client]
             coefprest = coefprests.donnees[client['id_classe_tarif'] + prestation['categorie']]
             donnee['prix_unit_client'] = round(prestation['prix_unit'] * coefprest['coefficient'], 2)
             donnee['montant'] = round(donnee['quantite'] * donnee['prix_unit_client'], 2)
             donnee['rabais_r'] = round(donnee['rabais'], 2)
+            categorie = prestation['categorie']
+
+            if code_client not in self.sommes:
+                self.sommes[code_client] = {}
+            scl = self.sommes[code_client]
+            if id_compte not in scl:
+                scl[id_compte] = {}
+            if categorie not in scl[id_compte]:
+                scl[id_compte][categorie] = {}
+            if id_prestation not in scl[id_compte][categorie]:
+                scl[id_compte][categorie][id_prestation] = {'nom': donnee['designation'], 'unite': donnee['unite'],
+                                                                'quantite': 0, 'rabais': 0, 'users': {}}
+            scp = scl[id_compte][categorie][id_prestation]
+            scp['quantite'] += donnee['quantite']
+            scp['rabais'] += donnee['rabais_r']
+
+            if id_user not in scp['users']:
+                scp['users'][id_user] = {'nom': donnee['nom_user'], 'prenom': donnee['prenom_user'], 'quantite': 0,
+                                         'rabais': 0, 'data': []}
+            scp['users'][id_user]['quantite'] += donnee['quantite']
+            scp['users'][id_user]['rabais'] += donnee['rabais_r']
+            scp['users'][id_user]['data'].append(pos)
+
             donnees_list.append(donnee)
+            pos += 1
         self.donnees = donnees_list
 
     def livraisons_pour_compte_par_categorie(self, id_compte, code_client, prestations):

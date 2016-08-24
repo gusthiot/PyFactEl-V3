@@ -314,7 +314,7 @@ class Annexes(object):
                 Annexe 4 : %(labo)s - %(compte)s - %(date)s
                 ''' % dico_nom
 
-            # ## T1 : machines utilisées compte
+            # ## machines utilisées compte
 
             structure_machuts_compte = r'''{|l|l|l|c|c|c|c|}'''
             legende_machuts_compte = r'''Détails utilisation machines pour compte ''' + intitule_compte
@@ -408,29 +408,79 @@ class Annexes(object):
 
             # ## T2 : prestations livrées compte
 
-            structure_prestations_compte = r'''{|l|l|c|c|c|c|c|c|}'''
+            structure_prestations_compte = r'''{|l|c|c|c|}'''
             legende_prestations_compte = r'''Détails prestations livrées pour compte ''' + intitule_compte
 
             contenu_prestations_compte = r'''
-                \hline
-                \multicolumn{2}{|l|}{''' + intitule_compte + r'''} & Q & Unité & PU & Montant & Rabais & Total \\
+                \cline{2-4}
+                \multicolumn{1}{l|}{} & Quantité & Unité & Rabais \\
                 \hline
                 '''
-            i = 0
-            for article in generaux.articles_d3:
-                dico_prestations_compte = {'smj': "%.2f" % sco['sommes_cat_m'][article.code_d],
-                                           'srj': "%.2f" % sco['sommes_cat_r'][article.code_d],
-                                           'sj': "%.2f" % sco['tot_cat'][article.code_d]}
-                if i == 0:
-                    i += 1
-                else:
-                    contenu_prestations_compte += r'''\multicolumn{8}{c}{} \\
-                        \hline
-                        '''
-                contenu_prestations_compte += r'''
-                    \multicolumn{5}{|l|}{''' + article.intitule_long + r'''} & %(smj)s & %(srj)s & %(sj)s \\
-                    \hline
-                    ''' % dico_prestations_compte
+
+            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                somme = livraisons.sommes[code_client][id_compte]
+
+                i = 0
+                for article in generaux.articles_d3:
+                    if article.code_d in somme:
+                        if i == 0:
+                            i += 1
+                        else:
+                            contenu_prestations_compte += r'''\multicolumn{4}{c}{} \\
+                                \hline
+                                '''
+                        contenu_prestations_compte += r'''
+                            \multicolumn{1}{|l|}{\textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                            }} & \multicolumn{3}{c|}{} \\
+                            \hline
+                            '''
+                        for id_prestation, sip in sorted(somme[article.code_d].items()):
+                            dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': id_prestation,
+                                                'quantite': sip['quantite'], 'unite': sip['unite'],
+                                                'rabais': "%.2f" % sip['rabais']}
+                            contenu_prestations_compte += r'''
+                                %(num)s - %(nom)s & %(quantite)s & %(unite)s & %(rabais)s  \\
+                                \hline
+                                ''' % dico_prestations
+
+                            users = {}
+                            for key in sip['users']:
+                                prenom = sip['users'][key]['prenom']
+                                nom = sip['users'][key]['nom']
+                                if nom not in users:
+                                    users[nom] = {}
+                                users[nom][prenom] = key
+
+                            for nom, upi in sorted(users.items()):
+                                for prenom, id_user in sorted(upi.items()):
+                                    spu = sip['users'][id_user]
+                                    dico_user = {'user': spu['prenom'] + " " + spu['nom'], 'quantite': spu['quantite'],
+                                                 'unite': sip['unite'], 'rabais': "%.2f" % spu['rabais']}
+                                    contenu_prestations_compte += r'''
+                                        %(user)s & %(quantite)s & %(unite)s & %(rabais)s \\
+                                        \hline
+                                    ''' % dico_user
+
+                                    for pos in spu['data']:
+                                        liv = livraisons.donnees[pos]
+                                        rem = ""
+                                        if liv['remarque'] != "":
+                                            rem = "; Remarque : " + liv['remarque']
+                                        dico_pos = {'date_liv': Latex.echappe_caracteres(liv['date_livraison']),
+                                                    'quantite': liv['quantite'],'rabais': "%.2f" % liv['rabais_r'],
+                                                    'id': liv['id_livraison'], 'unite': liv['unite'],
+                                                    'responsable': Latex.echappe_caracteres(liv['responsable']),
+                                                    'commande': Latex.echappe_caracteres(liv['date_commande']),
+                                                    'remarque': Latex.echappe_caracteres(rem)}
+                                        contenu_prestations_compte += r'''
+                                            %(date_liv)s & %(quantite)s & %(unite)s & %(rabais)s \\
+                                            \hline
+                                            \multicolumn{4}{|l|}{Commande: %(commande)s; N. livraison: %(id)s; Resp:
+                                            %(responsable)s%(remarque)s} \\
+                                            \hline
+                                        ''' % dico_pos
+
+
 
             contenu_compte_annexe4 += Latex.tableau(contenu_prestations_compte, structure_prestations_compte, legende_prestations_compte)
 
@@ -792,183 +842,183 @@ class Annexes(object):
         contenu += contenu_compte_annexe4
 
         return contenu
-
-    @staticmethod
-    def ligne_cae(cae, machine, coefmachine):
-        """
-        création d'une ligne de tableau pour un accès
-        :param cae: accès particulier
-        :param machine: machine concernée
-        :param coefmachine: coefficients machine concernée
-        :return: ligne de tableau latex
-        """
-
-        login = Latex.echappe_caracteres(cae['date_login']).split()
-        temps = login[0].split('-')
-        date = temps[0]
-        for pos in range(1, len(temps)):
-            date = temps[pos] + '.' + date
-        if len(login) > 1:
-            heure = login[1]
-        else:
-            heure = ""
-
-        mai_hp = round(cae['duree_machine_hp']/60 * cae['pum'], 2)
-        mai_hc = round(cae['duree_machine_hc']/60 * cae['pum'], 2)
-        dsi_hp = round(cae['duree_machine_hp']/60 * coefmachine['coef_d'] * machine['d_h_machine_d'], 2)
-        dsi_hc = round(cae['duree_machine_hc']/60 * coefmachine['coef_d'] * machine['d_h_machine_d'], 2)
-        dhi = cae['dhi']
-        moi_hp = round(cae['duree_operateur_hp']/60 * cae['puo_hp'], 2)
-        moi_hc = round(cae['duree_operateur_hc']/60 * cae['puo_hc'], 2)
-        m_hp = mai_hp + moi_hp - dsi_hp
-        m_hc = mai_hc + moi_hc - dsi_hc - dhi
-
-        dico = {'date': date, 'heure': heure,
-                'machine': Latex.echappe_caracteres(cae['nom_machine']),
-                'operateur': Latex.echappe_caracteres(cae['nom_op']),
-                'rem_op': Latex.echappe_caracteres(cae['remarque_op']),
-                'rem_staff': Latex.echappe_caracteres(cae['remarque_staff']),
-                'tm_hp': Outils.format_heure(cae['duree_machine_hp']),
-                'to_hp': Outils.format_heure(cae['duree_operateur_hp']),
-                'tm_hc': Outils.format_heure(cae['duree_machine_hc']),
-                'to_hc': Outils.format_heure(cae['duree_operateur_hc']),
-                'pum': cae['pum'], 'puo_hp': cae['puo_hp'], 'puo_hc': cae['puo_hc'], 'mai_hp': "%.2f" % mai_hp,
-                'mai_hc': "%.2f" % mai_hc, 'dsi_hp': Outils.format_si_nul(dsi_hp),
-                'dsi_hc': Outils.format_si_nul(dsi_hc), 'dhi_hp': '-', 'dhi_hc': Outils.format_si_nul(dhi),
-                'moi_hp': "%.2f" % moi_hp, 'moi_hc': "%.2f" % moi_hc, 'm_hp': "%.2f" % m_hp, 'm_hc': "%.2f" % m_hc}
-
-        nb = 0
-        if (cae['duree_machine_hp'] > 0) or (cae['duree_operateur_hp'] > 0):
-            nb += 1
-
-        if (cae['duree_machine_hc'] > 0) or (cae['duree_operateur_hc'] > 0):
-            nb += 1
-
-        if nb == 0:
-            return "", [0, 0, 0, 0, 0]
-
-        if (cae['remarque_staff'] != "") or (cae['remarque_op'] != ""):
-            nb += 1
-
-        if nb == 1:
-            ligne = r'''%(date)s & %(heure)s''' % dico
-        else:
-            ligne = r'''\multirow{''' + str(nb) + r'''}{*}{%(date)s} & \multirow{''' % dico
-            ligne += str(nb) + r'''}{*}{%(heure)s}''' % dico
-
-        nb = 0
-        if (cae['duree_machine_hp'] > 0) or (cae['duree_operateur_hp'] > 0):
-            ligne += r''' & %(machine)s & HP & %(tm_hp)s & %(to_hp)s & %(pum)s & %(puo_hp)s & %(mai_hp)s &
-                %(dsi_hp)s & %(dhi_hp)s & %(moi_hp)s & %(m_hp)s \\
-                ''' % dico
-            nb += 1
-
-        if (cae['duree_machine_hc'] > 0) or (cae['duree_operateur_hc'] > 0):
-            if nb > 0:
-                ligne += r'''& &'''
-            else:
-                ligne += r'''& %(machine)s ''' % dico
-            ligne += r''' & HC & %(tm_hc)s & %(to_hc)s & %(pum)s & %(puo_hc)s & %(mai_hc)s &
-                %(dsi_hc)s & %(dhi_hc)s & %(moi_hc)s & %(m_hc)s \\
-                ''' % dico
-
-        if (cae['remarque_staff'] != "") or (cae['remarque_op'] != ""):
-            ligne += r'''\cline{3-13}
-                &  & \multicolumn{11}{l|}{%(operateur)s ; %(rem_op)s ; %(rem_staff)s}\\
-                ''' % dico
-
-        ligne += r'''\hline
-            '''
-        return ligne, [(mai_hp + mai_hc), (dsi_hp + dsi_hc), dhi, (moi_hp + moi_hc), (m_hp + m_hc)]
-
-    @staticmethod
-    def ligne_res(res):
-        """
-        création d'une ligne de tableau pour une réservation
-        :param res: réservation particulière
-        :return: ligne de tableau latex
-        """
-        login = Latex.echappe_caracteres(res['date_debut']).split()
-        temps = login[0].split('-')
-        date = temps[0]
-        for pos in range(1, len(temps)):
-            date = temps[pos] + '.' + date
-        if len(login) > 1:
-            heure = login[1]
-        else:
-            heure = ""
-
-        dico = {'date': date, 'heure': heure,
-                'machine': Latex.echappe_caracteres(res['nom_machine']),
-                'reserve': Latex.echappe_caracteres(res['date_reservation']),
-                'supprime': Latex.echappe_caracteres(res['date_suppression']),
-                'shp': Outils.format_heure(res['duree_hp']), 'shc': Outils.format_heure(res['duree_hc']),
-                'fhp': Outils.format_heure(res['duree_fact_hp']), 'fhc': Outils.format_heure(res['duree_fact_hc'])}
-
-        nb = 0
-        if res['duree_fact_hp'] > 0:
-            nb += 1
-
-        if res['duree_fact_hc'] > 0:
-            nb += 1
-
-        if nb == 0:
-            return ""
-
-        if res['date_suppression'] != "":
-            nb += 1
-
-        if nb == 1:
-            ligne = r'''%(date)s & %(heure)s''' % dico
-        else:
-            ligne = r'''\multirow{''' + str(nb) + r'''}{*}{%(date)s} & \multirow{''' % dico
-            ligne += str(nb) + r'''}{*}{%(heure)s}''' % dico
-
-        nb = 0
-        if res['duree_fact_hp'] > 0:
-            ligne += r''' & %(machine)s & HP & %(shp)s & %(fhp)s\\
-                ''' % dico
-            nb += 1
-
-        if res['duree_fact_hc'] > 0:
-            if nb > 0:
-                ligne += r'''& &'''
-            else:
-                ligne += r'''& %(machine)s ''' % dico
-            ligne += r''' & HC & %(shc)s & %(fhc)s \\
-                ''' % dico
-
-        if res['date_suppression'] != "":
-            ligne += r'''\cline{3-6}
-                &  & \multicolumn{4}{l|}{Supprimé le : %(supprime)s} \\
-                ''' % dico
-
-        ligne += r'''\hline
-            '''
-
-        return ligne
-
-    @staticmethod
-    def ligne_liv(livraison):
-        """
-        création d'une ligne de tableau pour une livraison
-        :param livraison: livraison particulière
-        :return: ligne de tableau latex
-        """
-        total = livraison['montant'] - livraison['rabais_r']
-        dico = {'date': Latex.echappe_caracteres(livraison['date_livraison']),
-                'prestation': Latex.echappe_caracteres(livraison['designation']),
-                'quantite': livraison['quantite'], 'unite': Latex.echappe_caracteres(livraison['unite']),
-                'rapport': "%.2f" % livraison['prix_unit_client'], 'montant': "%.2f" % livraison['montant'],
-                'rabais': "%.2f" % livraison['rabais_r'], 'total': "%.2f" % total, 'id': livraison['id_livraison'],
-                'responsable': Latex.echappe_caracteres(livraison['responsable']),
-                'commande': Latex.echappe_caracteres(livraison['date_commande']),
-                'remarque': Latex.echappe_caracteres(livraison['remarque'])}
-
-        return r'''\multirow{2}{*}{%(date)s} & %(prestation)s & %(quantite)s & %(unite)s & %(rapport)s & %(montant)s &
-            %(rabais)s & %(total)s \\
-            \cline{2-8}
-             & \multicolumn{7}{l|}{Commande: %(commande)s; N. livraison: %(id)s; Resp: %(responsable)s; Remarque:
-             %(remarque)s} \\
-             \hline
-             ''' % dico, total
+    #
+    # @staticmethod
+    # def ligne_cae(cae, machine, coefmachine):
+    #     """
+    #     création d'une ligne de tableau pour un accès
+    #     :param cae: accès particulier
+    #     :param machine: machine concernée
+    #     :param coefmachine: coefficients machine concernée
+    #     :return: ligne de tableau latex
+    #     """
+    #
+    #     login = Latex.echappe_caracteres(cae['date_login']).split()
+    #     temps = login[0].split('-')
+    #     date = temps[0]
+    #     for pos in range(1, len(temps)):
+    #         date = temps[pos] + '.' + date
+    #     if len(login) > 1:
+    #         heure = login[1]
+    #     else:
+    #         heure = ""
+    #
+    #     mai_hp = round(cae['duree_machine_hp']/60 * cae['pum'], 2)
+    #     mai_hc = round(cae['duree_machine_hc']/60 * cae['pum'], 2)
+    #     dsi_hp = round(cae['duree_machine_hp']/60 * coefmachine['coef_d'] * machine['d_h_machine_d'], 2)
+    #     dsi_hc = round(cae['duree_machine_hc']/60 * coefmachine['coef_d'] * machine['d_h_machine_d'], 2)
+    #     dhi = cae['dhi']
+    #     moi_hp = round(cae['duree_operateur_hp']/60 * cae['puo_hp'], 2)
+    #     moi_hc = round(cae['duree_operateur_hc']/60 * cae['puo_hc'], 2)
+    #     m_hp = mai_hp + moi_hp - dsi_hp
+    #     m_hc = mai_hc + moi_hc - dsi_hc - dhi
+    #
+    #     dico = {'date': date, 'heure': heure,
+    #             'machine': Latex.echappe_caracteres(cae['nom_machine']),
+    #             'operateur': Latex.echappe_caracteres(cae['nom_op']),
+    #             'rem_op': Latex.echappe_caracteres(cae['remarque_op']),
+    #             'rem_staff': Latex.echappe_caracteres(cae['remarque_staff']),
+    #             'tm_hp': Outils.format_heure(cae['duree_machine_hp']),
+    #             'to_hp': Outils.format_heure(cae['duree_operateur_hp']),
+    #             'tm_hc': Outils.format_heure(cae['duree_machine_hc']),
+    #             'to_hc': Outils.format_heure(cae['duree_operateur_hc']),
+    #             'pum': cae['pum'], 'puo_hp': cae['puo_hp'], 'puo_hc': cae['puo_hc'], 'mai_hp': "%.2f" % mai_hp,
+    #             'mai_hc': "%.2f" % mai_hc, 'dsi_hp': Outils.format_si_nul(dsi_hp),
+    #             'dsi_hc': Outils.format_si_nul(dsi_hc), 'dhi_hp': '-', 'dhi_hc': Outils.format_si_nul(dhi),
+    #             'moi_hp': "%.2f" % moi_hp, 'moi_hc': "%.2f" % moi_hc, 'm_hp': "%.2f" % m_hp, 'm_hc': "%.2f" % m_hc}
+    #
+    #     nb = 0
+    #     if (cae['duree_machine_hp'] > 0) or (cae['duree_operateur_hp'] > 0):
+    #         nb += 1
+    #
+    #     if (cae['duree_machine_hc'] > 0) or (cae['duree_operateur_hc'] > 0):
+    #         nb += 1
+    #
+    #     if nb == 0:
+    #         return "", [0, 0, 0, 0, 0]
+    #
+    #     if (cae['remarque_staff'] != "") or (cae['remarque_op'] != ""):
+    #         nb += 1
+    #
+    #     if nb == 1:
+    #         ligne = r'''%(date)s & %(heure)s''' % dico
+    #     else:
+    #         ligne = r'''\multirow{''' + str(nb) + r'''}{*}{%(date)s} & \multirow{''' % dico
+    #         ligne += str(nb) + r'''}{*}{%(heure)s}''' % dico
+    #
+    #     nb = 0
+    #     if (cae['duree_machine_hp'] > 0) or (cae['duree_operateur_hp'] > 0):
+    #         ligne += r''' & %(machine)s & HP & %(tm_hp)s & %(to_hp)s & %(pum)s & %(puo_hp)s & %(mai_hp)s &
+    #             %(dsi_hp)s & %(dhi_hp)s & %(moi_hp)s & %(m_hp)s \\
+    #             ''' % dico
+    #         nb += 1
+    #
+    #     if (cae['duree_machine_hc'] > 0) or (cae['duree_operateur_hc'] > 0):
+    #         if nb > 0:
+    #             ligne += r'''& &'''
+    #         else:
+    #             ligne += r'''& %(machine)s ''' % dico
+    #         ligne += r''' & HC & %(tm_hc)s & %(to_hc)s & %(pum)s & %(puo_hc)s & %(mai_hc)s &
+    #             %(dsi_hc)s & %(dhi_hc)s & %(moi_hc)s & %(m_hc)s \\
+    #             ''' % dico
+    #
+    #     if (cae['remarque_staff'] != "") or (cae['remarque_op'] != ""):
+    #         ligne += r'''\cline{3-13}
+    #             &  & \multicolumn{11}{l|}{%(operateur)s ; %(rem_op)s ; %(rem_staff)s}\\
+    #             ''' % dico
+    #
+    #     ligne += r'''\hline
+    #         '''
+    #     return ligne, [(mai_hp + mai_hc), (dsi_hp + dsi_hc), dhi, (moi_hp + moi_hc), (m_hp + m_hc)]
+    #
+    # @staticmethod
+    # def ligne_res(res):
+    #     """
+    #     création d'une ligne de tableau pour une réservation
+    #     :param res: réservation particulière
+    #     :return: ligne de tableau latex
+    #     """
+    #     login = Latex.echappe_caracteres(res['date_debut']).split()
+    #     temps = login[0].split('-')
+    #     date = temps[0]
+    #     for pos in range(1, len(temps)):
+    #         date = temps[pos] + '.' + date
+    #     if len(login) > 1:
+    #         heure = login[1]
+    #     else:
+    #         heure = ""
+    #
+    #     dico = {'date': date, 'heure': heure,
+    #             'machine': Latex.echappe_caracteres(res['nom_machine']),
+    #             'reserve': Latex.echappe_caracteres(res['date_reservation']),
+    #             'supprime': Latex.echappe_caracteres(res['date_suppression']),
+    #             'shp': Outils.format_heure(res['duree_hp']), 'shc': Outils.format_heure(res['duree_hc']),
+    #             'fhp': Outils.format_heure(res['duree_fact_hp']), 'fhc': Outils.format_heure(res['duree_fact_hc'])}
+    #
+    #     nb = 0
+    #     if res['duree_fact_hp'] > 0:
+    #         nb += 1
+    #
+    #     if res['duree_fact_hc'] > 0:
+    #         nb += 1
+    #
+    #     if nb == 0:
+    #         return ""
+    #
+    #     if res['date_suppression'] != "":
+    #         nb += 1
+    #
+    #     if nb == 1:
+    #         ligne = r'''%(date)s & %(heure)s''' % dico
+    #     else:
+    #         ligne = r'''\multirow{''' + str(nb) + r'''}{*}{%(date)s} & \multirow{''' % dico
+    #         ligne += str(nb) + r'''}{*}{%(heure)s}''' % dico
+    #
+    #     nb = 0
+    #     if res['duree_fact_hp'] > 0:
+    #         ligne += r''' & %(machine)s & HP & %(shp)s & %(fhp)s\\
+    #             ''' % dico
+    #         nb += 1
+    #
+    #     if res['duree_fact_hc'] > 0:
+    #         if nb > 0:
+    #             ligne += r'''& &'''
+    #         else:
+    #             ligne += r'''& %(machine)s ''' % dico
+    #         ligne += r''' & HC & %(shc)s & %(fhc)s \\
+    #             ''' % dico
+    #
+    #     if res['date_suppression'] != "":
+    #         ligne += r'''\cline{3-6}
+    #             &  & \multicolumn{4}{l|}{Supprimé le : %(supprime)s} \\
+    #             ''' % dico
+    #
+    #     ligne += r'''\hline
+    #         '''
+    #
+    #     return ligne
+    #
+    # @staticmethod
+    # def ligne_liv(livraison):
+    #     """
+    #     création d'une ligne de tableau pour une livraison
+    #     :param livraison: livraison particulière
+    #     :return: ligne de tableau latex
+    #     """
+    #     total = livraison['montant'] - livraison['rabais_r']
+    #     dico = {'date': Latex.echappe_caracteres(livraison['date_livraison']),
+    #             'prestation': Latex.echappe_caracteres(livraison['designation']),
+    #             'quantite': livraison['quantite'], 'unite': Latex.echappe_caracteres(livraison['unite']),
+    #             'rapport': "%.2f" % livraison['prix_unit_client'], 'montant': "%.2f" % livraison['montant'],
+    #             'rabais': "%.2f" % livraison['rabais_r'], 'total': "%.2f" % total, 'id': livraison['id_livraison'],
+    #             'responsable': Latex.echappe_caracteres(livraison['responsable']),
+    #             'commande': Latex.echappe_caracteres(livraison['date_commande']),
+    #             'remarque': Latex.echappe_caracteres(livraison['remarque'])}
+    #
+    #     return r'''\multirow{2}{*}{%(date)s} & %(prestation)s & %(quantite)s & %(unite)s & %(rapport)s & %(montant)s &
+    #         %(rabais)s & %(total)s \\
+    #         \cline{2-8}
+    #          & \multicolumn{7}{l|}{Commande: %(commande)s; N. livraison: %(id)s; Resp: %(responsable)s; Remarque:
+    #          %(remarque)s} \\
+    #          \hline
+    #          ''' % dico, total

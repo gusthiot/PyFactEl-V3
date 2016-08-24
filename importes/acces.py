@@ -98,12 +98,11 @@ class Acces(Fichier):
             return 1
         return 0
 
-    def calcul_montants(self, machines, coefmachines, comptes, clients, verification):
+    def calcul_montants(self, machines, coefmachines, clients, verification):
         """
         calcule les montants 'pu', 'qu' et 'mo' et les ajoute aux données
         :param machines: machines importées
         :param coefmachines: coefficients machines importés et vérifiés
-        :param comptes: comptes importés et vérifiés
         :param clients: clients importés et vérifiés
         :param verification: pour vérifier si les dates et les cohérences sont correctes
 
@@ -119,8 +118,7 @@ class Acces(Fichier):
         for donnee in self.donnees:
             id_compte = donnee['id_compte']
             id_user = donnee['id_user']
-            compte = comptes.donnees[id_compte]
-            code_client = compte['code_client']
+            code_client = donnee['code_client']
             id_machine = donnee['id_machine']
             machine = machines.donnees[id_machine]
             client = clients.donnees[code_client]
