@@ -202,9 +202,9 @@ class Sommes(object):
 
                 for mach_u in machines_utilisees:
                     if mach_u in somme_res:
-                        mini_hp = (somme_res[mach_u]['res_hp'] + somme_res[mach_u]['ann_hp']) * \
+                        mini_hp = somme_res[mach_u]['res_hp'] * \
                                   machines.donnees[mach_u]['tx_occ_eff_hp'] / 100
-                        mini_hc = (somme_res[mach_u]['res_hc'] + somme_res[mach_u]['ann_hc']) * \
+                        mini_hc = somme_res[mach_u]['res_hc'] * \
                                   machines.donnees[mach_u]['tx_occ_eff_hc'] / 100
                     else:
                         mini_hp = 0

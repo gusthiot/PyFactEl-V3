@@ -597,18 +597,81 @@ class Annexes(object):
 
         # ## T1 : durée réservée client
 
-        structure_reserve_client = r'''{|c|c|c|c|c|}'''
-        legende_reserve_client = r'''Détail réservations machines pour client : ''' + intitule_client
+        if code_client in reservations.sommes:
+            structure_reserve_client = r'''{|c|c|c|c|c|}'''
+            legende_reserve_client = r'''Détail réservations machines pour client : ''' + intitule_client
 
-        contenu_reserve_client = r'''
-            \cline{4-5}
-            \multicolumn{3}{c}{} & \multicolumn{2}{|c|}{Durée réservée} \\
-            \cline{4-5}
-            \multicolumn{3}{c|}{} & HP & HC \\
-            \hline
-            '''
+            contenu_reserve_client = r'''
+                \cline{4-5}
+                \multicolumn{3}{c}{} & \multicolumn{2}{|c|}{Durée réservée} \\
+                \cline{4-5}
+                \multicolumn{3}{c|}{} & HP & HC \\
+                \hline
+                '''
 
-        contenu += Latex.tableau(contenu_reserve_client, structure_reserve_client, legende_reserve_client)
+            somme = reservations.sommes[code_client]['machines']
+
+            machines_reservees= {}
+            for key in somme:
+                id_cout = machines.donnees[key]['id_cout']
+                nom = machines.donnees[key]['nom']
+                if id_cout not in machines_reservees:
+                    machines_reservees[id_cout] = {}
+                machines_reservees[id_cout][nom] = key
+
+            for id_cout, mics in sorted(machines_reservees.items()):
+                for nom, id_machine in sorted(mics.items()):
+
+                    dico_machine = {'machine': Latex.echappe_caracteres(nom),
+                                    'hp': Outils.format_heure(somme[id_machine]['res_hp']),
+                                    'hc': Outils.format_heure(somme[id_machine]['res_hc'])}
+                    contenu_reserve_client += r'''
+                        \multicolumn{3}{|l|}{\textbf{%(machine)s}} & %(hp)s & %(hc)s \\
+                        \hline
+                        ''' % dico_machine
+
+                    users = {}
+                    for key in somme[id_machine]['users']:
+                        prenom = somme[id_machine]['users'][key]['prenom']
+                        nom = somme[id_machine]['users'][key]['nom']
+                        if nom not in users:
+                            users[nom] = {}
+                        users[nom][prenom] = key
+
+                    for nom, upi in sorted(users.items()):
+                        for prenom, id_user in sorted(upi.items()):
+                            smu = somme[id_machine]['users'][id_user]
+                            dico_user = {'user': smu['prenom'] + " " + smu['nom'],
+                                         'hp': Outils.format_heure(smu['res_hp']),
+                                         'hc': Outils.format_heure(smu['res_hc'])}
+                            contenu_reserve_client += r'''
+                                \multicolumn{3}{|l|}{%(user)s} & %(hp)s & %(hc)s \\
+                                \hline
+                            ''' % dico_user
+                            for pos in smu['data']:
+                                res = reservations.donnees[pos]
+                                login = Latex.echappe_caracteres(res['date_debut']).split()
+                                temps = login[0].split('-')
+                                date = temps[0]
+                                for pos in range(1, len(temps)):
+                                    date = temps[pos] + '.' + date
+                                if len(login) > 1:
+                                    heure = login[1]
+                                else:
+                                    heure = ""
+
+                                sup = ""
+                                if res['si_supprime'] == "OUI":
+                                    sup = "Supprimé le : " + Latex.echappe_caracteres(res['date_suppression'])
+                                dico_pos = {'date': date, 'heure': heure, 'sup': sup,
+                                            'hp': Outils.format_heure(res['duree_fact_hp']),
+                                            'hc': Outils.format_heure(res['duree_fact_hc'])}
+                                contenu_reserve_client += r'''
+                                    %(date)s & %(heure)s & %(sup)s & %(hp)s & %(hc)s \\
+                                    \hline
+                                ''' % dico_pos
+
+            contenu += Latex.tableau(contenu_reserve_client, structure_reserve_client, legende_reserve_client)
 
         # ## T2 : durée utilisée client
 
