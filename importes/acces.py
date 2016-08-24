@@ -115,8 +115,10 @@ class Acces(Fichier):
             return
 
         donnees_list = []
+        pos = 0
         for donnee in self.donnees:
             id_compte = donnee['id_compte']
+            id_user = donnee['id_user']
             compte = comptes.donnees[id_compte]
             code_client = compte['code_client']
             id_machine = donnee['id_machine']
@@ -158,11 +160,26 @@ class Acces(Fichier):
                 scl[id_compte] = {}
             sco = scl[id_compte]
             if id_machine not in sco:
-                sco[id_machine] = {'duree_hp': 0, 'duree_hc': 0}
+                sco[id_machine] = {'duree_hp': 0, 'duree_hc': 0, 'mo_hp': 0, 'mo_hc': 0, 'users': {}}
             sco[id_machine]['duree_hp'] += donnee['duree_machine_hp']
             sco[id_machine]['duree_hc'] += donnee['duree_machine_hc']
+            sco[id_machine]['mo_hp'] += donnee['duree_operateur_hp']
+            sco[id_machine]['mo_hc'] += donnee['duree_operateur_hc']
+
+            scm = sco[id_machine]['users']
+
+            if id_user not in scm:
+                scm[id_user] = {'nom': donnee['nom_user'], 'prenom': donnee['prenom_user'], 'duree_hp': 0, 'duree_hc': 0,
+                                'mo_hp': 0, 'mo_hc': 0, 'data': []}
+
+            scm[id_user]['duree_hp'] += donnee['duree_machine_hp']
+            scm[id_user]['duree_hc'] += donnee['duree_machine_hc']
+            scm[id_user]['mo_hp'] += donnee['duree_operateur_hp']
+            scm[id_user]['mo_hc'] += donnee['duree_operateur_hc']
+            scm[id_user]['data'].append(pos)
 
             donnees_list.append(donnee)
+            pos += 1
         self.donnees = donnees_list
 
     def acces_pour_compte(self, id_compte, code_client):

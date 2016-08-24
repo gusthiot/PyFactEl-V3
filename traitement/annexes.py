@@ -314,7 +314,99 @@ class Annexes(object):
                 Annexe 4 : %(labo)s - %(compte)s - %(date)s
                 ''' % dico_nom
 
-            # ## T1 : prestations livrées compte
+            # ## T1 : machines utilisées compte
+
+            structure_machuts_compte = r'''{|l|l|l|c|c|c|c|}'''
+            legende_machuts_compte = r'''Détails utilisation machines pour compte ''' + intitule_compte
+
+            contenu_machuts_compte = r'''
+                \hline
+                \multicolumn{3}{|c|}{} & \multicolumn{2}{c|}{Machine} & \multicolumn{2}{c|}{Main d'oeuvre} \\
+                \hline
+                \multicolumn{3}{|l|}{''' + intitule_compte + r'''} & HP & HC & HP & HC \\
+                \hline
+                '''
+            if code_client in acces.sommes and id_compte in acces.sommes[code_client]:
+                somme = acces.sommes[code_client][id_compte]
+
+                machines_utilisees= {}
+                for key in somme:
+                    id_cout = machines.donnees[key]['id_cout']
+                    nom = machines.donnees[key]['nom']
+                    if id_cout not in machines_utilisees:
+                        machines_utilisees[id_cout] = {}
+                        machines_utilisees[id_cout][nom] = key
+
+                for id_cout, mics in sorted(machines_utilisees.items()):
+                    for nom, id_machine in sorted(mics.items()):
+
+                        dico_machine = {'machine': Latex.echappe_caracteres(nom),
+                                        'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
+                                        'hc': Outils.format_heure(somme[id_machine]['duree_hc']),
+                                        'mo_hp': Outils.format_heure(somme[id_machine]['mo_hp']),
+                                        'mo_hc': Outils.format_heure(somme[id_machine]['mo_hc'])}
+                        contenu_machuts_compte += r'''
+                            \multicolumn{3}{|l|}{\textbf{%(machine)s}} & %(hp)s & %(hc)s & %(mo_hp)s & %(mo_hc)s \\
+                            \hline
+                            ''' % dico_machine
+
+                        users = {}
+                        for key in somme[id_machine]['users']:
+                            prenom = somme[id_machine]['users'][key]['prenom']
+                            nom = somme[id_machine]['users'][key]['nom']
+                            if nom not in users:
+                                users[nom] = {}
+                            users[nom][prenom] = key
+
+                        for nom, upi in sorted(users.items()):
+                            for prenom, id_user in sorted(upi.items()):
+                                smu = somme[id_machine]['users'][id_user]
+                                dico_user = {'user': smu['prenom'] + " " + smu['nom'],
+                                             'hp': Outils.format_heure(smu['duree_hp']),
+                                             'hc': Outils.format_heure(smu['duree_hc']),
+                                             'mo_hp': Outils.format_heure(smu['mo_hp']),
+                                             'mo_hc': Outils.format_heure(smu['mo_hc'])}
+                                contenu_machuts_compte += r'''
+                                    \multicolumn{3}{|l|}{%(user)s} & %(hp)s & %(hc)s & %(mo_hp)s & %(mo_hc)s \\
+                                    \hline
+                                ''' % dico_user
+                                for pos in smu['data']:
+                                    cae = acces.donnees[pos]
+                                    login = Latex.echappe_caracteres(cae['date_login']).split()
+                                    temps = login[0].split('-')
+                                    date = temps[0]
+                                    for pos in range(1, len(temps)):
+                                        date = temps[pos] + '.' + date
+                                    if len(login) > 1:
+                                        heure = login[1]
+                                    else:
+                                        heure = ""
+
+                                    rem = ""
+                                    if id_user != cae['id_op']:
+                                        rem += "op : " + cae['nom_op']
+                                    if cae['remarque_op'] != "":
+                                        if rem != "":
+                                            rem += "; "
+                                        rem += "rem op : " + Latex.echappe_caracteres(cae['remarque_op'])
+                                    if cae['remarque_staff'] != "":
+                                        if rem != "":
+                                            rem += "; "
+                                        rem += "rem CMi : " + Latex.echappe_caracteres(cae['remarque_staff'])
+
+                                    dico_pos = {'date': date, 'heure': heure, 'rem': rem,
+                                                'hp': Outils.format_heure(cae['duree_machine_hp']),
+                                                'hc': Outils.format_heure(cae['duree_machine_hc']),
+                                                'mo_hp': Outils.format_heure(cae['duree_operateur_hp']),
+                                                'mo_hc': Outils.format_heure(cae['duree_operateur_hc'])}
+                                    contenu_machuts_compte += r'''
+                                        %(date)s & %(heure)s & %(rem)s & %(hp)s & %(hc)s & %(mo_hp)s & %(mo_hc)s \\
+                                        \hline
+                                    ''' % dico_pos
+
+            contenu_compte_annexe4 += Latex.tableau(contenu_machuts_compte, structure_machuts_compte, legende_machuts_compte)
+
+            # ## T2 : prestations livrées compte
 
             structure_prestations_compte = r'''{|l|l|c|c|c|c|c|c|}'''
             legende_prestations_compte = r'''Détails prestations livrées pour compte ''' + intitule_compte
@@ -341,6 +433,16 @@ class Annexes(object):
                     ''' % dico_prestations_compte
 
             contenu_compte_annexe4 += Latex.tableau(contenu_prestations_compte, structure_prestations_compte, legende_prestations_compte)
+
+            # ## Annexe X
+
+            dico_nom = {'labo': Latex.echappe_caracteres(client['abrev_labo']),
+                        'compte': Latex.echappe_caracteres(compte['intitule']),
+                        'date': edition.mois_txt + " " + str(edition.annee)}
+            contenu_compte_annexe4 += r'''
+                \clearpage
+                Annexe X : %(labo)s - %(compte)s - %(date)s
+                ''' % dico_nom
 
             # ## T2 : coûts éligibles
 
@@ -595,7 +697,7 @@ class Annexes(object):
 
         contenu += entete
 
-        # ## T1 : durée réservée client
+        # ## durée réservée client
 
         if code_client in reservations.sommes:
             structure_reserve_client = r'''{|c|c|c|c|c|}'''
