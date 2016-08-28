@@ -46,6 +46,8 @@ class BilanMensuel(object):
                 client = clients.donnees[code_client]
                 nature = generaux.nature_client_par_code_n(client['type_labo'])
                 reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
+                if edition.version != "0":
+                    reference += "-" + edition.version
                 nb_u = len(BilanMensuel.utilisateurs(acces, livraisons, reservations, code_client))
 
                 total = scl['somme_t'] + scl['e']
