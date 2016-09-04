@@ -68,7 +68,7 @@ class Latex(object):
             {\tiny
             \begin{longtable}[c]
             ''' + structure + contenu + r'''
-            \caption{''' + legende + r'''}
+            \caption*{''' + legende + r'''}
             \end{longtable}}
             '''
 
@@ -86,7 +86,7 @@ class Latex(object):
             \tiny
             \centering
             \begin{tabular}''' + structure + contenu + r'''\end{tabular}
-            \caption{''' + legende + r'''}
+            \caption*{''' + legende + r'''}
             \end{table}
             '''
 

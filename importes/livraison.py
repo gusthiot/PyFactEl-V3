@@ -67,10 +67,6 @@ class Livraison(Fichier):
             elif prestations.contient_id(donnee['id_prestation']) == 0:
                 msg += "le prestation id '" + donnee['id_prestation'] + "' de la ligne " + str(ligne) +\
                        " n'est pas référencé\n"
-
-            id_prestation, info = Outils.est_un_nombre(donnee['id_prestation'], " (doit-il ?) "
-                                                                                          "Le id prestation", ligne)
-            msg += info
             donnee['quantite'], info = Outils.est_un_nombre(donnee['quantite'], "la quantité", ligne)
             msg += info
             donnee['rabais'], info = Outils.est_un_nombre(donnee['rabais'], "le rabais", ligne)
@@ -109,11 +105,11 @@ class Livraison(Fichier):
         donnees_list = []
         pos = 0
         for donnee in self.donnees:
-            id_prestation = int(donnee['id_prestation'])
             id_compte = donnee['id_compte']
             id_user = donnee['id_user']
             code_client = donnee['code_client']
             prestation = prestations.donnees[donnee['id_prestation']]
+            no_prestation = prestation['no_prestation']
             client = clients.donnees[code_client]
             coefprest = coefprests.donnees[client['id_classe_tarif'] + prestation['categorie']]
             donnee['prix_unit_client'] = round(prestation['prix_unit'] * coefprest['coefficient'], 2)
@@ -128,10 +124,10 @@ class Livraison(Fichier):
                 scl[id_compte] = {}
             if categorie not in scl[id_compte]:
                 scl[id_compte][categorie] = {}
-            if id_prestation not in scl[id_compte][categorie]:
-                scl[id_compte][categorie][id_prestation] = {'nom': donnee['designation'], 'unite': donnee['unite'],
+            if no_prestation not in scl[id_compte][categorie]:
+                scl[id_compte][categorie][no_prestation] = {'nom': donnee['designation'], 'unite': donnee['unite'],
                                                                 'quantite': 0, 'rabais': 0, 'users': {}}
-            scp = scl[id_compte][categorie][id_prestation]
+            scp = scl[id_compte][categorie][no_prestation]
             scp['quantite'] += donnee['quantite']
             scp['rabais'] += donnee['rabais_r']
 

@@ -63,6 +63,9 @@ class Prestation(Fichier):
                 msg += "l'id prestation '" + donnee['id_prestation'] + "' de la ligne " + str(ligne) +\
                        " n'est pas unique\n"
 
+            if donnee['no_prestation'] == "":
+                msg += "le numéro de prestation de la ligne " + str(ligne) + " ne peut être vide\n"
+
             if donnee['categorie'] == "":
                 msg += "la catégorie  de la ligne " + str(ligne) + " ne peut être vide\n"
             elif donnee['categorie'] not in generaux.codes_d3():
@@ -79,8 +82,12 @@ class Prestation(Fichier):
             msg += info
             donnee['cout_unit'], info = Outils.est_un_nombre(donnee['cout_unit'], "le coût unitaire", ligne)
             msg += info
+            num, info = Outils.est_un_nombre(donnee['no_prestation'], "le numéro prestation", ligne)
+            donnee['no_prestation'] = int(num)
+            msg += info
             donnee['prix_rev_unit'], info = Outils.est_un_nombre(donnee['prix_rev_unit'], "le prix de revient unitaire",
                                                                  ligne)
+
             msg += info
 
             ligne += 1
