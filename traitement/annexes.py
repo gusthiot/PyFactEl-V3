@@ -103,8 +103,12 @@ class Annexes(object):
                 \usepackage{fancyhdr}
                 \pagestyle{fancy}
 
-                \fancyfoot[R]{\thepage}
+                \fancyhead[L]{}
+                \fancyhead[C]{}
+                \fancyhead[R]{}
                 \fancyfoot[L]{\leftmark}
+                \fancyfoot[C]{}
+                \fancyfoot[R]{\thepage}
 
                 \newcommand{\fakesection}[1]{%
                 \par\refstepcounter{section}
@@ -416,6 +420,11 @@ class Annexes(object):
                                     ''' % dico_pos
 
                 contenu_compte_annexe4 += Latex.long_tableau(contenu_machuts_compte, structure_machuts_compte, legende_machuts_compte)
+            else:
+                contenu_compte_annexe4 += r'''
+                    \tiny{Table IV.1 - Détails des utilisations machines pour compte : table vide (pas d’utilisation machines)}
+                    \newline
+                    '''
 
             # ## 4.2
 
@@ -750,7 +759,7 @@ class Annexes(object):
 
         # ## 3.1
 
-        if code_client in acces.sommes or code_client in reservations.sommes:
+        if code_client in reservations.sommes:
             structure_stats_client = r'''{|l|c|c|c|c|c|c|}'''
             legende_stats_client = r'''Table III.1 - Statistiques des réservations et des utilisations machines'''
             contenu_stats_client = r'''
@@ -764,15 +773,6 @@ class Annexes(object):
             ac_somme = None
             re_somme = None
 
-            if code_client in acces.sommes:
-                ac_somme = acces.sommes[code_client]['machines']
-                for key in ac_somme:
-                    id_cout = machines.donnees[key]['id_cout']
-                    nom = machines.donnees[key]['nom']
-                    if id_cout not in machines_utilisees:
-                        machines_utilisees[id_cout] = {}
-                        machines_utilisees[id_cout][nom] = key
-
             if code_client in reservations.sommes:
                 re_somme = reservations.sommes[code_client]['machines']
                 for key in re_somme:
@@ -782,38 +782,123 @@ class Annexes(object):
                         machines_utilisees[id_cout] = {}
                         machines_utilisees[id_cout][nom] = key
 
-            for id_cout, mics in sorted(machines_utilisees.items()):
-                for nom, id_machine in sorted(mics.items()):
-                    hc = machines.donnees[id_machine]['hc']
-                    dico_machine = {'machine': Latex.echappe_caracteres(nom)}
-                    contenu_stats_client += r'''
-                        %(machine)s & HP/HC & & & & & \\
-                         \hline
-                         ''' % dico_machine
+            if code_client in acces.sommes:
+                ac_somme = acces.sommes[code_client]['machines']
+            #     for key in ac_somme:
+            #         id_cout = machines.donnees[key]['id_cout']
+            #         nom = machines.donnees[key]['nom']
+            #         if id_cout not in machines_utilisees:
+            #             machines_utilisees[id_cout] = {}
+            #             machines_utilisees[id_cout][nom] = key
 
-                    users = {}
-                    if ac_somme and id_machine in ac_somme:
-                        for key in ac_somme[id_machine]['users']:
-                            prenom = ac_somme[id_machine]['users'][key]['prenom']
-                            nom = ac_somme[id_machine]['users'][key]['nom']
-                            if nom not in users:
-                                users[nom] = {}
-                            users[nom][prenom] = key
-                    if re_somme and id_machine in re_somme:
+
+            for id_cout, mics in sorted(machines_utilisees.items()):
+                for nom_machine, id_machine in sorted(mics.items()):
+                    re_hp = re_somme[id_machine]['res_hp']
+                    re_hc = re_somme[id_machine]['res_hc']
+                    pu_hp = re_somme[id_machine]['pu_hp']
+                    pu_hc = re_somme[id_machine]['pu_hc']
+                    tx_hp = machines.donnees[id_machine]['tx_occ_eff_hp']
+                    tx_hc = machines.donnees[id_machine]['tx_occ_eff_hc']
+                    ok_hp = False
+                    ok_hc = False
+                    if re_hp > 0 and pu_hp > 0 and tx_hp > 0:
+                        ok_hp = True
+                    if re_hc > 0 and pu_hc > 0 and tx_hc > 0:
+                        ok_hc = True
+
+                    if ok_hp or ok_hc:
+                        users = {}
+                        ac_hp = 0
+                        ac_hc = 0
                         for key in re_somme[id_machine]['users']:
                             prenom = re_somme[id_machine]['users'][key]['prenom']
                             nom = re_somme[id_machine]['users'][key]['nom']
+                            re_hp_u = re_somme[id_machine]['users'][key]['res_hp']
+                            re_hc_u = re_somme[id_machine]['users'][key]['res_hc']
                             if nom not in users:
                                 users[nom] = {}
-                            users[nom][prenom] = key
+                            if prenom not in users[nom]:
+                                users[nom][prenom] = {'key': key, 'ac_hp': 0, 'ac_hc': 0,
+                                                      're_hp': re_hp_u, 're_hc': re_hc_u}
+                            else:
+                                users[nom][prenom]['re_hp'] = re_hp_u
+                                users[nom][prenom]['re_hc'] = re_hc_u
 
-                    for nom, upi in sorted(users.items()):
-                        for prenom, id_user in sorted(upi.items()):
-                            dico_user = {'user': nom + " " + prenom}
+                        if ac_somme and id_machine in ac_somme:
+                            ac_hp = ac_somme[id_machine]['duree_hp']
+                            ac_hc = ac_somme[id_machine]['duree_hc']
+                            for key in ac_somme[id_machine]['users']:
+                                prenom = ac_somme[id_machine]['users'][key]['prenom']
+                                nom = ac_somme[id_machine]['users'][key]['nom']
+                                ac_hp_u = ac_somme[id_machine]['users'][key]['duree_hp']
+                                ac_hc_u = ac_somme[id_machine]['users'][key]['duree_hc']
+                                if nom not in users:
+                                    users[nom] = {}
+                                if prenom not in users[nom]:
+                                    users[nom][prenom] = {'key': key, 'ac_hp': ac_hp_u, 'ac_hc': ac_hc_u,
+                                                          're_hp': 0, 're_hc': 0}
+                                else:
+                                    users[nom][prenom]['ac_hp'] = ac_hp_u
+                                    users[nom][prenom]['ac_hc'] = ac_hc_u
+
+                        dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
+                                        'ac_hp': Outils.format_heure(ac_hp), 'ac_hc': Outils.format_heure(ac_hc),
+                                        're_hp': Outils.format_heure(re_hp), 're_hc': Outils.format_heure(re_hc)
+                                        }
+                        if ok_hp:
+                            contenu_users = ""
+                            tot_hp = 0
+                            for nom, upi in sorted(users.items()):
+                                for prenom, user in sorted(upi.items()):
+                                    ac = user['ac_hp']
+                                    re = user['re_hp']
+                                    if ac > 0 or re > 0:
+                                        mini = re * tx_hp / 100
+                                        tot = mini-ac
+                                        tot_hp += tot
+                                        dico_user = {'user': nom + " " + prenom, 'ac': Outils.format_heure(ac),
+                                                     're': Outils.format_heure(re), 'tx': tx_hp,
+                                                     'mini': Outils.format_heure(mini), 'tot': Outils.format_heure(tot)}
+                                        contenu_users += r'''
+                                            \hspace{5mm} %(user)s & HP & %(re)s & %(tx)s & %(mini)s & %(ac)s & %(tot)s \\
+                                            \hline
+                                            ''' % dico_user
+
+                            dico_machine['tot_hp'] = Outils.format_heure(max(tot_hp,0))
+
                             contenu_stats_client += r'''
-                                \hspace{5mm} %(user)s & HP/HC & & & & & \\
-                                \hline
-                                ''' % dico_user
+                                %(machine)s & HP & %(re_hp)s & & & %(ac_hp)s & %(tot_hp)s \\
+                                 \hline
+                                 ''' % dico_machine
+                            contenu_stats_client += contenu_users
+
+                        if ok_hc:
+                            contenu_users = ""
+                            tot_hc = 0
+                            for nom, upi in sorted(users.items()):
+                                for prenom, user in sorted(upi.items()):
+                                    ac = user['ac_hc']
+                                    re = user['re_hc']
+                                    if ac > 0 or re > 0:
+                                        mini = re * tx_hc / 100
+                                        tot = mini-ac
+                                        tot_hc += tot
+                                        dico_user = {'user': nom + " " + prenom, 'ac': Outils.format_heure(ac),
+                                                     're': Outils.format_heure(re), 'tx': tx_hc,
+                                                     'mini': Outils.format_heure(mini), 'tot': Outils.format_heure(tot)}
+                                        contenu_users += r'''
+                                            \hspace{5mm} %(user)s & HC & %(re)s & %(tx)s & %(mini)s & %(ac)s & %(tot)s \\
+                                            \hline
+                                            ''' % dico_user
+
+                            dico_machine['tot_hc'] = Outils.format_heure(max(tot_hc,0))
+
+                            contenu_stats_client += r'''
+                                %(machine)s & HC & %(re_hc)s & & & %(ac_hc)s & %(tot_hc)s  \\
+                                 \hline
+                                 ''' % dico_machine
+                            contenu_stats_client += contenu_users
 
 
             contenu += Latex.tableau(contenu_stats_client, structure_stats_client, legende_stats_client)
@@ -877,7 +962,11 @@ class Annexes(object):
                                     ''' % dico_compte
 
             contenu += Latex.tableau(contenu_machuts_client, structure_machuts_client, legende_machuts_client)
-
+        else:
+            contenu += r'''
+                \tiny{Table III.2 - Récapitulatif des utilisations machines par utilisateur : table vide (pas d’utilisation machines)}
+                \newline
+                '''
         # ## 3.3
 
         if code_client in reservations.sommes:
@@ -957,6 +1046,11 @@ class Annexes(object):
                                         ''' % dico_pos
 
             contenu += Latex.long_tableau(contenu_reserve_client, structure_reserve_client, legende_reserve_client)
+        else:
+            contenu += r'''
+                {\tiny {\centering Table III.3 - Détail des réservations machines par utilisateur : table vide (pas de réservation machines)}}
+                \newline
+                '''
 
         # ## Annexe 4
 

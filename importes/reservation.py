@@ -119,6 +119,7 @@ class Reservation(Fichier):
                 pu_hp = round(coefmachine['coef_r'] * machine['t_h_reservation_hp'], 2)
                 pu_hc = round(coefmachine['coef_r'] * machine['t_h_reservation_hc'], 2)
                 scl['machines'][id_machine] = {'res_hp': 0, 'res_hc': 0, 'pu_hp': pu_hp, 'pu_hc': pu_hc, 'users': {}}
+
             scm = scl['machines'][id_machine]
 
             scm['res_hp'] += duree_fact_hp

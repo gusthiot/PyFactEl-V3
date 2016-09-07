@@ -103,13 +103,17 @@ class Outils(object):
         """
         if nombre == 0:
             return "00:00"
+        signe = ""
+        if nombre < 0:
+            signe = "-"
+        nombre = abs(nombre)
         heures = "%d" % (nombre // 60)
         if (nombre // 60) < 10:
             heures = '0' + heures
         minutes = "%d" % (nombre % 60)
         if (nombre % 60) < 10:
             minutes = '0' + minutes
-        return heures + ':' + minutes
+        return signe + heures + ':' + minutes
 
     @staticmethod
     def format_si_nul(nombre):
