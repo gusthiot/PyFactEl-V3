@@ -182,50 +182,107 @@ class Sommes(object):
                     spcl[code_client] = self.nouveau_somme(Sommes.cles_somme_client)
                     spcl[code_client]['res'] = {}
                 somme = spcl[code_client]
-                machines_utilisees = []
-                somme_res = reservations.sommes[code_client]['client']
-                for key in somme_res.keys():
-                    machines_utilisees.append(key)
+                # machines_utilisees = []
+                somme_res = reservations.sommes[code_client]['machines']
+                # for key in somme_res.keys():
+                #     machines_utilisees.append(key)
 
                 somme_cae = {}
                 if code_client in acces.sommes:
-                    if id_compte in acces.sommes[code_client]:
-                        somme_cae_compte = acces.sommes[code_client][id_compte]
-                        for id_mach in somme_cae_compte:
-                            if id_mach not in somme_cae:
-                                somme_cae[id_mach] = {'duree_hp': 0, 'duree_hc': 0}
-                            somme_cae[id_mach]['duree_hp'] += somme_cae_compte[id_mach]['duree_hp']
-                            somme_cae[id_mach]['duree_hc'] += somme_cae_compte[id_mach]['duree_hc']
-                for key in somme_cae.keys():
-                    if key not in machines_utilisees:
-                        machines_utilisees.append(key)
+                    somme_cae = acces.sommes[code_client]['machines']
 
-                for mach_u in machines_utilisees:
-                    if mach_u in somme_res:
-                        mini_hp = somme_res[mach_u]['res_hp'] * \
-                                  machines.donnees[mach_u]['tx_occ_eff_hp'] / 100
-                        mini_hc = somme_res[mach_u]['res_hc'] * \
-                                  machines.donnees[mach_u]['tx_occ_eff_hc'] / 100
-                    else:
-                        mini_hp = 0
-                        mini_hc = 0
-                    if mach_u in somme_cae:
-                        pen_hp = mini_hp - somme_cae[mach_u]['duree_hp']
-                        pen_hc = mini_hc - somme_cae[mach_u]['duree_hc']
-                    else:
-                        pen_hp = mini_hp
-                        pen_hc = mini_hc
-                    if mach_u in somme_res:
-                        m_hp = round(pen_hp / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hp']
-                        m_hc = round(pen_hc / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hc']
-                    else:
-                        m_hp = 0
-                        m_hc = 0
+                for id_machine in somme_res.keys():
+                    re_hp = somme_res[id_machine]['res_hp']
+                    re_hc = somme_res[id_machine]['res_hc']
+                    pu_hp = somme_res[id_machine]['pu_hp']
+                    pu_hc = somme_res[id_machine]['pu_hc']
+                    tx_hp = machines.donnees[id_machine]['tx_occ_eff_hp']
+                    tx_hc = machines.donnees[id_machine]['tx_occ_eff_hc']
+                    ok_hp = False
+                    ok_hc = False
+                    if re_hp > 0 and pu_hp > 0 and tx_hp > 0:
+                        ok_hp = True
+                    if re_hc > 0 and pu_hc > 0 and tx_hc > 0:
+                        ok_hc = True
 
-                    somme['res'][mach_u] = {'pen_hp': round(pen_hp / 60, 1),
-                                            'pen_hc': round(pen_hc / 60, 1),
-                                            'm_hp': m_hp, 'm_hc': m_hc}
-                    somme['rm'] += m_hp + m_hc
+                    if ok_hp or ok_hc:
+                        somme['res'][id_machine] = {'tot_hp': 0, 'tot_hc': 0, 'users': {}, 'mont_hp': 0, 'mont_hc': 0}
+
+                        users = somme['res'][id_machine]['users']
+                        for id_user, s_u in somme_res[id_machine]['users'].items():
+                            nom = s_u['nom']
+                            prenom = s_u['prenom']
+                            if nom not in users:
+                                users[nom] = {}
+                            if prenom not in users[nom]:
+                                mini_hp = s_u['res_hp'] * tx_hp / 100
+                                mini_hc = s_u['res_hc'] * tx_hc / 100
+                                users[nom][prenom] = {'ac_hp': 0, 'ac_hc': 0, 're_hp': s_u['res_hp'],
+                                                      're_hc': s_u['res_hc'], 'mini_hp': mini_hp,
+                                                      'mini_hc': mini_hc, 'tot_hp': 0, 'tot_hc': 0}
+
+                        if id_machine in somme_cae:
+                            for id_user, s_u in somme_cae[id_machine]['users'].items():
+                                nom = s_u['nom']
+                                prenom = s_u['prenom']
+                                if nom not in users:
+                                    users[nom] = {}
+                                if prenom not in users[nom]:
+                                    users[nom][prenom] = {'ac_hp': s_u['duree_hp'], 'ac_hc': s_u['duree_hc'], 're_hp': 0,
+                                                          're_hc': 0, 'mini_hp': 0, 'mini_hc': 0, 'tot_hp': 0, 'tot_hc': 0}
+                                else:
+                                    users[nom][prenom]['ac_hp'] = s_u['duree_hp']
+                                    users[nom][prenom]['ac_hc'] = s_u['duree_hc']
+                        for nom in users:
+                            for prenom, s_u in users[nom].items():
+                                s_u['tot_hp'] = s_u['mini_hp'] - s_u['ac_hp']
+                                somme['res'][id_machine]['tot_hp'] += s_u['tot_hp']
+                                s_u['tot_hc'] = s_u['mini_hc'] - s_u['ac_hc']
+                                somme['res'][id_machine]['tot_hc'] += s_u['tot_hc']
+                        somme['res'][id_machine]['tot_hp'] = max(0, somme['res'][id_machine]['tot_hp'])
+                        somme['res'][id_machine]['tot_hc'] = max(0, somme['res'][id_machine]['tot_hc'])
+
+                        somme['res'][id_machine]['mont_hp'] = round(somme['res'][id_machine]['tot_hp'] * pu_hp, 2)
+                        somme['res'][id_machine]['mont_hc'] = round(somme['res'][id_machine]['tot_hc'] * pu_hc, 2)
+                        somme['rm'] += somme['res'][id_machine]['mont_hp'] + somme['res'][id_machine]['mont_hc']
+
+                #     if id_compte in acces.sommes[code_client]:
+                #         somme_cae_compte = acces.sommes[code_client][id_compte]
+                #         for id_mach in somme_cae_compte:
+                #             if id_mach not in somme_cae:
+                #                 somme_cae[id_mach] = {'duree_hp': 0, 'duree_hc': 0}
+                #             somme_cae[id_mach]['duree_hp'] += somme_cae_compte[id_mach]['duree_hp']
+                #             somme_cae[id_mach]['duree_hc'] += somme_cae_compte[id_mach]['duree_hc']
+                # for key in somme_cae.keys():
+                #     if key not in machines_utilisees:
+                #         machines_utilisees.append(key)
+                #
+                # for mach_u in machines_utilisees:
+                #     if mach_u in somme_res:
+                #         mini_hp = somme_res[mach_u]['res_hp'] * \
+                #                   machines.donnees[mach_u]['tx_occ_eff_hp'] / 100
+                #         mini_hc = somme_res[mach_u]['res_hc'] * \
+                #                   machines.donnees[mach_u]['tx_occ_eff_hc'] / 100
+                #     else:
+                #         mini_hp = 0
+                #         mini_hc = 0
+                #     if mach_u in somme_cae:
+                #         pen_hp = mini_hp - somme_cae[mach_u]['duree_hp']
+                #         pen_hc = mini_hc - somme_cae[mach_u]['duree_hc']
+                #     else:
+                #         pen_hp = mini_hp
+                #         pen_hc = mini_hc
+                #     if mach_u in somme_res:
+                #         m_hp = round(pen_hp / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hp']
+                #         m_hc = round(pen_hc / 60, 1) * reservations.sommes[code_client]['machines'][mach_u]['pu_hc']
+                #     else:
+                #         m_hp = 0
+                #         m_hc = 0
+                #
+                #     somme['res'][mach_u] = {'pen_hp': round(pen_hp / 60, 1),
+                #                             'pen_hc': round(pen_hc / 60, 1),
+                #                             'm_hp': m_hp, 'm_hc': m_hc}
+                #     somme['rm'] += m_hp + m_hc
 
                 somme['rr'] = Rabais.rabais_reservation_petit_montant(somme['rm'], self.min_fact_rese)
                 somme['r'] = somme['rm'] - somme['rr']
