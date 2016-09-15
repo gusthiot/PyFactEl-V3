@@ -182,19 +182,19 @@ class Annexes(object):
             reference += "-" + edition.version
         intitule_client = code_client + " - " + Latex.echappe_caracteres(client['abrev_labo'])
 
-        # structure_recap_compte = r'''{|l|r|r|'''
-        # contenu_recap_compte = r'''
-        #     \hline
-        #     Compte & \multicolumn{1}{l|}{Procédés}'''
-        #
-        # for article in generaux.articles_d3:
-        #     structure_recap_compte += r'''r|'''
-        #     contenu_recap_compte += r''' & \multicolumn{1}{l|}{
-        #     ''' + Latex.echappe_caracteres(article.intitule_long) + r'''}'''
-        # structure_recap_compte += r'''}'''
-        # contenu_recap_compte += r'''& \multicolumn{1}{l|}{Total} \\
-        #     \hline
-        #     '''
+        structure_recap_compte = r'''{|l|r|r|'''
+        contenu_recap_compte = r'''
+            \hline
+            Compte & \multicolumn{1}{l|}{Procédés}'''
+
+        for article in generaux.articles_d3:
+            structure_recap_compte += r'''r|'''
+            contenu_recap_compte += r''' & \multicolumn{1}{l|}{
+            ''' + Latex.echappe_caracteres(article.intitule_court) + r'''}'''
+        structure_recap_compte += r'''}'''
+        contenu_recap_compte += r'''& \multicolumn{1}{l|}{Total} \\
+            \hline
+            '''
 
         # contenu_procedes_client = r'''
         #     \cline{2-6}
@@ -204,15 +204,11 @@ class Annexes(object):
         #     \hline
         #     '''
 
-        # contenu_prestations_client_tab = {}
-        # for article in generaux.articles_d3:
-        #     contenu_prestations_client_tab[article.code_d] = r'''
-        #         \cline{2-4}
-        #         \multicolumn{1}{c}{} & \multicolumn{3}{|c|}{''' + article. intitule_long + r'''} \\
-        #         \hline
-        #         Compte & Montant & Rabais & Montant net \\
-        #         \hline
-        #         '''
+        contenu_prestations_client_tab = {}
+        for article in generaux.articles_d3:
+            contenu_prestations_client_tab[article.code_d] = ""
+
+        contenu_prestations_client = ""
 
         client_comptes = sommes.sommes_comptes[code_client]
         titre4 = "Annexe IV - Annexe détaillée par compte"
@@ -229,20 +225,24 @@ class Annexes(object):
             intitule_compte = id_compte + " - " + Latex.echappe_caracteres(compte['intitule'])
             contenu_compte_annexe4 += r'''\fakesection{''' + titre4 + " : " + id_compte + r'''}'''
 
-            # ## 1.1 ? ligne récapitulatif comptes pour client
+            # ## 1.5
 
-            # dico_recap_compte = {'compte': intitule_compte, 'procede': "%.2f" % sco['mj'],
-            #                      'total': "%.2f" % sco['mj']}
-            #
-            # contenu_recap_compte += r'''%(compte)s & %(procede)s ''' \
-            #                         % dico_recap_compte
-            #
-            # for categorie in generaux.codes_d3():
-            #     contenu_recap_compte += r''' & ''' + "%.2f" % sco['tot_cat'][categorie]
-            #
-            # contenu_recap_compte += r'''& %(total)s \\
-            #     \hline
-            #     ''' % dico_recap_compte
+            total = sco['mj']
+            dico_recap_compte = {'compte': intitule_compte, 'procede': "%.2f" % sco['mj']}
+
+            ligne = r'''%(compte)s & %(procede)s ''' % dico_recap_compte
+
+            for categorie in generaux.codes_d3():
+                total += sco['tot_cat'][categorie]
+                ligne += r''' & ''' + "%.2f" % sco['tot_cat'][categorie]
+
+            if total > 0:
+                dico_recap_compte['total'] = "%.2f" % total
+                ligne += r'''& %(total)s \\
+                    \hline
+                    ''' % dico_recap_compte
+                contenu_recap_compte += ligne
+
 
             # ## 1.6 ? ligne coûts procédés pour client
 
@@ -255,17 +255,60 @@ class Annexes(object):
             #     \hline
             #     ''' % dico_procedes_client
 
-            # ## 1.7 ? ligne prestations livrées pour client
+            # ## 1.7
 
-            # for article in generaux.articles_d3:
-            #     dico_prestations_client = {'intitule': intitule_compte,
-            #                                'cmj': "%.2f" % sco['sommes_cat_m'][article.code_d],
-            #                                'crj': "%.2f" % sco['sommes_cat_r'][article.code_d],
-            #                                'cj': "%.2f" % sco['tot_cat'][article.code_d]}
-            #     contenu_prestations_client_tab[article.code_d] += r'''
-            #     %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
-            #     \hline
-            #     ''' % dico_prestations_client
+            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                for article in generaux.articles_d3:
+                    if article.code_d in livraisons.sommes[code_client][id_compte]:
+                        if contenu_prestations_client_tab[article.code_d] == "":
+                            contenu_prestations_client_tab[article.code_d] = r'''
+                                \cline{2-4}
+                                \multicolumn{1}{c}{} & \multicolumn{3}{|c|}{''' + article.intitule_long + r'''} \\
+                                \hline
+                                Compte & Montant & Rabais & Montant net \\
+                                \hline
+                                '''
+                        dico_prestations_client = {'intitule': intitule_compte,
+                                                   'cmj': "%.2f" % sco['sommes_cat_m'][article.code_d],
+                                                   'crj': "%.2f" % sco['sommes_cat_r'][article.code_d],
+                                                   'cj': "%.2f" % sco['tot_cat'][article.code_d]}
+                        contenu_prestations_client_tab[article.code_d] += r'''
+                        %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
+                        \hline
+                        ''' % dico_prestations_client
+
+            # ## ligne 2.1
+
+            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                somme = livraisons.sommes[code_client][id_compte]
+                for article in generaux.articles_d3:
+                    if article.code_d in somme:
+                        if contenu_prestations_client != "":
+                            contenu_prestations_client += r'''
+                                \multicolumn{6}{c}{} \\
+                                '''
+
+                        contenu_prestations_client += r'''
+                            \hline
+                            \multicolumn{1}{|l|}{\scriptsize{\textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                            }}} & Quantité & Unité & P.U. & Montant & Rabais \\
+                            \hline
+                            '''
+                        for no_prestation, sip in sorted(somme[article.code_d].items()):
+                            dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
+                                                'quantite': sip['quantite'], 'unite': sip['unite'],
+                                                'pu': "%.2f" % sip['pu'], 'montant': "%.2f" % sip['montant'],
+                                                'rabais': "%.2f" % sip['rabais']}
+                            contenu_prestations_client += r'''
+                                %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(pu)s & %(montant)s & %(rabais)s  \\
+                                \hline
+                                ''' % dico_prestations
+                        dico_prestations = {'montant': "%.2f" % sco['sommes_cat_m'][article.code_d],
+                                            'rabais': "%.2f" % sco['sommes_cat_r'][article.code_d]}
+                        contenu_prestations_client += r'''
+                            \multicolumn{4}{|r|}{Total} & %(montant)s & %(rabais)s  \\
+                            \hline
+                            ''' % dico_prestations
 
             # ## 2.1 ? récapitulatif postes pour compte
 
@@ -613,7 +656,10 @@ class Annexes(object):
                     categorie = article.code_d
                     if sco['sommes_cat_m'][categorie] > 0:
                         contenu_recap_fact += str(poste) + r''' &''' + Latex.echappe_caracteres(article.intitule_long)
-                        contenu_recap_fact += r''' & & & \\
+                        contenu_recap_fact += r''' & '''
+                        contenu_recap_fact += "%.2f" % sco['sommes_cat_m'][article.code_d] + r''' & '''
+                        contenu_recap_fact += "%.2f" % sco['sommes_cat_r'][article.code_d] + r''' & '''
+                        contenu_recap_fact += "%.2f" % sco['tot_cat'][article.code_d] + r''' \\
                             \hline
                             '''
                         poste += 1
@@ -652,14 +698,12 @@ class Annexes(object):
 
         for article in generaux.articles_d3:
             contenu_recap_poste_cl += Latex.echappe_caracteres(article.intitule_long)
-            contenu_recap_poste_cl += r''' & & & \\
-                \hline
-                '''
-            # contenu_recap_poste_cl += "%.2f" % scl['sommes_cat_m'][article.code_d] + r''' & '''
-            # contenu_recap_poste_cl += "%.2f" % scl['sommes_cat_r'][article.code_d] + r''' & '''
-            # contenu_recap_poste_cl += "%.2f" % scl['tot_cat'][article.code_d] + r''' \\
-            #                 \hline
-            #                 '''
+            contenu_recap_poste_cl += r''' & '''
+            contenu_recap_poste_cl += "%.2f" % scl['sommes_cat_m'][article.code_d] + r''' & '''
+            contenu_recap_poste_cl += "%.2f" % scl['sommes_cat_r'][article.code_d] + r''' & '''
+            contenu_recap_poste_cl += "%.2f" % scl['tot_cat'][article.code_d] + r''' \\
+                            \hline
+                            '''
 
         contenu_recap_poste_cl += r'''\multicolumn{3}{|r|}{Total} & ''' + "%.2f" % (scl['somme_t'] + scl['e']) + r'''\\
             \hline
@@ -746,6 +790,53 @@ class Annexes(object):
 
         contenu += Latex.tableau(contenu_frais_client, structure_frais_client, legende_frais_client)
 
+        # ## 1.5
+
+        legende_recap_compte = r'''Table I.5 - Récapitulatif des comptes'''
+
+        dico_recap_compte = {'procedes': "%.2f" % scl['mt'], 'total': "%.2f" % (scl['somme_t']-scl['r'])}
+
+        contenu_recap_compte += r'''Total article & %(procedes)s''' % dico_recap_compte
+
+        for categorie in generaux.codes_d3():
+            contenu_recap_compte += r''' & ''' + "%.2f" % scl['tot_cat'][categorie]
+
+        contenu_recap_compte += r'''& %(total)s \\
+            \hline
+            ''' % dico_recap_compte
+
+        contenu += Latex.tableau(contenu_recap_compte, structure_recap_compte, legende_recap_compte)
+
+        # ## 1.7
+        if code_client in livraisons.sommes:
+            structure_prestations_client_recap = r'''{|l|c|c|c|}'''
+            legende_prestations_client_recap = r'''Table I.7 - Récapitulatif des prestations livrées'''
+
+            contenu_prestations_client_recap = ""
+            i = 0
+            for article in generaux.articles_d3:
+                if contenu_prestations_client_tab[article.code_d] != "":
+                    dico_prestations_client = {'cmt': "%.2f" % scl['sommes_cat_m'][article.code_d],
+                                               'crt': "%.2f" % scl['sommes_cat_r'][article.code_d],
+                                               'ct': "%.2f" % scl['tot_cat'][article.code_d]}
+                    contenu_prestations_client_tab[article.code_d] += r'''
+                    Total & %(cmt)s & %(crt)s & %(ct)s \\
+                    \hline
+                    ''' % dico_prestations_client
+                    if i == 0:
+                        i += 1
+                    else:
+                        contenu_prestations_client_recap += r'''\multicolumn{4}{c}{} \\'''
+                    contenu_prestations_client_recap += contenu_prestations_client_tab[article.code_d]
+
+            contenu += Latex.tableau(contenu_prestations_client_recap, structure_prestations_client_recap, legende_prestations_client_recap)
+
+        else:
+            contenu += r'''
+                \tiny{Table II.1 - Récapitulatif des prestations livrées : table vide (pas de prestations livrées)}
+                \newline
+                '''
+
         # ## 1.6 ? coûts procédés
 
         # structure_procedes_client = r'''{|l|c|c|c|c|c|}'''
@@ -761,51 +852,24 @@ class Annexes(object):
         #
         # contenu += Latex.tableau(contenu_procedes_client, structure_procedes_client, legende_procedes_client)
 
-        # ## 1.7 prestations livrées
-
-        # structure_prestations_client = r'''{|l|c|c|c|}'''
-        # legende_prestations_client = r'''Récapitulatif des prestations livrées pour client : ''' + intitule_client
-        #
-        # contenu_prestations_client = ""
-        # i = 0
-        # for article in generaux.articles_d3:
-        #     dico_prestations_client = {'cmt': "%.2f" % scl['sommes_cat_m'][article.code_d],
-        #                                'crt': "%.2f" % scl['sommes_cat_r'][article.code_d],
-        #                                'ct': "%.2f" % scl['tot_cat'][article.code_d]}
-        #     contenu_prestations_client_tab[article.code_d] += r'''
-        #     Total article & %(cmt)s & %(crt)s & %(ct)s \\
-        #     \hline
-        #     ''' % dico_prestations_client
-        #     if i == 0:
-        #         i += 1
-        #     else:
-        #         contenu_prestations_client += r'''\multicolumn{4}{c}{} \\'''
-        #     contenu_prestations_client += contenu_prestations_client_tab[article.code_d]
-        #
-        # contenu += Latex.tableau(contenu_prestations_client, structure_prestations_client, legende_prestations_client)
-
-        # ## 1.2 ? récapitulatif comptes pour client
-
-        # legende_recap_compte = r'''Récapitulatif des comptes pour client ''' + intitule_client
-        #
-        # dico_recap_compte = {'procedes': "%.2f" % scl['mt'], 'total': "%.2f" % (scl['somme_t']-scl['r'])}
-        #
-        # contenu_recap_compte += r'''Total article & %(procedes)s''' % dico_recap_compte
-        #
-        # for categorie in generaux.codes_d3():
-        #     contenu_recap_compte += r''' & ''' + "%.2f" % scl['tot_cat'][categorie]
-        #
-        # contenu_recap_compte += r'''& %(total)s \\
-        #     \hline
-        #     ''' % dico_recap_compte
-        #
-        # contenu += Latex.tableau(contenu_recap_compte, structure_recap_compte, legende_recap_compte)
-
         # ## Annexe 2
 
         titre = Annexes.titre_annexe(code_client, client, edition, reference,
                                      "Annexe II - Récapitulatifs par compte")
         contenu += titre[0]
+
+        # ## 2.1
+
+        if contenu_prestations_client != "":
+            structure_prestations_client = r'''{|l|c|c|c|c|c|}'''
+            legende_prestations_client = r'''Table II.1 - Prestations livrées'''
+
+            contenu += Latex.tableau(contenu_prestations_client, structure_prestations_client, legende_prestations_client)
+        else:
+            contenu += r'''
+                \tiny{Table II.1 - Prestations livrées : table vide (pas de prestations livrées)}
+                \newline
+                '''
 
         # ## Annexe 3
 
@@ -1082,20 +1146,6 @@ class Annexes(object):
                                      "Annexe V - Justificatif des coûts d'utilisation par compte")
         contenu += titre[0]
        # contenu += titre[1]
-
-
-        # ## 3.2 ? durée utilisée client
-
-        # structure_utilise_client = r'''{|l|c|c|}'''
-        # legende_utilise_client = r'''Récapitulatif heures machines par utilisateur pour client : ''' + intitule_client
-        #
-        # contenu_utilise_client = r'''
-        #     \cline{2-3}
-        #     \multicolumn{1}{c|}{} & HP & HC \\
-        #     \hline
-        #     '''
-        #
-        # contenu += Latex.tableau(contenu_utilise_client, structure_utilise_client, legende_utilise_client)
 
         return contenu
 

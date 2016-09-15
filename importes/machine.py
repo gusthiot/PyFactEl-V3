@@ -8,7 +8,7 @@ class Machine(Fichier):
     """
 
     cles = ['annee', 'mois', 'id_machine', 'nom', 'categorie', 'id_cout', 't_h_machine_a', 't_h_machine_b', 't_h_machine_c',
-            'd_h_machine_d', 'd_h_creuses_e', 'hc', 't_h_operateur_hp_mo', 'tx_occ_eff_hp', 't_h_reservation_hp',
+            'd_h_machine_d', 'd_h_creuses_e', 't_h_operateur_hp_mo', 'tx_occ_eff_hp', 't_h_reservation_hp',
             't_h_operateur_hc_mo', 'tx_occ_eff_hc', 't_h_reservation_hc', 'delai_sans_frais']
     nom_fichier = "machine.csv"
     libelle = "Machines"
@@ -111,9 +111,6 @@ class Machine(Fichier):
                                                                          "le tarif réservation HC", ligne)
             msg += info
             donnee['delai_sans_frais'], info = Outils.est_un_nombre(donnee['delai_sans_frais'], "le délai sans frais",
-                                                                    ligne)
-            msg += info
-            donnee['hc'], info = Outils.est_un_nombre(donnee['hc'], "le hc",
                                                                     ligne)
             msg += info
 

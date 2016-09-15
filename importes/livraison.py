@@ -126,10 +126,13 @@ class Livraison(Fichier):
                 scl[id_compte][categorie] = {}
             if no_prestation not in scl[id_compte][categorie]:
                 scl[id_compte][categorie][no_prestation] = {'nom': donnee['designation'], 'unite': donnee['unite'],
-                                                                'quantite': 0, 'rabais': 0, 'users': {}}
+                                                            'pu': donnee['prix_unit_client'], 'quantite': 0,
+                                                            'rabais': 0, 'montant': 0, 'users': {}}
+
             scp = scl[id_compte][categorie][no_prestation]
             scp['quantite'] += donnee['quantite']
             scp['rabais'] += donnee['rabais_r']
+            scp['montant'] += donnee['montant']
 
             if id_user not in scp['users']:
                 scp['users'][id_user] = {'nom': donnee['nom_user'], 'prenom': donnee['prenom_user'], 'quantite': 0,

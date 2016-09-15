@@ -143,10 +143,7 @@ class Acces(Fichier):
                                   donnee['duree_operateur_hc'] / 60 * donnee['puo_hc'], 2)
 
             donnee['dsi'] = round(tm * coefmachine['coef_d'] * machine['d_h_machine_d'],2)
-            if machine['hc'] == 1:
-                donnee['dhi'] = round(donnee['duree_machine_hc'] / 60 * coefmachine['coef_e'] * machine['d_h_creuses_e'],2)
-            else:
-                donnee['dhi'] = 0
+            donnee['dhi'] = round(donnee['duree_machine_hc'] / 60 * coefmachine['coef_e'] * machine['d_h_creuses_e'],2)
             donnee['mm'] = donnee['mai'] + donnee['moi']
             donnee['mr'] = donnee['dsi'] + donnee['dhi']
             donnee['m'] = donnee['mm'] - donnee['mr']
