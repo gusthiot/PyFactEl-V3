@@ -417,54 +417,57 @@ class Annexes(object):
                             nom = somme[id_machine]['users'][key]['nom']
                             if nom not in users:
                                 users[nom] = {}
-                            users[nom][prenom] = key
+                            if prenom not in users[nom]:
+                                users[nom][prenom] = []
+                            users[nom][prenom].append(key)
 
                         for nom, upi in sorted(users.items()):
-                            for prenom, id_user in sorted(upi.items()):
-                                smu = somme[id_machine]['users'][id_user]
-                                dico_user = {'user': nom + " " + prenom,
-                                             'hp': Outils.format_heure(smu['duree_hp']),
-                                             'hc': Outils.format_heure(smu['duree_hc']),
-                                             'mo_hp': Outils.format_heure(smu['mo_hp']),
-                                             'mo_hc': Outils.format_heure(smu['mo_hc'])}
-                                contenu_machuts_compte += r'''
-                                    \multicolumn{3}{|l|}{\hspace{5mm} %(user)s} & %(hp)s & %(hc)s & %(mo_hp)s & %(mo_hc)s \\
-                                    \hline
-                                ''' % dico_user
-                                for pos in smu['data']:
-                                    cae = acces.donnees[pos]
-                                    login = Latex.echappe_caracteres(cae['date_login']).split()
-                                    temps = login[0].split('-')
-                                    date = temps[0]
-                                    for pos in range(1, len(temps)):
-                                        date = temps[pos] + '.' + date
-                                    if len(login) > 1:
-                                        heure = login[1]
-                                    else:
-                                        heure = ""
-
-                                    rem = ""
-                                    if id_user != cae['id_op']:
-                                        rem += "op : " + cae['nom_op']
-                                    if cae['remarque_op'] != "":
-                                        if rem != "":
-                                            rem += "; "
-                                        rem += "rem op : " + Latex.echappe_caracteres(cae['remarque_op'])
-                                    if cae['remarque_staff'] != "":
-                                        if rem != "":
-                                            rem += "; "
-                                        rem += "rem CMi : " + Latex.echappe_caracteres(cae['remarque_staff'])
-
-                                    dico_pos = {'date': date, 'heure': heure, 'rem': rem,
-                                                'hp': Outils.format_heure(cae['duree_machine_hp']),
-                                                'hc': Outils.format_heure(cae['duree_machine_hc']),
-                                                'mo_hp': Outils.format_heure(cae['duree_operateur_hp']),
-                                                'mo_hc': Outils.format_heure(cae['duree_operateur_hc'])}
+                            for prenom, ids in sorted(upi.items()):
+                                for id_user in sorted(ids):
+                                    smu = somme[id_machine]['users'][id_user]
+                                    dico_user = {'user': nom + " " + prenom,
+                                                 'hp': Outils.format_heure(smu['duree_hp']),
+                                                 'hc': Outils.format_heure(smu['duree_hc']),
+                                                 'mo_hp': Outils.format_heure(smu['mo_hp']),
+                                                 'mo_hc': Outils.format_heure(smu['mo_hc'])}
                                     contenu_machuts_compte += r'''
-                                        \hspace{10mm} %(date)s & %(heure)s & %(rem)s & %(hp)s \hspace{5mm} &
-                                         %(hc)s \hspace{5mm} & %(mo_hp)s \hspace{5mm} & %(mo_hc)s \hspace{5mm} \\
+                                        \multicolumn{3}{|l|}{\hspace{5mm} %(user)s} & %(hp)s & %(hc)s & %(mo_hp)s & %(mo_hc)s \\
                                         \hline
-                                    ''' % dico_pos
+                                    ''' % dico_user
+                                    for pos in smu['data']:
+                                        cae = acces.donnees[pos]
+                                        login = Latex.echappe_caracteres(cae['date_login']).split()
+                                        temps = login[0].split('-')
+                                        date = temps[0]
+                                        for pos in range(1, len(temps)):
+                                            date = temps[pos] + '.' + date
+                                        if len(login) > 1:
+                                            heure = login[1]
+                                        else:
+                                            heure = ""
+
+                                        rem = ""
+                                        if id_user != cae['id_op']:
+                                            rem += "op : " + cae['nom_op']
+                                        if cae['remarque_op'] != "":
+                                            if rem != "":
+                                                rem += "; "
+                                            rem += "rem op : " + Latex.echappe_caracteres(cae['remarque_op'])
+                                        if cae['remarque_staff'] != "":
+                                            if rem != "":
+                                                rem += "; "
+                                            rem += "rem CMi : " + Latex.echappe_caracteres(cae['remarque_staff'])
+
+                                        dico_pos = {'date': date, 'heure': heure, 'rem': rem,
+                                                    'hp': Outils.format_heure(cae['duree_machine_hp']),
+                                                    'hc': Outils.format_heure(cae['duree_machine_hc']),
+                                                    'mo_hp': Outils.format_heure(cae['duree_operateur_hp']),
+                                                    'mo_hc': Outils.format_heure(cae['duree_operateur_hc'])}
+                                        contenu_machuts_compte += r'''
+                                            \hspace{10mm} %(date)s & %(heure)s & %(rem)s & %(hp)s \hspace{5mm} &
+                                             %(hc)s \hspace{5mm} & %(mo_hp)s \hspace{5mm} & %(mo_hc)s \hspace{5mm} \\
+                                            \hline
+                                        ''' % dico_pos
 
                 contenu_compte_annexe4 += Latex.long_tableau(contenu_machuts_compte, structure_machuts_compte, legende_machuts_compte)
             else:
@@ -513,38 +516,41 @@ class Annexes(object):
                                 nom = sip['users'][key]['nom']
                                 if nom not in users:
                                     users[nom] = {}
-                                users[nom][prenom] = key
+                                if prenom not in users[nom]:
+                                    users[nom][prenom] = []
+                                users[nom][prenom].append(key)
 
                             for nom, upi in sorted(users.items()):
-                                for prenom, id_user in sorted(upi.items()):
-                                    spu = sip['users'][id_user]
-                                    dico_user = {'user': nom + " " + prenom, 'quantite': spu['quantite'],
-                                                 'unite': sip['unite'], 'rabais': "%.2f" % spu['rabais']}
-                                    contenu_prestations_compte += r'''
-                                        \hspace{5mm} %(user)s & %(quantite)s & %(unite)s & %(rabais)s \\
-                                        \hline
-                                    ''' % dico_user
-
-                                    for pos in spu['data']:
-                                        liv = livraisons.donnees[pos]
-                                        rem = ""
-                                        dl = ""
-                                        if liv['remarque'] != "":
-                                            rem = "; Remarque : " + liv['remarque']
-                                        if liv['date_livraison'] != "":
-                                            dl = "Dt livraison: " + Latex.echappe_caracteres(liv['date_livraison']) + ";"
-                                        dico_pos = {'date_liv': dl,
-                                                    'quantite': liv['quantite'],'rabais': "%.2f" % liv['rabais_r'],
-                                                    'id': liv['id_livraison'], 'unite': liv['unite'],
-                                                    'responsable': Latex.echappe_caracteres(liv['responsable']),
-                                                    'commande': Latex.echappe_caracteres(liv['date_commande']),
-                                                    'remarque': Latex.echappe_caracteres(rem)}
+                                for prenom, ids in sorted(upi.items()):
+                                    for id_user in sorted(ids):
+                                        spu = sip['users'][id_user]
+                                        dico_user = {'user': nom + " " + prenom, 'quantite': spu['quantite'],
+                                                     'unite': sip['unite'], 'rabais': "%.2f" % spu['rabais']}
                                         contenu_prestations_compte += r'''
-                                            \hspace{10mm} %(date_liv)s N. livraison: %(id)s & %(quantite)s \hspace{5mm} & %(unite)s & %(rabais)s \\
-
-                                            \hspace{10mm} \scalebox{.8}{Commande: %(commande)s; Resp: %(responsable)s%(remarque)s} & & & \\
+                                            \hspace{5mm} %(user)s & %(quantite)s & %(unite)s & %(rabais)s \\
                                             \hline
-                                        ''' % dico_pos
+                                        ''' % dico_user
+
+                                        for pos in spu['data']:
+                                            liv = livraisons.donnees[pos]
+                                            rem = ""
+                                            dl = ""
+                                            if liv['remarque'] != "":
+                                                rem = "; Remarque : " + liv['remarque']
+                                            if liv['date_livraison'] != "":
+                                                dl = "Dt livraison: " + Latex.echappe_caracteres(liv['date_livraison']) + ";"
+                                            dico_pos = {'date_liv': dl,
+                                                        'quantite': liv['quantite'],'rabais': "%.2f" % liv['rabais_r'],
+                                                        'id': liv['id_livraison'], 'unite': liv['unite'],
+                                                        'responsable': Latex.echappe_caracteres(liv['responsable']),
+                                                        'commande': Latex.echappe_caracteres(liv['date_commande']),
+                                                        'remarque': Latex.echappe_caracteres(rem)}
+                                            contenu_prestations_compte += r'''
+                                                \hspace{10mm} %(date_liv)s N. livraison: %(id)s & %(quantite)s \hspace{5mm} & %(unite)s & %(rabais)s \\
+
+                                                \hspace{10mm} \scalebox{.8}{Commande: %(commande)s; Resp: %(responsable)s%(remarque)s} & & & \\
+                                                \hline
+                                            ''' % dico_pos
 
                 contenu_compte_annexe4 += Latex.long_tableau(contenu_prestations_compte, structure_prestations_compte, legende_prestations_compte)
 
@@ -932,8 +938,18 @@ class Annexes(object):
                                     're_hp': Outils.format_heure(re_hp), 're_hc': Outils.format_heure(re_hc),
                                     'tot_hp': Outils.format_heure(tot_hp), 'tot_hc': Outils.format_heure(tot_hc)}
 
-                    users = scl['res'][id_machine]['users' \
-                                                   '']
+                    users = {}
+                    sclu = scl['res'][id_machine]['users']
+
+                    for key in sclu:
+                        prenom = sclu[key]['prenom']
+                        nom = sclu[key]['nom']
+                        if nom not in users:
+                            users[nom] = {}
+                        if prenom not in users[nom]:
+                            users[nom][prenom] = []
+                        users[nom][prenom].append(key)
+
                     if ok_hp:
                         contenu_stats_client += r'''
                             %(machine)s & HP & \hspace{5mm} %(re_hp)s & & & \hspace{5mm} %(ac_hp)s & \hspace{5mm} %(tot_hp)s \\
@@ -941,19 +957,20 @@ class Annexes(object):
                              ''' % dico_machine
 
                         for nom, upi in sorted(users.items()):
-                            for prenom, user in sorted(upi.items()):
-                                ac = user['ac_hp']
-                                re = user['re_hp']
-                                mini = user['mini_hp']
-                                tot = user['tot_hp']
-                                if ac > 0 or re > 0:
-                                    dico_user = {'user': nom + " " + prenom, 'ac': Outils.format_heure(ac),
-                                                 're': Outils.format_heure(re), 'tx': tx_hp,
-                                                 'mini': Outils.format_heure(mini), 'tot': Outils.format_heure(tot)}
-                                    contenu_stats_client += r'''
-                                        \hspace{5mm} %(user)s & HP & %(re)s & %(tx)s & %(mini)s & %(ac)s & %(tot)s \\
-                                        \hline
-                                        ''' % dico_user
+                            for prenom, ids in sorted(upi.items()):
+                                for id_user in sorted(ids):
+                                    ac = sclu[id_user]['ac_hp']
+                                    re = sclu[id_user]['re_hp']
+                                    mini = sclu[id_user]['mini_hp']
+                                    tot = sclu[id_user]['tot_hp']
+                                    if ac > 0 or re > 0:
+                                        dico_user = {'user': nom + " " + prenom, 'ac': Outils.format_heure(ac),
+                                                     're': Outils.format_heure(re), 'tx': tx_hp,
+                                                     'mini': Outils.format_heure(mini), 'tot': Outils.format_heure(tot)}
+                                        contenu_stats_client += r'''
+                                            \hspace{5mm} %(user)s & HP & %(re)s & %(tx)s & %(mini)s & %(ac)s & %(tot)s \\
+                                            \hline
+                                            ''' % dico_user
 
                     if ok_hc:
                         contenu_stats_client += r'''
@@ -962,19 +979,20 @@ class Annexes(object):
                              ''' % dico_machine
 
                         for nom, upi in sorted(users.items()):
-                            for prenom, user in sorted(upi.items()):
-                                ac = user['ac_hc']
-                                re = user['re_hc']
-                                mini = user['mini_hc']
-                                tot = user['tot_hc']
-                                if ac > 0 or re > 0:
-                                    dico_user = {'user': nom + " " + prenom, 'ac': Outils.format_heure(ac),
-                                                 're': Outils.format_heure(re), 'tx': tx_hc,
-                                                 'mini': Outils.format_heure(mini), 'tot': Outils.format_heure(tot)}
-                                    contenu_stats_client += r'''
-                                        \hspace{5mm} %(user)s & HC & %(re)s & %(tx)s & %(mini)s & %(ac)s & %(tot)s \\
-                                        \hline
-                                        ''' % dico_user
+                            for prenom, ids in sorted(upi.items()):
+                                for id_user in sorted(ids):
+                                    ac = sclu[id_user]['ac_hc']
+                                    re = sclu[id_user]['re_hc']
+                                    mini = sclu[id_user]['mini_hc']
+                                    tot = sclu[id_user]['tot_hc']
+                                    if ac > 0 or re > 0:
+                                        dico_user = {'user': nom + " " + prenom, 'ac': Outils.format_heure(ac),
+                                                     're': Outils.format_heure(re), 'tx': tx_hc,
+                                                     'mini': Outils.format_heure(mini), 'tot': Outils.format_heure(tot)}
+                                        contenu_stats_client += r'''
+                                            \hspace{5mm} %(user)s & HC & %(re)s & %(tx)s & %(mini)s & %(ac)s & %(tot)s \\
+                                            \hline
+                                            ''' % dico_user
 
             contenu += Latex.tableau(contenu_stats_client, structure_stats_client, legende_stats_client)
         else:
@@ -1019,27 +1037,30 @@ class Annexes(object):
                         nom = somme[id_machine]['users'][key]['nom']
                         if nom not in users:
                             users[nom] = {}
-                        users[nom][prenom] = key
+                        if prenom not in users[nom]:
+                            users[nom][prenom] = []
+                        users[nom][prenom].append(key)
 
                     for nom, upi in sorted(users.items()):
-                        for prenom, id_user in sorted(upi.items()):
-                            smu = somme[id_machine]['users'][id_user]
-                            dico_user = {'user': nom + " " + prenom,
-                                         'hp': Outils.format_heure(smu['duree_hp']),
-                                         'hc': Outils.format_heure(smu['duree_hc'])}
-                            contenu_machuts_client += r'''
-                                \hspace{5mm} %(user)s & %(hp)s & %(hc)s \\
-                                \hline
-                                ''' % dico_user
-
-                            for id_compte in smu['comptes']:
-                                smuc = smu['comptes'][id_compte]
-                                dico_compte = {'compte': id_compte, 'hp': Outils.format_heure(smuc['duree_hp']),
-                                             'hc': Outils.format_heure(smuc['duree_hc'])}
+                        for prenom, ids in sorted(upi.items()):
+                            for id_user in sorted(ids):
+                                smu = somme[id_machine]['users'][id_user]
+                                dico_user = {'user': nom + " " + prenom,
+                                             'hp': Outils.format_heure(smu['duree_hp']),
+                                             'hc': Outils.format_heure(smu['duree_hc'])}
                                 contenu_machuts_client += r'''
-                                    \hspace{10mm} %(compte)s & %(hp)s \hspace{5mm} & %(hc)s \hspace{5mm} \\
+                                    \hspace{5mm} %(user)s & %(hp)s & %(hc)s \\
                                     \hline
-                                    ''' % dico_compte
+                                    ''' % dico_user
+
+                                for id_compte in smu['comptes']:
+                                    smuc = smu['comptes'][id_compte]
+                                    dico_compte = {'compte': id_compte, 'hp': Outils.format_heure(smuc['duree_hp']),
+                                                 'hc': Outils.format_heure(smuc['duree_hc'])}
+                                    contenu_machuts_client += r'''
+                                        \hspace{10mm} %(compte)s & %(hp)s \hspace{5mm} & %(hc)s \hspace{5mm} \\
+                                        \hline
+                                        ''' % dico_compte
 
             contenu += Latex.tableau(contenu_machuts_client, structure_machuts_client, legende_machuts_client)
         else:
@@ -1089,41 +1110,44 @@ class Annexes(object):
                         nom = somme[id_machine]['users'][key]['nom']
                         if nom not in users:
                             users[nom] = {}
-                        users[nom][prenom] = key
+                        if prenom not in users[nom]:
+                            users[nom][prenom] = []
+                        users[nom][prenom].append(key)
 
                     for nom, upi in sorted(users.items()):
-                        for prenom, id_user in sorted(upi.items()):
-                            smu = somme[id_machine]['users'][id_user]
-                            dico_user = {'user': nom + " " + prenom,
-                                         'hp': Outils.format_heure(smu['res_hp']),
-                                         'hc': Outils.format_heure(smu['res_hc'])}
-                            contenu_reserve_client += r'''
-                                        \multicolumn{3}{|l|}{\hspace{5mm} %(user)s} & %(hp)s & %(hc)s \\
-                                        \hline
-                                    ''' % dico_user
-                            for pos in smu['data']:
-                                res = reservations.donnees[pos]
-                                login = Latex.echappe_caracteres(res['date_debut']).split()
-                                temps = login[0].split('-')
-                                date = temps[0]
-                                for pos in range(1, len(temps)):
-                                    date = temps[pos] + '.' + date
-                                if len(login) > 1:
-                                    heure = login[1]
-                                else:
-                                    heure = ""
-
-                                sup = ""
-                                if res['si_supprime'] == "OUI":
-                                    sup = "Supprimé le : " + Latex.echappe_caracteres(res['date_suppression'])
-                                dico_pos = {'date': date, 'heure': heure, 'sup': sup,
-                                            'hp': Outils.format_heure(res['duree_fact_hp']),
-                                            'hc': Outils.format_heure(res['duree_fact_hc'])}
+                        for prenom, ids in sorted(upi.items()):
+                            for id_user in sorted(ids):
+                                smu = somme[id_machine]['users'][id_user]
+                                dico_user = {'user': nom + " " + prenom,
+                                             'hp': Outils.format_heure(smu['res_hp']),
+                                             'hc': Outils.format_heure(smu['res_hc'])}
                                 contenu_reserve_client += r'''
-                                            \hspace{10mm} %(date)s & %(heure)s & %(sup)s & %(hp)s \hspace{5mm} &
-                                             %(hc)s \hspace{5mm} \\
+                                            \multicolumn{3}{|l|}{\hspace{5mm} %(user)s} & %(hp)s & %(hc)s \\
                                             \hline
-                                        ''' % dico_pos
+                                        ''' % dico_user
+                                for pos in smu['data']:
+                                    res = reservations.donnees[pos]
+                                    login = Latex.echappe_caracteres(res['date_debut']).split()
+                                    temps = login[0].split('-')
+                                    date = temps[0]
+                                    for pos in range(1, len(temps)):
+                                        date = temps[pos] + '.' + date
+                                    if len(login) > 1:
+                                        heure = login[1]
+                                    else:
+                                        heure = ""
+
+                                    sup = ""
+                                    if res['si_supprime'] == "OUI":
+                                        sup = "Supprimé le : " + Latex.echappe_caracteres(res['date_suppression'])
+                                    dico_pos = {'date': date, 'heure': heure, 'sup': sup,
+                                                'hp': Outils.format_heure(res['duree_fact_hp']),
+                                                'hc': Outils.format_heure(res['duree_fact_hc'])}
+                                    contenu_reserve_client += r'''
+                                                \hspace{10mm} %(date)s & %(heure)s & %(sup)s & %(hp)s \hspace{5mm} &
+                                                 %(hc)s \hspace{5mm} \\
+                                                \hline
+                                            ''' % dico_pos
 
             contenu += Latex.long_tableau(contenu_reserve_client, structure_reserve_client, legende_reserve_client)
         else:

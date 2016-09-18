@@ -210,35 +210,27 @@ class Sommes(object):
 
                         users = somme['res'][id_machine]['users']
                         for id_user, s_u in somme_res[id_machine]['users'].items():
-                            nom = s_u['nom']
-                            prenom = s_u['prenom']
-                            if nom not in users:
-                                users[nom] = {}
-                            if prenom not in users[nom]:
+                            if id_user not in users:
                                 mini_hp = s_u['res_hp'] * tx_hp / 100
                                 mini_hc = s_u['res_hc'] * tx_hc / 100
-                                users[nom][prenom] = {'ac_hp': 0, 'ac_hc': 0, 're_hp': s_u['res_hp'],
-                                                      're_hc': s_u['res_hc'], 'mini_hp': mini_hp,
-                                                      'mini_hc': mini_hc, 'tot_hp': 0, 'tot_hc': 0}
+                                users[id_user] = {'nom': s_u['nom'], 'prenom': s_u['prenom'], 'ac_hp': 0, 'ac_hc': 0,
+                                                  're_hp': s_u['res_hp'], 're_hc': s_u['res_hc'], 'mini_hp': mini_hp,
+                                                  'mini_hc': mini_hc, 'tot_hp': 0, 'tot_hc': 0}
 
                         if id_machine in somme_cae:
                             for id_user, s_u in somme_cae[id_machine]['users'].items():
-                                nom = s_u['nom']
-                                prenom = s_u['prenom']
-                                if nom not in users:
-                                    users[nom] = {}
-                                if prenom not in users[nom]:
-                                    users[nom][prenom] = {'ac_hp': s_u['duree_hp'], 'ac_hc': s_u['duree_hc'], 're_hp': 0,
-                                                          're_hc': 0, 'mini_hp': 0, 'mini_hc': 0, 'tot_hp': 0, 'tot_hc': 0}
+                                if id_user not in users:
+                                    users[id_user] = {'nom': s_u['nom'], 'prenom': s_u['prenom'],
+                                                      'ac_hp': s_u['duree_hp'], 'ac_hc': s_u['duree_hc'], 're_hp': 0,
+                                                      're_hc': 0, 'mini_hp': 0, 'mini_hc': 0, 'tot_hp': 0, 'tot_hc': 0}
                                 else:
-                                    users[nom][prenom]['ac_hp'] = s_u['duree_hp']
-                                    users[nom][prenom]['ac_hc'] = s_u['duree_hc']
-                        for nom in users:
-                            for prenom, s_u in users[nom].items():
-                                s_u['tot_hp'] = s_u['mini_hp'] - s_u['ac_hp']
-                                somme['res'][id_machine]['tot_hp'] += s_u['tot_hp']
-                                s_u['tot_hc'] = s_u['mini_hc'] - s_u['ac_hc']
-                                somme['res'][id_machine]['tot_hc'] += s_u['tot_hc']
+                                    users[id_user]['ac_hp'] = s_u['duree_hp']
+                                    users[id_user]['ac_hc'] = s_u['duree_hc']
+                        for id_user, s_u in users.items():
+                            s_u['tot_hp'] = s_u['mini_hp'] - s_u['ac_hp']
+                            somme['res'][id_machine]['tot_hp'] += s_u['tot_hp']
+                            s_u['tot_hc'] = s_u['mini_hc'] - s_u['ac_hc']
+                            somme['res'][id_machine]['tot_hc'] += s_u['tot_hc']
                         somme['res'][id_machine]['tot_hp'] = max(0, somme['res'][id_machine]['tot_hp'])
                         somme['res'][id_machine]['tot_hc'] = max(0, somme['res'][id_machine]['tot_hc'])
 
