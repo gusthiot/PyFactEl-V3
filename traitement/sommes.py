@@ -211,8 +211,8 @@ class Sommes(object):
                         users = somme['res'][id_machine]['users']
                         for id_user, s_u in somme_res[id_machine]['users'].items():
                             if id_user not in users:
-                                mini_hp = s_u['res_hp'] * tx_hp / 100
-                                mini_hc = s_u['res_hc'] * tx_hc / 100
+                                mini_hp = round(s_u['res_hp'] * tx_hp / 100)
+                                mini_hc = round(s_u['res_hc'] * tx_hc / 100)
                                 users[id_user] = {'nom': s_u['nom'], 'prenom': s_u['prenom'], 'ac_hp': 0, 'ac_hc': 0,
                                                   're_hp': s_u['res_hp'], 're_hc': s_u['res_hc'], 'mini_hp': mini_hp,
                                                   'mini_hc': mini_hc, 'tot_hp': 0, 'tot_hc': 0}

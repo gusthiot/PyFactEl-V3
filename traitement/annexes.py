@@ -1062,7 +1062,7 @@ class Annexes(object):
                                         \hline
                                         ''' % dico_compte
 
-            contenu += Latex.tableau(contenu_machuts_client, structure_machuts_client, legende_machuts_client)
+            contenu += Latex.long_tableau(contenu_machuts_client, structure_machuts_client, legende_machuts_client)
         else:
             contenu += r'''
                 \tiny{Table III.2 - Récapitulatif des utilisations machines par utilisateur : table vide (pas d’utilisation machines)}
