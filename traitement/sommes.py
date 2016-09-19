@@ -234,8 +234,8 @@ class Sommes(object):
                         somme['res'][id_machine]['tot_hp'] = max(0, somme['res'][id_machine]['tot_hp'])
                         somme['res'][id_machine]['tot_hc'] = max(0, somme['res'][id_machine]['tot_hc'])
 
-                        somme['res'][id_machine]['mont_hp'] = round(somme['res'][id_machine]['tot_hp'] * pu_hp, 2)
-                        somme['res'][id_machine]['mont_hc'] = round(somme['res'][id_machine]['tot_hc'] * pu_hc, 2)
+                        somme['res'][id_machine]['mont_hp'] = round(somme['res'][id_machine]['tot_hp'] * pu_hp / 60 , 2)
+                        somme['res'][id_machine]['mont_hc'] = round(somme['res'][id_machine]['tot_hc'] * pu_hc / 60 , 2)
                         somme['rm'] += somme['res'][id_machine]['mont_hp'] + somme['res'][id_machine]['mont_hc']
 
                 #     if id_compte in acces.sommes[code_client]:
