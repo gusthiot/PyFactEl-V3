@@ -9,7 +9,8 @@ class Annexes(object):
     """
     Classe pour la création des annexes
     """
-
+# TODO : vérifier longueur des tableaux
+# TODO : vérifier que données des csv "commentaires" pas utilisées
     @staticmethod
     def annexes(sommes, clients, edition, livraisons, acces, machines, reservations, prestations, comptes,
                 dossier_annexe, plateforme, coefprests, coefmachines, generaux):
@@ -277,7 +278,7 @@ class Annexes(object):
                         \hline
                         ''' % dico_prestations_client
 
-            # ## ligne 2.1
+            # ## ligne 2.3
 
             if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
                 somme = livraisons.sommes[code_client][id_compte]
@@ -651,9 +652,10 @@ class Annexes(object):
         sco_cl = sommes.sommes_comptes[code_client]
         for id_compte in sorted(sco_cl.keys()):
             sco = sco_cl[id_compte]
+            intitule_compte = id_compte + " - " + Latex.echappe_caracteres(comptes.donnees[id_compte]['intitule'])
             if sco['si_facture'] > 0:
                 poste = inc * 10
-                contenu_recap_fact += str(poste) + r''' &''' + generaux.articles[2].intitule_long + r''' & & & \\
+                contenu_recap_fact += str(poste) + r''' &''' + intitule_compte + " - " + generaux.articles[2].intitule_long + r''' & & & \\
                     \hline
                     '''
                 poste += 1
@@ -661,7 +663,7 @@ class Annexes(object):
                 for article in generaux.articles_d3:
                     categorie = article.code_d
                     if sco['sommes_cat_m'][categorie] > 0:
-                        contenu_recap_fact += str(poste) + r''' &''' + Latex.echappe_caracteres(article.intitule_long)
+                        contenu_recap_fact += str(poste) + r''' &''' + intitule_compte + " - " + Latex.echappe_caracteres(article.intitule_long)
                         contenu_recap_fact += r''' & '''
                         contenu_recap_fact += "%.2f" % sco['sommes_cat_m'][article.code_d] + r''' & '''
                         contenu_recap_fact += "%.2f" % sco['sommes_cat_r'][article.code_d] + r''' & '''
@@ -864,16 +866,16 @@ class Annexes(object):
                                      "Annexe II - Récapitulatifs par compte")
         contenu += titre[0]
 
-        # ## 2.1
+        # ## 2.3
 
         if contenu_prestations_client != "":
             structure_prestations_client = r'''{|l|c|c|c|c|c|}'''
-            legende_prestations_client = r'''Table II.1 - Prestations livrées'''
+            legende_prestations_client = r'''Table II.3 - Prestations livrées'''
 
             contenu += Latex.tableau(contenu_prestations_client, structure_prestations_client, legende_prestations_client)
         else:
             contenu += r'''
-                \tiny{Table II.1 - Prestations livrées : table vide (pas de prestations livrées)}
+                \tiny{Table II.3 - Prestations livrées : table vide (pas de prestations livrées)}
                 \newline
                 '''
 
