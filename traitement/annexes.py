@@ -506,7 +506,7 @@ class Annexes(object):
                                                 'quantite': sip['quantite'], 'unite': sip['unite'],
                                                 'rabais': "%.2f" % sip['rabais']}
                             contenu_prestations_compte += r'''
-                                %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(rabais)s  \\
+                                %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & \hspace{5mm} %(rabais)s  \\
                                 \hline
                                 ''' % dico_prestations
 
@@ -546,7 +546,7 @@ class Annexes(object):
                                                         'commande': Latex.echappe_caracteres(liv['date_commande']),
                                                         'remarque': Latex.echappe_caracteres(rem)}
                                             contenu_prestations_compte += r'''
-                                                \hspace{10mm} %(date_liv)s N. livraison: %(id)s & %(quantite)s \hspace{5mm} & %(unite)s & %(rabais)s \\
+                                                \hspace{10mm} %(date_liv)s N. livraison: %(id)s & %(quantite)s \hspace{5mm} & %(unite)s & %(rabais)s \hspace{5mm} \\
 
                                                 \hspace{10mm} \scalebox{.8}{Commande: %(commande)s; Resp: %(responsable)s%(remarque)s} & & & \\
                                                 \hline
