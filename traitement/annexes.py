@@ -111,36 +111,36 @@ class Annexes(object):
                 \renewcommand{\headrulewidth}{0pt}
                 \renewcommand{\footrulewidth}{0pt}
 
-                \fancyhead[L]{\rightmark}
+                \fancyhead[L]{\leftmark \\ \rightmark}
                 \fancyhead[R]{\thepage}
 
-                \newcommand{\fakesection}[1]{
-                \markright{#1}
+                \newcommand{\fakesection}[2]{
+                    \markboth{#1}{#2}
                 }
 
                 \begin{document}
                 \renewcommand{\arraystretch}{1.5}
                 '''
-            contenu += r'''
-                \begin{titlepage}
-                \vspace*{8cm}
-                \begin{adjustwidth}{5cm}{}
-                \Large\textsc{''' + garde + r'''}\newline\newline'''
-
             client = clients.donnees[code_client]
-
             nature = generaux.nature_client_par_code_n(client['type_labo'])
             reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
             if edition.version != "0":
                 reference += "-" + edition.version
+
+            contenu += r'''
+                \begin{titlepage}
+                \vspace*{8cm}
+                \begin{adjustwidth}{5cm}{}
+                \Large\textsc{''' + garde + r'''}\newline
+                \Large\textsc{''' + reference + r'''}\newline\newline\newline
+                '''
+
             dic_entete = {'code': code_client, 'code_sap': client['code_sap'],
                           'nom': Latex.echappe_caracteres(client['abrev_labo']),
-                          'date': edition.mois_txt + " " + str(edition.annee),
-                          'ref': reference}
+                          'date': edition.mois_txt + " " + str(edition.annee)}
 
-            contenu += r''' %(code)s -  %(code_sap)s -  %(nom)s \newline
-                 %(date)s \newline
-                  %(ref)s
+            contenu += r'''Client %(code)s -  %(code_sap)s -  %(nom)s \newline
+                 %(date)s
                 \end{adjustwidth}
                 \end{titlepage}''' % dic_entete
             contenu += Annexes.contenu_client(sommes, clients, code_client, edition, livraisons, acces, machines,
@@ -209,10 +209,11 @@ class Annexes(object):
         for article in generaux.articles_d3:
             contenu_prestations_client_tab[article.code_d] = ""
 
-        contenu_prestations_client = ""
-
         client_comptes = sommes.sommes_comptes[code_client]
-        titre4 = "Annexe IV - Annexe détaillée par compte"
+        titre_4 = "Annexe détaillée par compte"
+        nombre_4 = "IV"
+        titre_2 = "Récapitulatifs par compte"
+        nombre_2 = "II"
         contenu_compte_annexe2 = ""
         contenu_compte_annexe4 = ""
         contenu_compte_annexe5 = ""
@@ -224,7 +225,12 @@ class Annexes(object):
             sco = sommes.sommes_comptes[code_client][id_compte]
             compte = comptes.donnees[id_compte]
             intitule_compte = id_compte + " - " + Latex.echappe_caracteres(compte['intitule'])
-            contenu_compte_annexe4 += r'''\fakesection{''' + titre4 + " : " + id_compte + r'''}'''
+
+            titre2 = titre_2 + " : " + id_compte
+            contenu_compte_annexe2 += Annexes.section(code_client, client, edition, reference, titre2, nombre_2)
+
+            titre4 = titre_4 + " : " + id_compte
+            contenu_compte_annexe4 += Annexes.section(code_client, client, edition, reference, titre4, nombre_4)
 
             # ## 1.5
 
@@ -278,10 +284,13 @@ class Annexes(object):
                         \hline
                         ''' % dico_prestations_client
 
-            # ## ligne 2.3
+            # ## 2.3
 
             if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
                 somme = livraisons.sommes[code_client][id_compte]
+                structure_prestations_client = r'''{|l|c|c|c|c|c|}'''
+                legende_prestations_client = r'''Table II.3 - Prestations livrées'''
+                contenu_prestations_client = ""
                 for article in generaux.articles_d3:
                     if article.code_d in somme:
                         if contenu_prestations_client != "":
@@ -310,6 +319,13 @@ class Annexes(object):
                             \multicolumn{4}{|r|}{Total} & %(montant)s & %(rabais)s  \\
                             \hline
                             ''' % dico_prestations
+                contenu_compte_annexe2 += Latex.tableau(contenu_prestations_client, structure_prestations_client,
+                                 legende_prestations_client)
+            else:
+                contenu_compte_annexe2 += r'''
+                    \tiny{Table II.3 - Prestations livrées : table vide (pas de prestations livrées)}
+                    \newline
+                    '''
 
             # ## 2.1 ? récapitulatif postes pour compte
 
@@ -621,10 +637,8 @@ class Annexes(object):
 
         # ## Annexe 1
 
-        titre = Annexes.titre_annexe(code_client, client, edition, reference,
-                                     "Annexe I - Récapitulatif")
-        contenu += titre[0]
- #       contenu += titre[1]
+        contenu += Annexes.titre_annexe(code_client, client, edition, reference, "Récapitulatif", "I")
+        contenu += Annexes.section(code_client, client, edition, reference, "Récapitulatif", "I")
 
         # ## 1.1
 
@@ -862,28 +876,16 @@ class Annexes(object):
 
         # ## Annexe 2
 
-        titre = Annexes.titre_annexe(code_client, client, edition, reference,
-                                     "Annexe II - Récapitulatifs par compte")
-        contenu += titre[0]
+        contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_2, nombre_2)
 
-        # ## 2.3
-
-        if contenu_prestations_client != "":
-            structure_prestations_client = r'''{|l|c|c|c|c|c|}'''
-            legende_prestations_client = r'''Table II.3 - Prestations livrées'''
-
-            contenu += Latex.tableau(contenu_prestations_client, structure_prestations_client, legende_prestations_client)
-        else:
-            contenu += r'''
-                \tiny{Table II.3 - Prestations livrées : table vide (pas de prestations livrées)}
-                \newline
-                '''
+        contenu += contenu_compte_annexe2
 
         # ## Annexe 3
 
-        titre = Annexes.titre_annexe(code_client, client, edition, reference,
-                                     "Annexe III - Annexe détaillée des pénalités de réservation")
-        contenu += titre[0]
+        contenu += Annexes.titre_annexe(code_client, client, edition, reference,
+                                        "Annexe détaillée des pénalités de réservation", "III")
+        contenu += Annexes.section(code_client, client, edition, reference,
+                                   "Annexe détaillée des pénalités de réservation", "III")
 
         # ## 3.1
 
@@ -1160,41 +1162,49 @@ class Annexes(object):
 
         # ## Annexe 4
 
-        titre = Annexes.titre_annexe(code_client, client, edition, reference, titre4)
-        contenu += titre[0]
-#        contenu += titre[1]
+        contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_4, nombre_4)
 
         contenu += contenu_compte_annexe4
 
         # ## Annexe 5
 
-        titre = Annexes.titre_annexe(code_client, client, edition, reference,
-                                     "Annexe V - Justificatif des coûts d'utilisation par compte")
-        contenu += titre[0]
-       # contenu += titre[1]
+        contenu += Annexes.titre_annexe(code_client, client, edition, reference,
+                                        "Justificatif des coûts d'utilisation par compte", "V")
+        contenu += Annexes.section(code_client, client, edition, reference,
+                                   "Justificatif des coûts d'utilisation par compte", "V")
 
         return contenu
 
     @staticmethod
-    def titre_annexe(code_client, client, edition, reference, titre):
-        dic_entete = {'code': code_client, 'code_sap': client['code_sap'],
-                      'nom': Latex.echappe_caracteres(client['abrev_labo']),
-                      'date': edition.mois_txt + " " + str(edition.annee),
-                      'ref': reference, 'titre': titre}
-        entete = r'''
-            %(titre)s pour %(code)s - %(code_sap)s - %(nom)s - %(date)s - %(ref)s
-            ''' % dic_entete
+    def titre_annexe(code_client, client, edition, reference, titre, nombre):
+        dic_titre = {'code': code_client, 'code_sap': client['code_sap'],
+                     'nom': Latex.echappe_caracteres(client['abrev_labo']),
+                     'date': edition.mois_txt + " " + str(edition.annee),
+                     'ref': reference, 'titre': titre, 'nombre': nombre}
 
         contenu = r'''
             \begin{titlepage}
+            %(ref)s \hspace*{4cm} Client %(code)s - %(code_sap)s - %(nom)s - %(date)s
             \vspace*{8cm}
-            \begin{adjustwidth}{1cm}{}
-            \Large\textsc{%(titre)s \newline %(code)s - %(code_sap)s - %(nom)s} \newline
-            %(date)s \newline
-            %(ref)s \newpage
+            \begin{adjustwidth}{5cm}{}
+            \Large\textsc{Annexe %(nombre)s} \newline\newline
+            \Large\textsc{%(titre)s} \newpage
             \end{adjustwidth}
             \end{titlepage}
-            \fakesection{%(titre)s}
-            ''' % dic_entete
+            ''' % dic_titre
 
-        return contenu, entete
+        return contenu
+
+
+    @staticmethod
+    def section(code_client, client, edition, reference, titre, nombre):
+        dic_section = {'code': code_client, 'code_sap': client['code_sap'],
+                       'nom': Latex.echappe_caracteres(client['abrev_labo']),
+                       'date': edition.mois_txt + " " + str(edition.annee),
+                       'ref': reference, 'titre': titre, 'nombre': nombre}
+
+        section = r'''
+            \fakesection{%(ref)s \hspace*{4cm} Client %(code)s - %(code_sap)s - %(nom)s - %(date)s}{Annexe %(nombre)s - %(titre)s}
+            ''' % dic_section
+
+        return section
