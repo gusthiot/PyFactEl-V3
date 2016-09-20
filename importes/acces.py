@@ -133,19 +133,26 @@ class Acces(Fichier):
             donnee['oi'] = round(donnee['duree_operateur_hp'] / 60 * machine['t_h_operateur_hp_mo'] +
                                  donnee['duree_operateur_hc'] / 60 * machine['t_h_operateur_hc_mo'], 2)
 
-            donnee['pum'] = coefmachine['coef_a'] * machine['t_h_machine_a'] + coefmachine['coef_b'] * machine['t_h_machine_b'] +\
+            pum = coefmachine['coef_a'] * machine['t_h_machine_a'] + coefmachine['coef_b'] * machine['t_h_machine_b'] +\
                   coefmachine['coef_c'] * machine['t_h_machine_c']
-            donnee['mai'] = round(tm * donnee['pum'], 2)
+            mai_hp = round(donnee['duree_machine_hp'] / 60 * pum, 2)
+            mai_hc = round(donnee['duree_machine_hc'] / 60 * pum, 2)
+            donnee['mai'] = mai_hp + mai_hc
 
-            donnee['puo_hp'] = coefmachine['coef_mo'] * machine['t_h_operateur_hp_mo']
-            donnee['puo_hc'] = coefmachine['coef_mo'] * machine['t_h_operateur_hc_mo']
-            donnee['moi'] = round(donnee['duree_operateur_hp'] / 60 * donnee['puo_hp'] +
-                                  donnee['duree_operateur_hc'] / 60 * donnee['puo_hc'], 2)
+            puo_hp = coefmachine['coef_mo'] * machine['t_h_operateur_hp_mo']
+            puo_hc = coefmachine['coef_mo'] * machine['t_h_operateur_hc_mo']
+            moi_hp = round(donnee['duree_operateur_hp'] / 60 * puo_hp, 2)
+            moi_hc = round(donnee['duree_operateur_hc'] / 60 * puo_hc, 2)
+            donnee['moi'] = moi_hp + moi_hc
 
-            donnee['dsi'] = round(tm * coefmachine['coef_d'] * machine['d_h_machine_d'],2)
+            dsi_hp = round(donnee['duree_machine_hp'] / 60 * coefmachine['coef_d'] * machine['d_h_machine_d'], 2)
+            dsi_hc = round(donnee['duree_machine_hc'] / 60 * coefmachine['coef_d'] * machine['d_h_machine_d'], 2)
+            donnee['dsi'] = dsi_hp + dsi_hc
             donnee['dhi'] = round(donnee['duree_machine_hc'] / 60 * coefmachine['coef_e'] * machine['d_h_creuses_e'],2)
             donnee['mm'] = donnee['mai'] + donnee['moi']
-            donnee['mr'] = donnee['dsi'] + donnee['dhi']
+
+            donnee['mr'] = client['rs'] * donnee['dsi'] + client['rh'] * donnee['dhi']
+            donnee['mb'] = client['bs'] * donnee['dsi'] + client['bh'] * donnee['dhi']
             donnee['m'] = donnee['mm'] - donnee['mr']
 
             if code_client not in self.sommes:
@@ -155,11 +162,20 @@ class Acces(Fichier):
                 scl[id_compte] = {}
             sco = scl[id_compte]
             if id_machine not in sco:
-                sco[id_machine] = {'duree_hp': 0, 'duree_hc': 0, 'mo_hp': 0, 'mo_hc': 0, 'users': {}}
+                sco[id_machine] = {'duree_hp': 0, 'duree_hc': 0, 'mo_hp': 0, 'mo_hc': 0, 'users': {}, 'mai_hp': 0,
+                                   'mai_hc': 0, 'moi_hp': 0, 'moi_hc': 0, 'dsi_hp': 0, 'dsi_hc': 0, 'dhi': 0,
+                                   'pum': pum, 'puo_hp': puo_hp, 'puo_hc': puo_hc}
             sco[id_machine]['duree_hp'] += donnee['duree_machine_hp']
             sco[id_machine]['duree_hc'] += donnee['duree_machine_hc']
             sco[id_machine]['mo_hp'] += donnee['duree_operateur_hp']
             sco[id_machine]['mo_hc'] += donnee['duree_operateur_hc']
+            sco[id_machine]['mai_hp'] += mai_hp
+            sco[id_machine]['mai_hc'] += mai_hc
+            sco[id_machine]['moi_hp'] += moi_hp
+            sco[id_machine]['moi_hc'] += moi_hc
+            sco[id_machine]['dsi_hp'] += dsi_hp
+            sco[id_machine]['dsi_hc'] += dsi_hc
+            sco[id_machine]['dhi'] += donnee['dhi']
 
             scm = sco[id_machine]['users']
 

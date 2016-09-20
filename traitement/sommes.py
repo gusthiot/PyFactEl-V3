@@ -8,11 +8,12 @@ class Sommes(object):
     """
 
     cles_somme_compte = ['somme_j_ai', 'somme_j_bi', 'somme_j_ci', 'somme_j_oi', 'somme_j_mai', 'somme_j_moi',
-                         'somme_j_dsi', 'somme_j_dhi', 'somme_j_mm', 'somme_j_mr', 'mj', 'si_facture', 'res']
+                         'somme_j_dsi', 'somme_j_dhi', 'somme_j_mm', 'somme_j_mr', 'somme_j_mb', 'mj', 'si_facture',
+                         'res']
 
     cles_somme_client = ['somme_t_ai', 'somme_t_bi', 'somme_t_ci', 'somme_t_oi', 'mat', 'mot', 'dst', 'dht',
-                         'somme_t_mm', 'somme_t_mr', 'mt', 'somme_eq', 'somme_t', 'em', 'er0', 'er', 'e', 'res', 'rm',
-                         'rr', 'r']
+                         'somme_t_mm', 'somme_t_mr', 'somme_t_mb', 'mt', 'somme_eq', 'somme_t', 'em', 'er0', 'er', 'e',
+                         'res', 'rm', 'rr', 'r']
 
     def __init__(self, verification, generaux):
         """
@@ -94,6 +95,7 @@ class Sommes(object):
             somme['somme_j_dhi'] += acce['dhi']
             somme['somme_j_mm'] += acce['mm']
             somme['somme_j_mr'] += acce['mr']
+            somme['somme_j_mb'] += acce['mb']
             somme['mj'] += acce['m']
 
         for livraison in livraisons.donnees:
@@ -169,6 +171,7 @@ class Sommes(object):
                     somme['dht'] += som_co['somme_j_dhi']
                     somme['somme_t_mm'] += som_co['somme_j_mm']
                     somme['somme_t_mr'] += som_co['somme_j_mr']
+                    somme['somme_t_mb'] += som_co['somme_j_mb']
                     somme['mt'] += som_co['mj']
 
                     for categorie in self.categories:

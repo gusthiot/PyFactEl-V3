@@ -100,6 +100,20 @@ class Client(Fichier):
             donnee['coef'], info = Outils.est_un_nombre(donnee['coef'], "le coefficient a", ligne)
             msg += info
 
+            av_ds = generaux.avantage_ds_par_code_n(donnee['type_labo'])
+            av_hc = generaux.avantage_hc_par_code_n(donnee['type_labo'])
+
+            donnee['rs'] = 1
+            donnee['bs'] = 0
+            donnee['rh'] = 1
+            donnee['bh'] = 0
+            if av_ds == 'BONUS':
+                donnee['bs'] = 1
+                donnee['rs'] = 0
+            if av_hc == 'BONUS':
+                donnee['bh'] = 1
+                donnee['rh'] = 0
+
             ligne += 1
 
         self.donnees = donnees_dict
