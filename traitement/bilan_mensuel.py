@@ -34,11 +34,10 @@ class BilanMensuel(object):
 
             ligne = ["année", "mois", "référence", "code client", "code client sap", "abrév. labo", "nom labo",
                      "type client", "nature client", "Em base", "somme EQ", "rabais Em", "règle", "nb utilisateurs",
-                     "MAt", "MOt", "DSt", "DHt",
-                     "Et", "Rt", "Mt"]
+                     "nb comptes", "MAt", "MOt", "DSt", "DHt", "Et", "Rt", "Mt"]
             for categorie in generaux.codes_d3():
                 ligne.append(categorie + "t")
-            ligne.append("total facturé HT")
+            ligne += ["total facturé HT", "Bonus St", "Bonus Ht", "Montant Bonus"]
             fichier_writer.writerow(ligne)
 
             for code_client in sorted(sommes.sommes_clients.keys()):
@@ -48,27 +47,29 @@ class BilanMensuel(object):
                 reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
                 if edition.version != "0":
                     reference += "-" + edition.version
-                nb_u = len(BilanMensuel.utilisateurs(acces, livraisons, reservations, code_client))
+                nb_u = len(BilanMensuel.utilisateurs(acces, livraisons, code_client))
+                nb_c = len(BilanMensuel.comptes(acces, livraisons, code_client))
 
                 total = scl['somme_t'] + scl['e']
+                bst = client['bs'] * scl['dst']
+                bht = client['bh'] * scl['dht']
 
                 ligne = [edition.annee, edition.mois, reference, code_client, client['code_sap'], client['abrev_labo'],
                          client['nom_labo'], 'U', client['type_labo'], scl['em'], "%.2f" % scl['somme_eq'], scl['er'],
-                         client['emol_sans_activite'], nb_u, "%.2f" % scl['mat'],
-                         scl['mot'], scl['dst'], scl['dht'], scl['e'], scl['r'], "%.2f" % scl['mt']]
+                         client['emol_sans_activite'], nb_u, nb_c, "%.2f" % scl['mat'], "%.2f" % scl['mot'],
+                         "%.2f" % scl['dst'], "%.2f" % scl['dht'], scl['e'], "%.2f" % scl['r'], "%.2f" % scl['mt']]
                 for categorie in generaux.codes_d3():
-                    ligne.append(scl['tot_cat'][categorie])
-                ligne.append("%.2f" % total)
+                    ligne.append("%.2f" % scl['tot_cat'][categorie])
+                ligne += ["%.2f" % total, "%.2f" % bst, "%.2f" % bht, "%.2f" % scl['somme_t_mb']]
                 fichier_writer.writerow(ligne)
 
     @staticmethod
-    def utilisateurs(acces, livraisons, reservations, code_client):
+    def utilisateurs(acces, livraisons, code_client):
         """
         retourne la liste de tous les utilisateurs concernés pour les accès, les réservations et les livraisons
         pour un client donné
         :param acces: accès importés
         :param livraisons: livraisons importées
-        :param reservations: réservations importées
         :param code_client: client donné
         :return: liste des utilisateurs
         """
@@ -81,20 +82,15 @@ class BilanMensuel(object):
             if lvr['code_client'] == code_client:
                 if lvr['id_user'] not in utilisateurs:
                     utilisateurs.append(lvr['id_user'])
-        for res in reservations.donnees:
-            if res['code_client'] == code_client:
-                if res['id_user'] not in utilisateurs:
-                    utilisateurs.append(res['id_user'])
         return utilisateurs
 
     @staticmethod
-    def comptes(acces, livraisons, reservations, code_client):
+    def comptes(acces, livraisons, code_client):
         """
         retourne la liste de tous les comptes concernés pour les accès, les réservations et les livraisons
         pour un client donné
         :param acces: accès importés
         :param livraisons: livraisons importées
-        :param reservations: réservations importées
         :param code_client: client donné
         :return: liste des comptes
         """
@@ -107,8 +103,4 @@ class BilanMensuel(object):
             if lvr['code_client'] == code_client:
                 if lvr['id_compte'] not in comptes:
                     comptes.append(lvr['id_compte'])
-        for res in reservations.donnees:
-            if res['code_client'] == code_client:
-                if res['id_compte'] not in comptes:
-                    comptes.append(res['id_compte'])
         return comptes
