@@ -211,10 +211,10 @@ class Annexes(object):
             compte = comptes.donnees[id_compte]
             intitule_compte = id_compte + " - " + Latex.echappe_caracteres(compte['intitule'])
 
-            titre2 = titre_2 + " : " + id_compte
+            titre2 = "Récapitulatif du compte : " + intitule_compte
             contenu_compte_annexe2 += Annexes.section(code_client, client, edition, reference, titre2, nombre_2)
 
-            titre4 = titre_4 + " : " + id_compte
+            titre4 = "Annexe détaillée du compte : " + intitule_compte
             contenu_compte_annexe4 += Annexes.section(code_client, client, edition, reference, titre4, nombre_4)
 
             # ## ligne 1.1
@@ -313,7 +313,7 @@ class Annexes(object):
 
             # ## 2.1
 
-            structure_recap_poste = r'''{|l|c|c|c|}'''
+            structure_recap_poste = r'''{|l|r|r|r|}'''
             legende_recap_poste = r'''Table II.1 - Récapitulatif du compte'''
 
             dico_recap_poste = {'mm': "%.2f" % sco['somme_j_mm'], 'mr': "%.2f" % sco['somme_j_mr'],
@@ -324,7 +324,7 @@ class Annexes(object):
 
             contenu_recap_poste = r'''
                 \cline{2-4}
-                \multicolumn{1}{r|}{} & Montant & Rabais & Net \\
+                \multicolumn{1}{r|}{} & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} & \multicolumn{1}{c|}{Net} \\
                 \hline
                 Machine & %(maij)s & %(mr)s  & %(nmij)s \\
                 \hline
@@ -355,14 +355,14 @@ class Annexes(object):
             # ## 2.2
 
             if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
-                structure_utilise_compte = r'''{|l|c|c|c|c|c|c|c|c|c|}'''
+                structure_utilise_compte = r'''{|l|c|c|c|r|r|r|r|r|r|}'''
                 legende_utilise_compte = r'''Table II.2 - Procédés (machine + main d'oeuvre)'''
 
                 contenu_utilise_compte = r'''
                     \cline{3-10}
-                    \multicolumn{2}{c}{} & \multicolumn{2}{|c|}{Machine} & \multicolumn{2}{l|}{PU [CHF/h]} & \multicolumn{2}{l|}{Montant [CHF]} & Déduc. Sp. & Déduc. HC \\
+                    \multicolumn{2}{c}{} & \multicolumn{2}{|c|}{Machine} & \multicolumn{2}{c|}{PU [CHF/h]} & \multicolumn{2}{c|}{Montant [CHF]} & \multicolumn{1}{c|}{Déduc. Sp.} & \multicolumn{1}{c|}{Déduc. HC} \\
                     \hline
-                    \multicolumn{2}{|l|}{\textbf{''' + intitule_compte + r'''}} & Mach. & Oper. & Mach. & Oper. & Mach. & Oper. & ''' + av_ds + r''' & ''' + av_hc + r''' \\
+                    \multicolumn{2}{|l|}{\textbf{''' + intitule_compte + r'''}} & Mach. & Oper. & \multicolumn{1}{c|}{Mach.} & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{Mach.} & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{''' + av_ds + r'''} & \multicolumn{1}{c|}{''' + av_hc + r'''} \\
                     \hline
                     '''
 
@@ -412,24 +412,21 @@ class Annexes(object):
                 contenu_utilise_compte += r'''
                     \multicolumn{6}{|r|}{Total} & %(maij)s & %(moij)s & %(dsij)s & %(dhij)s \\
                     \hline
-                    \multicolumn{6}{r}{} & \multicolumn{2}{|c|}{Rabais total} & \multicolumn{2}{c|}{%(rabais)s} \\
+                    \multicolumn{6}{r}{} & \multicolumn{2}{|r|}{Rabais total} & \multicolumn{2}{r|}{%(rabais)s} \\
                     \cline{7-10}
-                    \multicolumn{6}{r}{} & \multicolumn{2}{|c|}{Bonus total} & \multicolumn{2}{c|}{%(bonus)s} \\
+                    \multicolumn{6}{r}{} & \multicolumn{2}{|r|}{Bonus total} & \multicolumn{2}{r|}{%(bonus)s} \\
                     \cline{7-10}
                     ''' % dico_tot
 
                 contenu_compte_annexe2 += Latex.tableau(contenu_utilise_compte, structure_utilise_compte, legende_utilise_compte)
             else:
-                contenu_compte_annexe2 += r'''
-                    \tiny{Table II.1 - Procédés (machine + main d'oeuvre) : table vide (pas d’utilisation machines)}
-                    \newline
-                    '''
+                contenu_compte_annexe2 += Latex.tableau_vide(r'''Table II.2 - Procédés (machine + main d'oeuvre) : table vide (pas d’utilisation machines)''')
 
             # ## 2.3
 
             if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
                 somme = livraisons.sommes[code_client][id_compte]
-                structure_prests_compte = r'''{|l|c|c|c|c|c|}'''
+                structure_prests_compte = r'''{|l|r|c|r|r|r|}'''
                 legende_prests_compte = r'''Table II.3 - Prestations livrées'''
                 contenu_prests_compte = ""
                 for article in generaux.articles_d3:
@@ -442,7 +439,7 @@ class Annexes(object):
                         contenu_prests_compte += r'''
                             \hline
                             \multicolumn{1}{|l|}{\scriptsize{\textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
-                            }}} & Quantité & Unité & P.U. & Montant & Rabais \\
+                            }}} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.} & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} \\
                             \hline
                             '''
                         for no_prestation, sip in sorted(somme[article.code_d].items()):
@@ -463,10 +460,7 @@ class Annexes(object):
                 contenu_compte_annexe2 += Latex.tableau(contenu_prests_compte , structure_prests_compte ,
                                  legende_prests_compte )
             else:
-                contenu_compte_annexe2 += r'''
-                    \tiny{Table II.3 - Prestations livrées : table vide (pas de prestations livrées)}
-                    \newline
-                    '''
+                contenu_compte_annexe2 += Latex.tableau_vide(r'''Table II.3 - Prestations livrées : table vide (pas de prestations livrées)''')
 
             # ## 4.1
 
@@ -567,10 +561,7 @@ class Annexes(object):
 
                 contenu_compte_annexe4 += Latex.long_tableau(contenu_machuts_compte, structure_machuts_compte, legende_machuts_compte)
             else:
-                contenu_compte_annexe4 += r'''
-                    \tiny{Table IV.1 - Détails des utilisations machines : table vide (pas d’utilisation machines)}
-                    \newline
-                    '''
+                contenu_compte_annexe4 += Latex.tableau_vide(r'''Table IV.1 - Détails des utilisations machines : table vide (pas d’utilisation machines)''')
 
             # ## 4.2
 
@@ -721,7 +712,7 @@ class Annexes(object):
 
         # ## 1.1
 
-        structure_recap_fact = r'''{|c|l|c|c|c|}'''
+        structure_recap_fact = r'''{|c|l|r|r|r|}'''
         legende_recap_fact = r'''Table I.1 - Récapitulatif des postes de la facture'''
 
         dico_recap_fact = {'emom': "%.2f" % scl['em'], 'emor': "%.2f" % scl['er'], 'emo': "%.2f" % scl['e'],
@@ -732,7 +723,7 @@ class Annexes(object):
 
         contenu_recap_fact = r'''
             \hline
-            N. Poste & Poste & \multicolumn{1}{l|}{Montant} & \multicolumn{1}{l|}{Rabais} & \multicolumn{1}{l|}{Total} \\
+            N. Poste & Poste & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} & \multicolumn{1}{c|}{Total} \\
             \hline
             %(p_emo)s & %(int_emo)s & %(emom)s & %(emor)s & %(emo)s \\
             \hline
@@ -746,7 +737,7 @@ class Annexes(object):
 
         # ## 1.2
 
-        structure_recap_poste_cl = r'''{|l|c|c|c|}'''
+        structure_recap_poste_cl = r'''{|l|r|r|r|}'''
         legende_recap_poste_cl = r'''Table I.2 - Récapitulatif des postes'''
 
         dico_recap_poste_cl = {'emom': "%.2f" % scl['em'], 'emor': "%.2f" % scl['er'], 'emo': "%.2f" % scl['e'],
@@ -758,7 +749,7 @@ class Annexes(object):
 
         contenu_recap_poste_cl = r'''
             \cline{2-4}
-            \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{Montant} & \multicolumn{1}{l|}{Rabais} & \multicolumn{1}{l|}{Total} \\
+            \multicolumn{1}{l|}{} & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} & \multicolumn{1}{c|}{Total} \\
             \hline
             %(int_emo)s & %(emom)s & %(emor)s & %(emo)s \\
             \hline
@@ -808,14 +799,14 @@ class Annexes(object):
 
         # ## 1.4
 
-        structure_frais_client = r'''{|l|c|c|c|c|}'''
-        legende_frais_client = r'''Table I.4 - Pénalités réservation'''
+        structure_frais_client = r'''{|l|c|c|r|r|}'''
+        legende_frais_client = r'''Table I.4 - Pénalités de réservation'''
 
         contenu_frais_client = r'''
             \cline{3-5}
-            \multicolumn{2}{c|}{} & Pénalités & PU & Montant \\
+            \multicolumn{2}{c|}{} & Pénalités & \multicolumn{1}{c|}{PU} & \multicolumn{1}{c|}{Montant} \\
             \cline{3-5}
-            \multicolumn{2}{c|}{} & Durée & CHF/h & CHF \\
+            \multicolumn{2}{c|}{} & Durée & \multicolumn{1}{c|}{CHF/h} & \multicolumn{1}{c|}{CHF} \\
             \hline
             '''
 
@@ -836,7 +827,7 @@ class Annexes(object):
                 tot_hc = scl['res'][id_machine]['tot_hc']
 
                 dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
-                                'pu_hp': re_somme['pu_hp'], 'pu_hc': re_somme['pu_hc'],
+                                'pu_hp': "%.2f" % re_somme['pu_hp'], 'pu_hc': "%.2f" % re_somme['pu_hc'],
                                 'mont_hp': "%.2f" % scl['res'][id_machine]['mont_hp'],
                                 'mont_hc': "%.2f" % scl['res'][id_machine]['mont_hc'],
                                 'tot_hp': Outils.format_heure(tot_hp), 'tot_hc': Outils.format_heure(tot_hc)}
@@ -851,7 +842,7 @@ class Annexes(object):
                          \hline
                          ''' % dico_machine
 
-        dico_frais = {'rm': scl['rm'], 'r': scl['r'], 'rr': scl['rr']}
+        dico_frais = {'rm': "%.2f" % scl['rm'], 'r': "%.2f" % scl['r'], 'rr': "%.2f" % scl['rr']}
         contenu_frais_client += r'''
             \multicolumn{4}{|r|}{Total} & %(rm)s \\
             \hline
@@ -870,14 +861,14 @@ class Annexes(object):
         structure_recap = r'''{|l|r|r|'''
         contenu_recap = r'''
             \hline
-            Compte & \multicolumn{1}{l|}{Procédés}'''
+            Compte & \multicolumn{1}{c|}{Procédés}'''
 
         for article in generaux.articles_d3:
             structure_recap += r'''r|'''
-            contenu_recap += r''' & \multicolumn{1}{l|}{
+            contenu_recap += r''' & \multicolumn{1}{c|}{
             ''' + Latex.echappe_caracteres(article.intitule_court) + r'''}'''
         structure_recap += r'''}'''
-        contenu_recap += r'''& \multicolumn{1}{l|}{Total} \\
+        contenu_recap += r'''& \multicolumn{1}{c|}{Total} \\
             \hline
             '''
 
@@ -899,14 +890,14 @@ class Annexes(object):
         # ## 1.6
 
         if code_client in acces.sommes:
-            structure_procedes_client = r'''{|l|c|c|c|c|c|c|c|}'''
+            structure_procedes_client = r'''{|l|r|r|r|r|r|r|r|}'''
             legende_procedes_client = r'''Table I.6 - Récapitulatif des procédés'''
 
             contenu_procedes_client = r'''
                 \cline{2-8}
                 \multicolumn{1}{c}{} & \multicolumn{2}{|c|}{Procédés} & \multicolumn{2}{c|}{Rabais} & \multicolumn{2}{c|}{Facture} & Montant \\
                 \cline{1-7}
-                Compte & Machine & M.O. opér. & Déduc. Sp. & Déduc. HC & Montant & Rabais & net \\
+                Compte & Machine & M.O. opér. & Déduc. Sp. & Déduc. HC & Montant & Rabais & \multicolumn{1}{c|}{net} \\
                 \hline
                 '''
 
@@ -924,15 +915,12 @@ class Annexes(object):
 
             contenu += Latex.tableau(contenu_procedes_client, structure_procedes_client, legende_procedes_client)
         else:
-            contenu += r'''
-                \tiny{Table I.6 - Récapitulatif des procédés : table vide (pas d'utilisations machines)}
-                \newline
-                '''
+            contenu += Latex.tableau_vide(r'''Table I.6 - Récapitulatif des procédés : table vide (pas d'utilisations machines)''')
 
         # ## 1.7
 
         if code_client in livraisons.sommes:
-            structure_prestations_client_recap = r'''{|l|c|c|c|}'''
+            structure_prestations_client_recap = r'''{|l|r|r|r|}'''
             legende_prestations_client_recap = r'''Table I.7 - Récapitulatif des prestations livrées'''
 
             contenu_prestations_client_recap = ""
@@ -955,15 +943,12 @@ class Annexes(object):
             contenu += Latex.tableau(contenu_prestations_client_recap, structure_prestations_client_recap, legende_prestations_client_recap)
 
         else:
-            contenu += r'''
-                \tiny{Table II.1 - Récapitulatif des prestations livrées : table vide (pas de prestations livrées)}
-                \newline
-                '''
+            contenu += Latex.tableau_vide(r'''Table II.1 - Récapitulatif des prestations livrées : table vide (pas de prestations livrées)''')
 
         # ## 1.8
 
         if code_client in acces.sommes:
-            structure_bonus = r'''{|l|c|c|c|}'''
+            structure_bonus = r'''{|l|r|r|r|}'''
             legende_bonus = r'''Table I.8 - Récapitulatif des bonus'''
 
             contenu_bonus = r'''
@@ -984,10 +969,7 @@ class Annexes(object):
 
             contenu += Latex.tableau(contenu_bonus, structure_bonus, legende_bonus)
         else:
-            contenu += r'''
-                \tiny{Table I.8 - Récapitulatif des bonus : table vide (pas d'utilisations machines)}
-                \newline
-                '''
+            contenu += Latex.tableau_vide(r'''Table I.8 - Récapitulatif des bonus : table vide (pas d'utilisations machines)''')
 
         # ## Annexe 2
 
@@ -1115,10 +1097,7 @@ class Annexes(object):
 
             contenu += Latex.tableau(contenu_stats_client, structure_stats_client, legende_stats_client)
         else:
-            contenu += r'''
-                \tiny{Table III.1 - Statistiques des réservations et des utilisations machines : table vide (pas de pénalités de réservation)}
-                \newline
-                '''
+            contenu += Latex.tableau_vide(r'''Table III.1 - Statistiques des réservations et des utilisations machines : table vide (pas de pénalités de réservation)''')
 
         # ## 3.2
 
@@ -1183,10 +1162,7 @@ class Annexes(object):
 
             contenu += Latex.long_tableau(contenu_machuts_client, structure_machuts_client, legende_machuts_client)
         else:
-            contenu += r'''
-                \tiny{Table III.2 - Récapitulatif des utilisations machines par utilisateur : table vide (pas d’utilisation machines)}
-                \newline
-                '''
+            contenu += Latex.tableau_vide(r'''Table III.2 - Récapitulatif des utilisations machines par utilisateur : table vide (pas d’utilisation machines)''')
 
         # ## 3.3
 
@@ -1271,10 +1247,7 @@ class Annexes(object):
 
             contenu += Latex.long_tableau(contenu_reserve_client, structure_reserve_client, legende_reserve_client)
         else:
-            contenu += r'''
-                \tiny{Table III.3 - Détail des réservations machines par utilisateur : table vide (pas de réservation machines)}
-                \newline
-                '''
+            contenu += Latex.tableau_vide(r'''Table III.3 - Détail des réservations machines par utilisateur : table vide (pas de réservation machines)''')
 
         # ## Annexe 4
 

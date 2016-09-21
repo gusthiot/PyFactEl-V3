@@ -91,6 +91,16 @@ class Latex(object):
             '''
 
     @staticmethod
+    def tableau_vide(legende):
+        return r'''
+            \begin{table}[!ht]
+            \tiny
+            \centering
+            \caption*{''' + legende + r'''}
+            \end{table}
+            '''
+
+    @staticmethod
     def entete(plateforme):
         """
         création de l'entête de fichier latex en fonction de l'OS
