@@ -311,6 +311,47 @@ class Annexes(object):
                     \hline
                     ''' % dico_bonus_compte
 
+            # ## 2.1
+
+            structure_recap_poste = r'''{|l|c|c|c|}'''
+            legende_recap_poste = r'''Table II.1 - Récapitulatif du compte'''
+
+            dico_recap_poste = {'mm': "%.2f" % sco['somme_j_mm'], 'mr': "%.2f" % sco['somme_j_mr'],
+                                'maij': "%.2f" % sco['somme_j_mai'], 'dsij': "%.2f" % sco['somme_j_dsi'],
+                                'dhij': "%.2f" % sco['somme_j_dhi'], 'mj': "%.2f" % sco['mj'],
+                                'nmij': "%.2f" % (sco['somme_j_mai']-sco['somme_j_mr']),
+                                'moij': "%.2f" % sco['somme_j_moi'], 'int_proc': generaux.articles[2].intitule_long}
+
+            contenu_recap_poste = r'''
+                \cline{2-4}
+                \multicolumn{1}{r|}{} & Montant & Rabais & Net \\
+                \hline
+                Machine & %(maij)s & %(mr)s  & %(nmij)s \\
+                \hline
+                Main d'oeuvre & %(moij)s & & %(moij)s  \\
+                \hline
+                %(int_proc)s & %(mm)s & %(mr)s & %(mj)s \\
+                \hline
+                ''' % dico_recap_poste
+
+            total = sco['mj']
+            for article in generaux.articles_d3:
+                total += sco['tot_cat'][article.code_d]
+                dico_recap_poste = {'intitule': Latex.echappe_caracteres(article.intitule_long),
+                                    'cmj': "%.2f" % sco['sommes_cat_m'][article.code_d],
+                                    'crj': "%.2f" % sco['sommes_cat_r'][article.code_d],
+                                    'cj': "%.2f" % sco['tot_cat'][article.code_d]}
+                contenu_recap_poste += r'''
+                %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
+                \hline
+                ''' % dico_recap_poste
+
+            contenu_recap_poste += r'''\multicolumn{3}{|r|}{Total} & ''' + "%.2f" % total + r'''\\
+                \hline
+                '''
+
+            contenu_compte_annexe2 += Latex.tableau(contenu_recap_poste, structure_recap_poste, legende_recap_poste)
+
             # ## 2.2
 
             if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
@@ -333,7 +374,7 @@ class Annexes(object):
                     nom = machines.donnees[key]['nom']
                     if id_cout not in machines_utilisees:
                         machines_utilisees[id_cout] = {}
-                        machines_utilisees[id_cout][nom] = key
+                    machines_utilisees[id_cout][nom] = key
 
                 for id_cout, mics in sorted(machines_utilisees.items()):
                     for nom, id_machine in sorted(mics.items()):
@@ -427,46 +468,6 @@ class Annexes(object):
                     \newline
                     '''
 
-            # ## 2.1 ? récapitulatif postes pour compte
-
-            # structure_recap_poste = r'''{|l|c|c|c|c|c|}'''
-            # legende_recap_poste = r'''Récapitulatif postes pour compte ''' + intitule_compte
-            #
-            # dico_recap_poste = {'mm': "%.2f" % sco['somme_j_mm'], 'mr': "%.2f" % sco['somme_j_mr'],
-            #                     'maij': "%.2f" % sco['somme_j_mai'], 'dsij': "%.2f" % sco['somme_j_dsi'],
-            #                     'dhij': "%.2f" % sco['somme_j_dhi'], 'mj': "%.2f" % sco['mj'],
-            #                     'nmij': "%.2f" % (sco['somme_j_mai']-sco['somme_j_mr']),
-            #                     'moij': "%.2f" % sco['somme_j_moi']}
-            #
-            # contenu_recap_poste = r'''
-            #     \cline{2-6}
-            #     \multicolumn{1}{r|}{} & Montant & Déduc. Sp. & Déduc. HC & Rabais T. & Net \\
-            #     \hline
-            #     Procédés & %(mm)s &  &  & %(mr)s & %(mj)s \\
-            #     \hline
-            #     \hspace{5mm} \textit{Machine} & \textit{%(maij)s} & \textit{%(dsij)s} & \textit{%(dhij)s}  &
-            #         \textit{%(mr)s}  & \textit{%(nmij)s} \\
-            #     \hline
-            #     \hspace{5mm} \textit{Main d'oeuvre} & \textit{%(moij)s} &  &  &  & \textit{%(moij)s}  \\
-            #     \hline
-            #     ''' % dico_recap_poste
-            #
-            # for article in generaux.articles_d3:
-            #     contenu_recap_poste += Latex.echappe_caracteres(article.intitule_long)
-            #     contenu_recap_poste += r''' & ''' + "%.2f" % sco['sommes_cat_m'][article.code_d]
-            #     contenu_recap_poste += r''' & & &  ''' + "%.2f" % sco['sommes_cat_r'][article.code_d]
-            #     contenu_recap_poste += r''' & ''' + "%.2f" % sco['tot_cat'][article.code_d]
-            #     contenu_recap_poste += r''' \\
-            #         \hline
-            #         '''
-            #
-            # total = 0
-            # contenu_recap_poste += r'''\multicolumn{5}{|r|}{Total} & ''' + "%.2f" % total + r'''\\
-            #     \hline
-            #     '''
-            #
-            # contenu_compte_annexe2 += Latex.tableau(contenu_recap_poste, structure_recap_poste, legende_recap_poste)
-
             # ## 4.1
 
             if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
@@ -481,6 +482,7 @@ class Annexes(object):
                     \multicolumn{3}{|l|}{} & HP & HC & HP & HC \\
                     \hline
                     '''
+
                 somme = acces.sommes[code_client]['comptes'][id_compte]
 
                 machines_utilisees= {}
@@ -489,7 +491,7 @@ class Annexes(object):
                     nom = machines.donnees[key]['nom']
                     if id_cout not in machines_utilisees:
                         machines_utilisees[id_cout] = {}
-                        machines_utilisees[id_cout][nom] = key
+                    machines_utilisees[id_cout][nom] = key
 
                 for id_cout, mics in sorted(machines_utilisees.items()):
                     for nom, id_machine in sorted(mics.items()):
@@ -824,7 +826,7 @@ class Annexes(object):
             nom = machines.donnees[key]['nom']
             if id_cout not in machines_utilisees:
                 machines_utilisees[id_cout] = {}
-                machines_utilisees[id_cout][nom] = key
+            machines_utilisees[id_cout][nom] = key
 
         for id_cout, mics in sorted(machines_utilisees.items()):
             for nom_machine, id_machine in sorted(mics.items()):
@@ -1024,7 +1026,7 @@ class Annexes(object):
                 nom = machines.donnees[key]['nom']
                 if id_cout not in machines_utilisees:
                     machines_utilisees[id_cout] = {}
-                    machines_utilisees[id_cout][nom] = key
+                machines_utilisees[id_cout][nom] = key
 
             for id_cout, mics in sorted(machines_utilisees.items()):
                 for nom_machine, id_machine in sorted(mics.items()):
@@ -1136,7 +1138,7 @@ class Annexes(object):
                 nom = machines.donnees[key]['nom']
                 if id_cout not in machines_utilisees:
                     machines_utilisees[id_cout] = {}
-                    machines_utilisees[id_cout][nom] = key
+                machines_utilisees[id_cout][nom] = key
 
             for id_cout, mics in sorted(machines_utilisees.items()):
                 for nom, id_machine in sorted(mics.items()):
