@@ -133,7 +133,7 @@ class Livraison(Fichier):
             if categorie not in scl[id_compte]:
                 scl[id_compte][categorie] = {}
             if no_prestation not in scl[id_compte][categorie]:
-                scl[id_compte][categorie][no_prestation] = {'nom': donnee['designation'], 'unite': donnee['unite'],
+                scl[id_compte][categorie][no_prestation] = {'nom': prestation['designation'], 'unite': donnee['unite'],
                                                             'pu': donnee['prix_unit_client'], 'quantite': 0,
                                                             'rabais': 0, 'montant': 0, 'users': {}}
 

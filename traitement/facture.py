@@ -85,13 +85,13 @@ class Facture(object):
                     reference += "-" + edition.version
     
                 nom_annexe = "annexe_" + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + \
-                              "_" + str(edition.version) + "_" + code_client + ".pdf"
+                             "_" + str(edition.version) + "_" + code_client + ".pdf"
                 lien_annexe = lien_annexes + nom_annexe
                 dossier_annexe = "../" + annexes + "/" + nom_annexe
     
                 nom_annexe_technique = "annexeT_" + str(edition.annee) + "_" + \
-                                        Outils.mois_string(edition.mois) + "_" + str(edition.version) + "_" + \
-                                        code_client + ".pdf"
+                                       Outils.mois_string(edition.mois) + "_" + str(edition.version) + "_" + \
+                                       code_client + ".pdf"
                 lien_annexe_technique = lien_annexes_techniques + nom_annexe_technique
                 dossier_annexe_technique = "../" + annexes_techniques + "/" + nom_annexe_technique
     

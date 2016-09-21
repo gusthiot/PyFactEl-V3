@@ -8,6 +8,7 @@ import platform
 
 from erreurs import ErreurConsistance
 
+
 class Outils(object):
     """
     Classe contenant diverses méthodes utiles

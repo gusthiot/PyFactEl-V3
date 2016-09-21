@@ -7,7 +7,6 @@ class Annexes(object):
     Classe pour la création des annexes
     """
 # TODO : vérifier longueur des tableaux
-# TODO : vérifier que données des csv "commentaires" pas utilisées
     @staticmethod
     def annexes(sommes, clients, edition, livraisons, acces, machines, reservations, comptes, dossier_annexe,
                 plateforme, generaux, users):
@@ -138,8 +137,8 @@ class Annexes(object):
                                               reservations, comptes, generaux, users)
             contenu += r'''\end{document}'''
 
-            nom = prefixe + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + "_" + str(edition.version) \
-                  + "_" + code_client
+            nom = prefixe + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + "_" + \
+                  str(edition.version) + "_" + code_client
 
             Latex.creer_latex_pdf(nom, contenu, dossier_annexe)
 
@@ -1068,7 +1067,7 @@ class Annexes(object):
                                             \hline
                                             ''' % dico_user
 
-            contenu += Latex.tableau(contenu_stats_client, structure_stats_client, legende_stats_client)
+            contenu += Latex.long_tableau(contenu_stats_client, structure_stats_client, legende_stats_client)
         else:
             contenu += Latex.tableau_vide(r'''Table III.1 - Statistiques des réservations et des utilisations machines :
                 table vide (pas de pénalités de réservation)''')

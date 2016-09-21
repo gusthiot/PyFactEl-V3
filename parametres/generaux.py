@@ -2,9 +2,10 @@ from outils import Outils
 from erreurs import ErreurConsistance
 from collections import namedtuple
 
-_champs_article = ["code_d", "code_sap", "quantite", "unite", "type_prix",
-                   "type_rabais", "texte_sap", "intitule_long", "intitule_court", "eligible_U1", "eligible_U2", "eligible_U3"]
+_champs_article = ["code_d", "code_sap", "quantite", "unite", "type_prix", "type_rabais", "texte_sap", "intitule_long",
+                   "intitule_court", "eligible_U1", "eligible_U2", "eligible_U3"]
 Article = namedtuple("Article", _champs_article)
+
 
 class Generaux(object):
     """
@@ -13,9 +14,11 @@ class Generaux(object):
 
     nom_fichier = "paramgen.csv"
     libelle = "Paramètres Généraux"
-    cles_obligatoires = ['origine', 'code_int', 'code_ext', 'commerciale', 'canal', 'secteur', 'devise', 'financier', 'fonds',
-            'entete', 'poste_emolument', 'poste_reservation',  'lien', 'chemin', 'code_t', 'code_n', 'nature_client', 'avantage_DS', 'avantage_HC', 'annexe_cout', 'code_d', 'code_sap', 'quantite',
-            'unite', 'type_prix', 'type_rabais', 'texte_sap', 'intitule_long', 'intitule_court', 'eligible_U1', 'eligible_U2', 'eligible_U3', 'modes', 'min_fact_rese']
+    cles_obligatoires = ['origine', 'code_int', 'code_ext', 'commerciale', 'canal', 'secteur', 'devise', 'financier',
+                         'fonds', 'entete', 'poste_emolument', 'poste_reservation',  'lien', 'chemin', 'code_t',
+                         'code_n', 'nature_client', 'avantage_DS', 'avantage_HC', 'annexe_cout', 'code_d', 'code_sap',
+                         'quantite', 'unite', 'type_prix', 'type_rabais', 'texte_sap', 'intitule_long',
+                         'intitule_court', 'eligible_U1', 'eligible_U2', 'eligible_U3', 'modes', 'min_fact_rese']
     cles_autorisees = cles_obligatoires + ['code_sap_qas']
 
     def __init__(self, dossier_source, prod2qual=None):
@@ -75,18 +78,20 @@ class Generaux(object):
         if len(self._donnees['code_n']) != len(self._donnees['nature_client']):
             erreurs += "le nombre de colonees doit être le même pour le code N et pour la nature du client\n"
 
-        if (len(self._donnees['code_d']) != len(self._donnees['code_sap'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['quantite'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['unite'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['type_prix'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['intitule_long'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['intitule_court'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['eligible_U1'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['eligible_U2'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['eligible_U3'])) or (len(self._donnees['code_d']) !=
-                len(self._donnees['type_rabais'])) or (len(self._donnees['code_d']) != len(self._donnees['texte_sap'])):
+        if (len(self._donnees['code_d']) != len(self._donnees['code_sap'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['quantite'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['unite'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['type_prix'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['intitule_long'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['intitule_court'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['eligible_U1'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['eligible_U2'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['eligible_U3'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['type_rabais'])) or \
+                (len(self._donnees['code_d']) != len(self._donnees['texte_sap'])):
             erreurs += "le nombre de colonees doit être le même pour le code D, le code SAP, la quantité, l'unité, " \
-                   "le type de prix, le type de rabais, le texte SAP, l'intitulé long, l'intitulé court, l'éligible U1, l'éligible U2 et l'éligible U3\n"
+                       "le type de prix, le type de rabais, le texte SAP, l'intitulé long, l'intitulé court, " \
+                       "l'éligible U1, l'éligible U2 et l'éligible U3\n"
 
         if erreurs != "":
             Outils.fatal(ErreurConsistance(), self.libelle + "\n" + erreurs)
@@ -164,5 +169,3 @@ for champ_valeur_unique in ('fonds', 'entete', 'chemin', 'lien', 'min_fact_rese'
                             'origine', 'commerciale', 'poste_reservation',
                             'code_int', 'code_ext', 'code_t'):
     ajoute_accesseur_pour_valeur_unique(Generaux, champ_valeur_unique)
-
-

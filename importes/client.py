@@ -90,7 +90,8 @@ class Client(Fichier):
 
             if not((donnee['emol_sans_activite'] == "NON") or (donnee['emol_sans_activite'] == "ZERO") or
                     (donnee['emol_sans_activite'] == "OUI")):
-                msg += "l'émolument à payer même sans activité de la ligne " + str(ligne) + " doit valoir ZERO, NON ou OUI\n"
+                msg += "l'émolument à payer même sans activité de la ligne " + str(ligne) \
+                       + " doit valoir ZERO, NON ou OUI\n"
 
             donnee['emol_base_mens'], info = Outils.est_un_nombre(donnee['emol_base_mens'], "l'émolument de base",
                                                                   ligne)

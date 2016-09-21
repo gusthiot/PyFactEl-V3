@@ -92,6 +92,11 @@ class Latex(object):
 
     @staticmethod
     def tableau_vide(legende):
+        """
+        création d'un tableau vide, juste pour avoir la légende formatée
+        :param legende: légende du tableau vide
+        :return: tableau avec juste la légende
+        """
         return r'''
             \begin{table}[!ht]
             \tiny

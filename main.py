@@ -105,15 +105,15 @@ dossier_annexes_techniques = Outils.chemin_dossier([dossier_enregistrement, anne
 lien_annexes_techniques = Outils.lien_dossier([dossier_lien, annexes_techniques], plateforme, generaux)
 
 facture_prod = Facture()
-facture_prod.factures(sommes, dossier_destination, edition, generaux, clients, comptes,
-                      lien_annexes, lien_annexes_techniques, annexes, annexes_techniques)
+facture_prod.factures(sommes, dossier_destination, edition, generaux, clients, comptes, lien_annexes,
+                      lien_annexes_techniques, annexes, annexes_techniques)
 
 prod2qual = Prod2Qual(dossier_source)
 if prod2qual.actif:
     facture_qual = Facture(prod2qual)
     generaux_qual = Generaux(dossier_source, prod2qual)
-    facture_qual.factures(sommes, dossier_destination, edition, generaux_qual, clients, comptes,
-                          lien_annexes, lien_annexes_techniques, annexes, annexes_techniques)
+    facture_qual.factures(sommes, dossier_destination, edition, generaux_qual, clients, comptes, lien_annexes,
+                          lien_annexes_techniques, annexes, annexes_techniques)
 
 if Latex.possibles():
     Annexes.annexes_techniques(sommes, clients, edition, livraisons, acces, machines, reservations, comptes,
@@ -121,8 +121,7 @@ if Latex.possibles():
     Annexes.annexes(sommes, clients, edition, livraisons, acces, machines, reservations, comptes, dossier_annexes,
                     plateforme, generaux, users)
 
-BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces,
-                   reservations, livraisons)
+BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces, livraisons)
 
 for fichier in [acces.nom_fichier, clients.nom_fichier, coefmachines.nom_fichier, coefprests.nom_fichier,
                   comptes.nom_fichier, livraisons.nom_fichier, machines.nom_fichier, prestations.nom_fichier,

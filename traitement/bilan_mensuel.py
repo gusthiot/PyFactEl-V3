@@ -7,7 +7,7 @@ class BilanMensuel(object):
     """
 
     @staticmethod
-    def bilan(dossier_destination, edition, sommes, clients, generaux, acces, reservations, livraisons):
+    def bilan(dossier_destination, edition, sommes, clients, generaux, acces, livraisons):
         """
         création du bilan
 
@@ -17,7 +17,6 @@ class BilanMensuel(object):
         :param clients: clients importés
         :param generaux: paramètres généraux
         :param acces: accès importés
-        :param reservations: réservations importés
         :param livraisons: livraisons importées
         """
 
