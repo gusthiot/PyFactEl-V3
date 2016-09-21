@@ -18,12 +18,13 @@ class Reservation(Fichier):
         super().__init__(*args, **kwargs)
         self.sommes = {}
 
-    def est_coherent(self, clients, machines):
+    def est_coherent(self, clients, machines, users):
         """
         vérifie que les données du fichier importé sont cohérentes (code client parmi clients,
         id machine parmi machines), et efface les colonnes mois et année
         :param clients: clients importés
         :param machines: machines importées
+        :param users: users importés
         :return: 1 s'il y a une erreur, 0 sinon
         """
         if self.verifie_date == 0:
@@ -44,12 +45,19 @@ class Reservation(Fichier):
             if donnee['code_client'] == "":
                 msg += "le code client de la ligne " + str(ligne) + " ne peut être vide\n"
             elif donnee['code_client'] not in clients.obtenir_codes():
-                msg += "le code client '" + donnee['code_client'] + "' de la ligne " + str(ligne) + " n'est pas référencé\n"
+                msg += "le code client '" + donnee['code_client'] + "' de la ligne " + str(ligne) + " n'est pas " \
+                                                                                                    "référencé\n"
 
             if donnee['id_machine'] == "":
                 msg += "le machine id de la ligne " + str(ligne) + " ne peut être vide\n"
             elif machines.contient_id(donnee['id_machine']) == 0:
                 msg += "le machine id '" + donnee['id_machine'] + "' de la ligne " + str(ligne) \
+                       + " n'est pas référencé\n"
+
+            if donnee['id_user'] == "":
+                msg += "le user id de la ligne " + str(ligne) + " ne peut être vide\n"
+            elif users.contient_id(donnee['id_user']) == 0:
+                msg += "le user id '" + donnee['id_user'] + "' de la ligne " + str(ligne) \
                        + " n'est pas référencé\n"
 
             donnee['duree_hp'], info = Outils.est_un_nombre(donnee['duree_hp'], "la durée réservée HP", ligne)
@@ -107,27 +115,21 @@ class Reservation(Fichier):
             donnee['duree_fact_hc'] = duree_fact_hc
 
             if code_client not in self.sommes:
-                self.sommes[code_client] = {'client': {}, 'machines': {}}
+                self.sommes[code_client] = {}
             scl = self.sommes[code_client]
-            if id_machine not in scl['client']:
-                scl['client'][id_machine] = {'res_hp': 0, 'ann_hp': 0, 'res_hc': 0, 'ann_hc': 0}
 
-            scl['client'][id_machine]['res_hp'] += duree_fact_hp
-            scl['client'][id_machine]['res_hc'] += duree_fact_hc
-
-            if id_machine not in scl['machines']:
+            if id_machine not in scl:
                 pu_hp = round(coefmachine['coef_r'] * machine['t_h_reservation_hp'], 2)
                 pu_hc = round(coefmachine['coef_r'] * machine['t_h_reservation_hc'], 2)
-                scl['machines'][id_machine] = {'res_hp': 0, 'res_hc': 0, 'pu_hp': pu_hp, 'pu_hc': pu_hc, 'users': {}}
+                scl[id_machine] = {'res_hp': 0, 'res_hc': 0, 'pu_hp': pu_hp, 'pu_hc': pu_hc, 'users': {}}
 
-            scm = scl['machines'][id_machine]
+            scm = scl[id_machine]
 
             scm['res_hp'] += duree_fact_hp
             scm['res_hc'] += duree_fact_hc
 
             if id_user not in scm['users']:
-                scm['users'][id_user] = {'nom': donnee['nom_user'], 'prenom': donnee['prenom_user'],
-                                         'res_hp': 0, 'res_hc': 0, 'data': []}
+                scm['users'][id_user] = {'res_hp': 0, 'res_hc': 0, 'data': []}
 
             scm['users'][id_user]['res_hp'] += duree_fact_hp
             scm['users'][id_user]['res_hc'] += duree_fact_hc

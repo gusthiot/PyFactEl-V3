@@ -31,12 +31,13 @@ class Acces(Fichier):
             return []
         return self.comptes
 
-    def est_coherent(self, comptes, machines):
+    def est_coherent(self, comptes, machines, users):
         """
         vérifie que les données du fichier importé sont cohérentes (id compte parmi comptes,
         id machine parmi machines), et efface les colonnes mois et année
         :param comptes: comptes importés
         :param machines: machines importées
+        :param users: users importés
         :return: 1 s'il y a une erreur, 0 sinon
         """
         if self.verifie_date == 0:
@@ -67,6 +68,12 @@ class Acces(Fichier):
                 msg += "le machine id de la ligne " + str(ligne) + " ne peut être vide\n"
             elif machines.contient_id(donnee['id_machine']) == 0:
                 msg += "le machine id '" + donnee['id_machine'] + "' de la ligne " + str(ligne)\
+                       + " n'est pas référencé\n"
+
+            if donnee['id_user'] == "":
+                msg += "le user id de la ligne " + str(ligne) + " ne peut être vide\n"
+            elif users.contient_id(donnee['id_user']) == 0:
+                msg += "le user id '" + donnee['id_user'] + "' de la ligne " + str(ligne) \
                        + " n'est pas référencé\n"
 
             donnee['duree_machine_hp'], info = Outils.est_un_nombre(donnee['duree_machine_hp'], "la durée machine hp",
@@ -180,8 +187,7 @@ class Acces(Fichier):
             scm = sco[id_machine]['users']
 
             if id_user not in scm:
-                scm[id_user] = {'nom': donnee['nom_user'], 'prenom': donnee['prenom_user'], 'duree_hp': 0, 'duree_hc': 0,
-                                'mo_hp': 0, 'mo_hc': 0, 'data': []}
+                scm[id_user] = {'duree_hp': 0, 'duree_hc': 0, 'mo_hp': 0, 'mo_hc': 0, 'data': []}
 
             scm[id_user]['duree_hp'] += donnee['duree_machine_hp']
             scm[id_user]['duree_hc'] += donnee['duree_machine_hc']
@@ -197,8 +203,7 @@ class Acces(Fichier):
 
             scmu = scma[id_machine]['users']
             if id_user not in scmu:
-                scmu[id_user] = {'nom': donnee['nom_user'], 'prenom': donnee['prenom_user'], 'duree_hp': 0,
-                                 'duree_hc': 0, 'comptes': {}}
+                scmu[id_user] = {'duree_hp': 0, 'duree_hc': 0, 'comptes': {}}
             scmu[id_user]['duree_hp'] += donnee['duree_machine_hp']
             scmu[id_user]['duree_hc'] += donnee['duree_machine_hc']
 

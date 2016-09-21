@@ -30,12 +30,13 @@ class Livraison(Fichier):
             return []
         return self.comptes
 
-    def est_coherent(self, comptes, prestations):
+    def est_coherent(self, comptes, prestations, users):
         """
         vérifie que les données du fichier importé sont cohérentes (id compte parmi comptes,
         id prestation parmi prestations), et efface les colonnes mois et année
         :param comptes: comptes importés
         :param prestations: prestations importées
+        :param users: users importés
         :return: 1 s'il y a une erreur, 0 sinon
         """
         if self.verifie_date == 0:
@@ -67,6 +68,13 @@ class Livraison(Fichier):
             elif prestations.contient_id(donnee['id_prestation']) == 0:
                 msg += "le prestation id '" + donnee['id_prestation'] + "' de la ligne " + str(ligne) +\
                        " n'est pas référencé\n"
+
+            if donnee['id_user'] == "":
+                msg += "le user id de la ligne " + str(ligne) + " ne peut être vide\n"
+            elif users.contient_id(donnee['id_user']) == 0:
+                msg += "le user id '" + donnee['id_user'] + "' de la ligne " + str(ligne) \
+                       + " n'est pas référencé\n"
+
             donnee['quantite'], info = Outils.est_un_nombre(donnee['quantite'], "la quantité", ligne)
             msg += info
             donnee['rabais'], info = Outils.est_un_nombre(donnee['rabais'], "le rabais", ligne)
@@ -135,8 +143,7 @@ class Livraison(Fichier):
             scp['montant'] += donnee['montant']
 
             if id_user not in scp['users']:
-                scp['users'][id_user] = {'nom': donnee['nom_user'], 'prenom': donnee['prenom_user'], 'quantite': 0,
-                                         'rabais': 0, 'data': []}
+                scp['users'][id_user] = {'quantite': 0, 'rabais': 0, 'data': []}
             scp['users'][id_user]['quantite'] += donnee['quantite']
             scp['users'][id_user]['rabais'] += donnee['rabais_r']
             scp['users'][id_user]['data'].append(pos)

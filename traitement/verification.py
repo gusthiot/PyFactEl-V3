@@ -14,7 +14,7 @@ class Verification(object):
         self.a_verifier = 2
 
     def verification_date(self, edition, acces, clients, coefmachines, coefprests, comptes, livraisons, machines,
-                          prestations, reservations, couts):
+                          prestations, reservations, couts, users):
         """
         vérifie les dates de toutes les données importées
         :param edition: paramètres d'édition
@@ -28,6 +28,7 @@ class Verification(object):
         :param prestations: prestations importées
         :param reservations: réservations importées
         :param couts: catégories couts importées
+        :param users: users importés
         :return: 0 si ok, sinon le nombre d'échecs à la vérification
         """
         verif = 0
@@ -41,11 +42,12 @@ class Verification(object):
         verif += prestations.verification_date(edition.annee, edition.mois)
         verif += reservations.verification_date(edition.annee, edition.mois)
         verif += couts.verification_date(edition.annee, edition.mois)
+        verif += users.verification_date(edition.annee, edition.mois)
         self.a_verifier = 1
         return verif
 
     def verification_cohérence(self, generaux, edition, acces, clients, coefmachines, coefprests, comptes, livraisons,
-                               machines, prestations, reservations, couts):
+                               machines, prestations, reservations, couts, users):
         """
         vérifie la cohérence des données importées
         :param generaux: paramètres généraux
@@ -60,18 +62,20 @@ class Verification(object):
         :param prestations: prestations importées
         :param reservations: réservations importées
         :param couts: catégories couts importées
+        :param users: users importés
         :return: 0 si ok, sinon le nombre d'échecs à la vérification
         """
         verif = 0
-        verif += acces.est_coherent(comptes, machines)
-        verif += livraisons.est_coherent(comptes, prestations)
+        verif += acces.est_coherent(comptes, machines, users)
+        verif += livraisons.est_coherent(comptes, prestations, users)
         verif += couts.est_coherent()
+        verif += users.est_coherent()
         verif += machines.est_coherent(coefmachines, couts)
         verif += prestations.est_coherent(generaux, coefprests)
         verif += coefmachines.est_coherent()
         verif += coefprests.est_coherent(generaux)
         verif += clients.est_coherent(coefmachines, coefprests, generaux)
-        verif += reservations.est_coherent(clients, machines)
+        verif += reservations.est_coherent(clients, machines, users)
 
         comptes_actifs, clients_actifs = Verification.obtenir_comptes_clients_actifs(acces, livraisons)
 

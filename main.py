@@ -26,6 +26,7 @@ from importes import (Client,
                       Prestation,
                       Reservation,
                       Couts,
+                      User,
                       DossierSource,
                       DossierDestination)
 from outils import Outils
@@ -59,17 +60,18 @@ machines = Machine(dossier_source)
 prestations = Prestation(dossier_source)
 reservations = Reservation(dossier_source)
 couts = Couts(dossier_source)
+users = User(dossier_source)
 
 generaux = Generaux(dossier_source)
 
 verification = Verification()
 
 if verification.verification_date(edition, acces, clients, coefmachines, coefprests, comptes, livraisons, machines,
-                                  prestations, reservations, couts) > 0:
+                                  prestations, reservations, couts, users) > 0:
     sys.exit("Erreur dans les dates")
 
 if verification.verification_cohérence(generaux, edition, acces, clients, coefmachines, coefprests, comptes, livraisons,
-                                       machines, prestations, reservations, couts) > 0:
+                                       machines, prestations, reservations, couts, users) > 0:
     sys.exit("Erreur dans la cohérence")
 
 dossier_enregistrement = Outils.chemin_dossier([generaux.chemin, edition.annee,
@@ -114,17 +116,17 @@ if prod2qual.actif:
                           lien_annexes, lien_annexes_techniques, annexes, annexes_techniques)
 
 if Latex.possibles():
-    Annexes.annexes_techniques(sommes, clients, edition, livraisons, acces, machines, reservations, prestations,
-                               comptes, dossier_annexes_techniques, plateforme, coefprests, coefmachines, generaux)
-    # Annexes.annexes(sommes, clients, edition, livraisons, acces, machines, reservations, prestations, comptes,
-    #                 dossier_annexes, plateforme, coefprests, coefmachines, generaux)
+    Annexes.annexes_techniques(sommes, clients, edition, livraisons, acces, machines, reservations, comptes,
+                               dossier_annexes_techniques, plateforme, generaux, users)
+    Annexes.annexes(sommes, clients, edition, livraisons, acces, machines, reservations, comptes, dossier_annexes,
+                    plateforme, generaux, users)
 
 BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces,
                    reservations, livraisons)
 
 for fichier in [acces.nom_fichier, clients.nom_fichier, coefmachines.nom_fichier, coefprests.nom_fichier,
                   comptes.nom_fichier, livraisons.nom_fichier, machines.nom_fichier, prestations.nom_fichier,
-                  reservations.nom_fichier, generaux.nom_fichier, edition.nom_fichier]:
+                  reservations.nom_fichier, couts.nom_fichier, generaux.nom_fichier, edition.nom_fichier]:
     dossier_destination.ecrire(fichier, dossier_source.lire(fichier))
 
 Outils.affiche_message("OK !!!")
