@@ -139,8 +139,8 @@ class Annexes(object):
                                               reservations, comptes, generaux, users, couts)
             contenu += r'''\end{document}'''
 
-            nom = prefixe + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + "_" + \
-                  str(edition.version) + "_" + code_client
+            nom = prefixe + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + "_"
+            nom += str(edition.version) + "_" + code_client
 
             Latex.creer_latex_pdf(nom, contenu, dossier_annexe)
 
@@ -213,7 +213,7 @@ class Annexes(object):
             contenu_compte_annexe4 += Annexes.section(code_client, client, edition, reference, titre4, nombre_4)
 
             titre5 = "Justificatif des coûts d'utilisation du compte : " + intitule_compte
-            contenu_compte_annexe4 += Annexes.section(code_client, client, edition, reference, titre5, nombre_5)
+            contenu_compte_annexe5 += Annexes.section(code_client, client, edition, reference, titre5, nombre_5)
 
             # ## ligne 1.1
 
@@ -692,7 +692,8 @@ class Annexes(object):
                 \hline
                 ''' % dico_tot
 
-            contenu_compte_annexe5 += Latex.tableau(contenu_eligibles_compte, structure_eligibles_compte, legende_eligibles_compte)
+            contenu_compte_annexe5 += Latex.tableau(contenu_eligibles_compte, structure_eligibles_compte,
+                                                    legende_eligibles_compte)
 
             # ## 5.2
 
@@ -703,7 +704,8 @@ class Annexes(object):
                         \hline
                         \multirow{2}{*}{\textbf{''' + intitule_compte + r'''}} & \multicolumn{4}{c|}{Montant [CHF]} \\
                         \cline{2-5}
-                         & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{M.O. Oper.} \\
+                         & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3}
+                         & \multicolumn{1}{c|}{M.O. Oper.} \\
                         \hline
                         '''
 
@@ -800,7 +802,7 @@ class Annexes(object):
                         ''' % dico_cat
 
                 contenu_compte_annexe5 += Latex.long_tableau(contenu_coutcats_compte, structure_coutcats_compte,
-                                                        legende_coutcats_compte)
+                                                             legende_coutcats_compte)
 
             else:
                 contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.3 - Coûts d'utilisation des machines et main

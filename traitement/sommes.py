@@ -121,16 +121,20 @@ class Sommes(object):
             somme['tot_cat'][prestation['categorie']] += livraison['montant'] - livraison['rabais_r']
             somme['tot_cat_x'][prestation['categorie']] += livraison['montantx'] - livraison['rabais_r']
 
-            tot = somme['somme_j_mm']
-            for categorie in self.categories:
-                tot += somme['sommes_cat_m'][categorie]
-            if tot > 0:
-                somme['si_facture'] = 1
 
         for code_client in spco:
             if code_client in acces.sommes:
                 for id_compte in spco[code_client]:
                     somme = spco[code_client][id_compte]
+
+                    tot = somme['somme_j_mm']
+                    for categorie in self.categories:
+                        tot += somme['sommes_cat_m'][categorie]
+                    if code_client == "219298":
+                        print(id_compte, tot)
+                    if tot > 0:
+                        somme['si_facture'] = 1
+
                     ac_som = acces.sommes[code_client]['categories']
                     if id_compte in ac_som:
                         for id_cout, som in ac_som[id_compte].items():
