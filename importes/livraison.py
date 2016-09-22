@@ -122,6 +122,7 @@ class Livraison(Fichier):
             coefprest = coefprests.donnees[client['id_classe_tarif'] + prestation['categorie']]
             donnee['prix_unit_client'] = round(prestation['prix_unit'] * coefprest['coefficient'], 2)
             donnee['montant'] = round(donnee['quantite'] * donnee['prix_unit_client'], 2)
+            donnee['montantx'] = round(donnee['quantite'] * prestation['prix_unit'], 2)
             donnee['rabais_r'] = round(donnee['rabais'], 2)
             categorie = prestation['categorie']
 
@@ -134,13 +135,15 @@ class Livraison(Fichier):
                 scl[id_compte][categorie] = {}
             if no_prestation not in scl[id_compte][categorie]:
                 scl[id_compte][categorie][no_prestation] = {'nom': prestation['designation'], 'unite': donnee['unite'],
-                                                            'pu': donnee['prix_unit_client'], 'quantite': 0,
+                                                            'pu': donnee['prix_unit_client'], 'montantx': 0,
+                                                            'pux': round(prestation['prix_unit'], 2), 'quantite': 0,
                                                             'rabais': 0, 'montant': 0, 'users': {}}
 
             scp = scl[id_compte][categorie][no_prestation]
             scp['quantite'] += donnee['quantite']
             scp['rabais'] += donnee['rabais_r']
             scp['montant'] += donnee['montant']
+            scp['montantx'] += donnee['montantx']
 
             if id_user not in scp['users']:
                 scp['users'][id_user] = {'quantite': 0, 'rabais': 0, 'data': []}

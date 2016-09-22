@@ -105,13 +105,14 @@ class Acces(Fichier):
             return 1
         return 0
 
-    def calcul_montants(self, machines, coefmachines, clients, verification):
+    def calcul_montants(self, machines, coefmachines, clients, verification, couts):
         """
         calcule les montants 'pu', 'qu' et 'mo' et les ajoute aux données
         :param machines: machines importées
         :param coefmachines: coefficients machines importés et vérifiés
         :param clients: clients importés et vérifiés
         :param verification: pour vérifier si les dates et les cohérences sont correctes
+        :param couts: catégories coûts importées
 
         """
         if verification.a_verifier != 0:
@@ -163,15 +164,21 @@ class Acces(Fichier):
             donnee['m'] = donnee['mm'] - donnee['mr']
 
             if code_client not in self.sommes:
-                self.sommes[code_client] = {'comptes': {}, 'machines': {}}
+                self.sommes[code_client] = {'comptes': {}, 'machines': {}, 'categories': {}}
             scl = self.sommes[code_client]['comptes']
             if id_compte not in scl:
                 scl[id_compte] = {}
             sco = scl[id_compte]
+            if id_compte not in self.sommes[code_client]['categories']:
+                self.sommes[code_client]['categories'][id_compte] = {}
+            scat = self.sommes[code_client]['categories'][id_compte]
+            id_cout = machine['id_cout']
+
             if id_machine not in sco:
                 sco[id_machine] = {'duree_hp': 0, 'duree_hc': 0, 'mo_hp': 0, 'mo_hc': 0, 'users': {}, 'mai_hp': 0,
                                    'mai_hc': 0, 'moi_hp': 0, 'moi_hc': 0, 'dsi_hp': 0, 'dsi_hc': 0, 'dhi': 0,
-                                   'pum': pum, 'puo_hp': puo_hp, 'puo_hc': puo_hc}
+                                   'pum': pum, 'puo_hp': puo_hp, 'puo_hc': puo_hc, 'mu1': 0, 'mu2': 0, 'mu3': 0,
+                                   'mmo': 0}
             sco[id_machine]['duree_hp'] += donnee['duree_machine_hp']
             sco[id_machine]['duree_hc'] += donnee['duree_machine_hc']
             sco[id_machine]['mo_hp'] += donnee['duree_operateur_hp']
@@ -183,6 +190,18 @@ class Acces(Fichier):
             sco[id_machine]['dsi_hp'] += dsi_hp
             sco[id_machine]['dsi_hc'] += dsi_hc
             sco[id_machine]['dhi'] += donnee['dhi']
+            sco[id_machine]['mu1'] += round(couts.donnees[machine['id_cout']]['u1'] * tm, 2)
+            sco[id_machine]['mu2'] += round(couts.donnees[machine['id_cout']]['u2'] * tm, 2)
+            sco[id_machine]['mu3'] += round(couts.donnees[machine['id_cout']]['u3'] * tm, 2)
+            tmo = donnee['duree_operateur_hp'] / 60 + donnee['duree_operateur_hc'] / 60
+            sco[id_machine]['mmo'] += round(couts.donnees[id_cout]['mo'] * tmo, 2)
+
+            if id_cout not in scat:
+                scat[id_cout] = {'mu1': 0, 'mu2': 0, 'mu3': 0, 'mmo': 0}
+            scat[id_cout]['mu1'] += round(couts.donnees[machine['id_cout']]['u1'] * tm, 2)
+            scat[id_cout]['mu2'] += round(couts.donnees[machine['id_cout']]['u2'] * tm, 2)
+            scat[id_cout]['mu3'] += round(couts.donnees[machine['id_cout']]['u3'] * tm, 2)
+            scat[id_cout]['mmo'] += round(couts.donnees[id_cout]['mo'] * tmo, 2)
 
             scm = sco[id_machine]['users']
 

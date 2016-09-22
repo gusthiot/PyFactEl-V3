@@ -67,6 +67,18 @@ class Couts(Fichier):
                 msg += "l'id catégorie '" + donnee['id_cat_cout'] + "' de la ligne " + str(ligne) +\
                        " n'est pas unique\n"
 
+            donnee['u1'], info = Outils.est_un_nombre(donnee['u1'], "le coût U1 ", ligne)
+            msg += info
+
+            donnee['u2'], info = Outils.est_un_nombre(donnee['u2'], "le coût U2 ", ligne)
+            msg += info
+
+            donnee['u3'], info = Outils.est_un_nombre(donnee['u3'], "le coût U3 ", ligne)
+            msg += info
+
+            donnee['mo'], info = Outils.est_un_nombre(donnee['mo'], "le coût MO ", ligne)
+            msg += info
+
             ligne += 1
 
         self.donnees = donnees_dict

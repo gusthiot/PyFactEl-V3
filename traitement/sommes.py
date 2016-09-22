@@ -9,7 +9,7 @@ class Sommes(object):
 
     cles_somme_compte = ['somme_j_ai', 'somme_j_bi', 'somme_j_ci', 'somme_j_oi', 'somme_j_mai', 'somme_j_moi',
                          'somme_j_dsi', 'somme_j_dhi', 'somme_j_mm', 'somme_j_mr', 'somme_j_mb', 'mj', 'si_facture',
-                         'res']
+                         'res', 'mu1', 'mu2', 'mu3', 'mmo']
 
     cles_somme_client = ['somme_t_ai', 'somme_t_bi', 'somme_t_ci', 'somme_t_oi', 'mat', 'mot', 'dst', 'dht',
                          'somme_t_mm', 'somme_t_mr', 'somme_t_mb', 'mt', 'somme_eq', 'somme_t', 'em', 'er0', 'er', 'e',
@@ -53,12 +53,16 @@ class Sommes(object):
         for cle in cles:
             somme[cle] = 0
         somme['sommes_cat_m'] = {}
+        somme['sommes_cat_m_x'] = {}
         somme['sommes_cat_r'] = {}
         somme['tot_cat'] = {}
+        somme['tot_cat_x'] = {}
         for categorie in self.categories:
             somme['sommes_cat_m'][categorie] = 0
+            somme['sommes_cat_m_x'][categorie] = 0
             somme['sommes_cat_r'][categorie] = 0
             somme['tot_cat'][categorie] = 0
+            somme['tot_cat_x'][categorie] = 0
         return somme
 
     def somme_par_compte(self, livraisons, acces, prestations):
@@ -112,14 +116,28 @@ class Sommes(object):
             prestation = prestations.donnees[id_prestation]
 
             somme['sommes_cat_m'][prestation['categorie']] += livraison['montant']
+            somme['sommes_cat_m_x'][prestation['categorie']] += livraison['montantx']
             somme['sommes_cat_r'][prestation['categorie']] += livraison['rabais_r']
             somme['tot_cat'][prestation['categorie']] += livraison['montant'] - livraison['rabais_r']
+            somme['tot_cat_x'][prestation['categorie']] += livraison['montantx'] - livraison['rabais_r']
 
             tot = somme['somme_j_mm']
             for categorie in self.categories:
                 tot += somme['sommes_cat_m'][categorie]
             if tot > 0:
                 somme['si_facture'] = 1
+
+        for code_client in spco:
+            if code_client in acces.sommes:
+                for id_compte in spco[code_client]:
+                    somme = spco[code_client][id_compte]
+                    ac_som = acces.sommes[code_client]['categories']
+                    if id_compte in ac_som:
+                        for id_cout, som in ac_som[id_compte].items():
+                            somme['mu1'] += som['mu1']
+                            somme['mu2'] += som['mu2']
+                            somme['mu3'] += som['mu3']
+                            somme['mmo'] += som['mmo']
 
         # print("")
         # print("spco")

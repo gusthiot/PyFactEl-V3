@@ -80,7 +80,7 @@ dossier_lien = Outils.lien_dossier([generaux.lien, edition.annee, Outils.mois_st
                                    plateforme, generaux)
 livraisons.calcul_montants(prestations, coefprests, clients, verification)
 reservations.calcul_montants(machines, coefmachines, clients, verification)
-acces.calcul_montants(machines, coefmachines, clients, verification)
+acces.calcul_montants(machines, coefmachines, clients, verification, couts)
 
 sommes = Sommes(verification, generaux)
 sommes.calculer_toutes(livraisons, reservations, acces, prestations, clients, machines)
@@ -117,9 +117,9 @@ if prod2qual.actif:
 
 if Latex.possibles():
     Annexes.annexes_techniques(sommes, clients, edition, livraisons, acces, machines, reservations, comptes,
-                               dossier_annexes_techniques, plateforme, generaux, users)
+                               dossier_annexes_techniques, plateforme, generaux, users, couts)
     Annexes.annexes(sommes, clients, edition, livraisons, acces, machines, reservations, comptes, dossier_annexes,
-                    plateforme, generaux, users)
+                    plateforme, generaux, users, couts)
 
 BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces, livraisons)
 

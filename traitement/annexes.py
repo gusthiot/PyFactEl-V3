@@ -6,10 +6,9 @@ class Annexes(object):
     """
     Classe pour la création des annexes
     """
-# TODO : vérifier longueur des tableaux
     @staticmethod
     def annexes(sommes, clients, edition, livraisons, acces, machines, reservations, comptes, dossier_annexe,
-                plateforme, generaux, users):
+                plateforme, generaux, users, couts):
         """
         création des annexes de facture
         :param sommes: sommes calculées
@@ -24,16 +23,17 @@ class Annexes(object):
         :param plateforme: OS utilisé
         :param generaux: paramètres généraux
         :param users: users importés
+        :param couts: catégories coûts importées
         """
         prefixe = "annexe_"
         garde = r'''Annexes factures \newline Billing Appendices'''
 
         Annexes.creation_annexes(sommes, clients, edition, livraisons, acces, machines, reservations, comptes,
-                                 dossier_annexe, plateforme, prefixe, generaux, garde, users)
+                                 dossier_annexe, plateforme, prefixe, generaux, garde, users, couts)
 
     @staticmethod
     def annexes_techniques(sommes, clients, edition, livraisons, acces, machines, reservations, comptes, dossier_annexe,
-                           plateforme, generaux, users):
+                           plateforme, generaux, users, couts):
         """
         création des annexes techniques
         :param sommes: sommes calculées
@@ -48,16 +48,17 @@ class Annexes(object):
         :param plateforme: OS utilisé
         :param generaux: paramètres généraux
         :param users: users importés
+        :param couts: catégories coûts importées
         """
         prefixe = "annexeT_"
         garde = r'''Annexes techniques \newline Technical Appendices'''
 
         Annexes.creation_annexes(sommes, clients, edition, livraisons, acces, machines, reservations,  comptes,
-                                 dossier_annexe, plateforme, prefixe, generaux, garde, users)
+                                 dossier_annexe, plateforme, prefixe, generaux, garde, users, couts)
 
     @staticmethod
     def creation_annexes(sommes, clients, edition, livraisons, acces, machines, reservations, comptes, dossier_annexe,
-                         plateforme, prefixe, generaux, garde, users):
+                         plateforme, prefixe, generaux, garde, users, couts):
         """
         création des annexes techniques
         :param sommes: sommes calculées
@@ -74,6 +75,7 @@ class Annexes(object):
         :param generaux: paramètres généraux
         :param garde: titre page de garde
         :param users: users importés
+        :param couts: catégories coûts importées
         """
 
         if sommes.calculees == 0:
@@ -134,7 +136,7 @@ class Annexes(object):
                 \end{adjustwidth}
                 \end{titlepage}''' % dic_entete
             contenu += Annexes.contenu_client(sommes, clients, code_client, edition, livraisons, acces, machines,
-                                              reservations, comptes, generaux, users)
+                                              reservations, comptes, generaux, users, couts)
             contenu += r'''\end{document}'''
 
             nom = prefixe + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + "_" + \
@@ -144,7 +146,7 @@ class Annexes(object):
 
     @staticmethod
     def contenu_client(sommes, clients, code_client, edition, livraisons, acces, machines, reservations, comptes,
-                       generaux, users):
+                       generaux, users, couts):
         """
         création du contenu de l'annexe pour un client
         :param sommes: sommes calculées
@@ -158,6 +160,7 @@ class Annexes(object):
         :param comptes: comptes importés
         :param generaux: paramètres généraux
         :param users: users importés
+        :param couts: catégories coûts importées
         :return: contenu de l'annexe du client
         """
 
@@ -168,6 +171,7 @@ class Annexes(object):
         nature = generaux.nature_client_par_code_n(client['type_labo'])
         av_ds = generaux.avantage_ds_par_code_n(client['type_labo'])
         av_hc = generaux.avantage_hc_par_code_n(client['type_labo'])
+        an_couts = generaux.annexe_cout_par_code_n(client['type_labo'])
         reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
         if edition.version != "0":
             reference += "-" + edition.version
@@ -183,6 +187,9 @@ class Annexes(object):
             contenu_prestations_client_tab[article.code_d] = ""
 
         client_comptes = sommes.sommes_comptes[code_client]
+
+        titre_5 = "Justificatif des coûts d'utilisation par compte"
+        nombre_5 = "V"
         titre_4 = "Annexe détaillée par compte"
         nombre_4 = "IV"
         titre_2 = "Récapitulatifs par compte"
@@ -204,6 +211,9 @@ class Annexes(object):
 
             titre4 = "Annexe détaillée du compte : " + intitule_compte
             contenu_compte_annexe4 += Annexes.section(code_client, client, edition, reference, titre4, nombre_4)
+
+            titre5 = "Justificatif des coûts d'utilisation du compte : " + intitule_compte
+            contenu_compte_annexe4 += Annexes.section(code_client, client, edition, reference, titre5, nombre_5)
 
             # ## ligne 1.1
 
@@ -624,62 +634,230 @@ class Annexes(object):
                 contenu_compte_annexe4 += Latex.long_tableau(contenu_prestations_compte, structure_prestations_compte,
                                                              legende_prestations_compte)
 
-            # ## 5.x ? coûts éligibles
+            # ## 5.1
 
-            # structure_eligibles_compte = r'''{|c|c|c|c|}'''
-            # for i in range(1,4):
-            #     legende_eligibles_compte = r'''Coûts d'utilisation (U''' + str(i) + r''') pour compte ''' + intitule_compte
-            #
-            #     contenu_eligibles_compte = r'''
-            #         \hline
-            #         Mach. U''' + str(i) + r''' & M.O. & Prest. Livr. & Total \\
-            #         \hline
-            #         '''
-            #
-            #     contenu_compte_annexe5 += Latex.tableau(contenu_eligibles_compte, structure_eligibles_compte, legende_eligibles_compte)
+            structure_eligibles_compte = r'''{|l|r|r|r|}'''
+            legende_eligibles_compte = r'''Table V.1 - Coûts d'utilisation '''
 
-            # ## 5.x ? coûts éligibles machines
+            dico_eligibles = {'mu1': "%.2f" % sco['mu1'],
+                              'mu2': "%.2f" % sco['mu2'],
+                              'mu3': "%.2f" % sco['mu3'],
+                              'mmo': "%.2f" % sco['mmo']}
+            tot1 = sco['mu1'] + sco['mmo']
+            tot2 = sco['mu2'] + sco['mmo']
+            tot3 = sco['mu3'] + sco['mmo']
 
-            # structure_machines_compte = r'''{|l|c|c|c|c|c|c|c|}'''
-            # for i in range(1,4):
-            #     legende_machines_compte = r'''Coûts procédés éligibles (U''' + str(i) + r''') pour compte ''' + intitule_compte
-            #
-            #     contenu_machines_compte = r'''
-            #         \cline{3-8}
-            #         \multicolumn{2}{r}{} & \multicolumn{2}{|c|}{Machine} & \multicolumn{2}{c|}{PU [CHF/h]} & \multicolumn{2}{c|}{Montant [CHF]} \\
-            #         \hline
-            #         ''' + intitule_compte + r''' & Mach. & Oper. & PU''' + str(i) + r''' & M.O. & Mach.& U''' + str(i) + r''' & M.O. \\
-            #         \hline
-            #         '''
-            #
-            #     contenu_machines_compte += r'''
-            #         \multicolumn{6}{|r|}{Total} & & \\
-            #         \hline
-            #         '''
-            #
-            #     contenu_compte_annexe5 += Latex.tableau(contenu_machines_compte, structure_machines_compte, legende_machines_compte)
+            contenu_eligibles_compte = r'''
+                \cline{2-4}
+                \multicolumn{1}{l|}{} & \multicolumn{1}{c|}{1} & \multicolumn{1}{c|}{2} & \multicolumn{1}{c|}{3} \\
+                \hline
+                Coûts d'utilisation machine & %(mu1)s & %(mu2)s & %(mu3)s \\
+                \hline
+                Coûts main d'oeuvre opérateur & %(mmo)s & %(mmo)s & %(mmo)s \\
+                \hline
+                ''' % dico_eligibles
 
-            # ## 5.x ? coûts éligibles prestations
+            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                somme = livraisons.sommes[code_client][id_compte]
+                for article in generaux.articles_d3:
+                    if article.code_d in somme:
+                        elu1 = article.eligible_U1
+                        elu2 = article.eligible_U2
+                        elu3 = article.eligible_U3
+                        if elu1 == "NON" and elu2 == "NON" and elu3 == "NON":
+                            continue
+                        netx = sco['tot_cat_x'][article.code_d]
+                        u1 = 0
+                        u2 = 0
+                        u3 = 0
+                        if elu1 == "OUI":
+                            u1 = netx
+                        if elu2 == "OUI":
+                            u2 = netx
+                        if elu3 == "OUI":
+                            u3 = netx
+                        tot1 += u1
+                        tot2 += u2
+                        tot3 += u3
+                        dico_article = {'intitule': article.intitule_long, 'u1': "%.2f" % u1, 'u2': "%.2f" % u2,
+                                        'u3': "%.2f" % u3}
+                        contenu_eligibles_compte += r'''
+                            %(intitule)s & %(u1)s & %(u2)s & %(u3)s \\
+                            \hline
+                            ''' % dico_article
 
-            # structure_livraisons_compte = r'''{|l|c|}'''
-            # legende_livraisons_compte = r'''Prestations livrées éligibles pour compte ''' + intitule_compte
-            #
-            # contenu_livraisons_compte = r'''
-            #     \hline
-            #     '''
-            # total = 0
-            # for article in generaux.articles_d3:
-            #     total += sco['tot_cat'][article.code_d]
-            #     contenu_livraisons_compte += r'''
-            #         ''' + article.intitule_long + r'''&''' + "%.2f" % sco['tot_cat'][article.code_d] + r''' \\
-            #         \hline
-            #         '''
-            # contenu_livraisons_compte += r'''
-            #     Total Pres. Livr. &''' + "%.2f" % total + r''' \\
-            #     \hline
-            #     '''
-            #
-            # contenu_compte_annexe5 += Latex.tableau(contenu_livraisons_compte, structure_livraisons_compte, legende_livraisons_compte)
+            dico_tot = {'tot1': "%.2f" % tot1, 'tot2': "%.2f" % tot2, 'tot3': "%.2f" % tot3}
+            contenu_eligibles_compte += r'''
+                \multicolumn{1}{|r|}{Total} & %(tot1)s & %(tot2)s & %(tot3)s \\
+                \hline
+                ''' % dico_tot
+
+            contenu_compte_annexe5 += Latex.tableau(contenu_eligibles_compte, structure_eligibles_compte, legende_eligibles_compte)
+
+            # ## 5.2
+
+            if code_client in acces.sommes and id_compte in acces.sommes[code_client]['categories']:
+                structure_coutmachines_compte = r'''{|l|r|r|r|r|}'''
+                legende_coutmachines_compte = r'''Table V.2 - Coûts d'utilisation des machines et main d'oeuvre'''
+                contenu_coutmachines_compte = r'''
+                        \hline
+                        \multirow{2}{*}{\textbf{''' + intitule_compte + r'''}} & \multicolumn{4}{c|}{Montant [CHF]} \\
+                        \cline{2-5}
+                         & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{M.O. Oper.} \\
+                        \hline
+                        '''
+
+                som_cats = acces.sommes[code_client]['categories'][id_compte]
+
+                for id_cout, som_cat in sorted(som_cats.items()):
+
+                    dico_cat = {'intitule': couts.donnees[id_cout]['intitule'], 'mu1': "%.2f" % som_cat['mu1'],
+                                'mu2': "%.2f" % som_cat['mu2'], 'mu3': "%.2f" % som_cat['mu3'],
+                                'mmo': "%.2f" % som_cat['mmo']}
+
+                    contenu_coutmachines_compte += r'''
+                        %(intitule)s & %(mu1)s & %(mu2)s & %(mu3)s
+                        & %(mmo)s \\
+                        \hline
+                        ''' % dico_cat
+
+                dico_compte = {'mu1': "%.2f" % sco['mu1'],
+                               'mu2': "%.2f" % sco['mu2'],
+                               'mu3': "%.2f" % sco['mu3'],
+                               'mmo': "%.2f" % sco['mmo']}
+
+                contenu_coutmachines_compte += r'''
+                    \multicolumn{1}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
+                    \hline
+                    ''' % dico_compte
+
+                contenu_compte_annexe5 += Latex.tableau(contenu_coutmachines_compte, structure_coutmachines_compte,
+                                                        legende_coutmachines_compte)
+
+            else:
+                contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.2 - Coûts d'utilisation des machines et main
+                    d'oeuvre : table vide (pas d’utilisation machines)''')
+
+            # ## 5.3
+
+            if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
+                structure_coutcats_compte = r'''{|l|c|c|r|r|r|r|r|r|r|r|}'''
+                legende_coutcats_compte = r'''Table V.3 - Coûts d'utilisation des machines et main d'oeuvre par
+                    catégorie'''
+                contenu_coutcats_compte = ""
+
+                somme = acces.sommes[code_client]['comptes'][id_compte]
+                som_cat = acces.sommes[code_client]['categories'][id_compte]
+                machines_utilisees = Annexes.machines_in_somme(somme, machines)
+
+                for id_cout, mics in sorted(machines_utilisees.items()):
+
+                    if contenu_coutcats_compte != "":
+                        contenu_coutcats_compte += r'''
+                            \multicolumn{7}{c}{} \\
+                            '''
+
+                    contenu_coutcats_compte += r'''
+                        \hline
+                        \textbf{''' + intitule_compte + r'''} & \multicolumn{2}{c|}{Durée}
+                        & \multicolumn{4}{c|}{PU [CHF/h]} & \multicolumn{4}{c|}{Montant [CHF]} \\
+                        \hline
+                        \textbf{''' + couts.donnees[id_cout]['intitule'] + r'''} & Mach. & Oper.
+                        & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2}
+                        & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{U1}
+                        & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{Oper.} \\
+                        \hline
+                        '''
+
+                    for nom_machine, id_machine in sorted(mics.items()):
+                        duree = somme[id_machine]['duree_hp'] + somme[id_machine]['duree_hc']
+                        mo = somme[id_machine]['mo_hp'] + somme[id_machine]['mo_hc']
+
+                        dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
+                                        'duree': Outils.format_heure(duree), 'mo': Outils.format_heure(mo),
+                                        'cu1': "%.2f" % round(couts.donnees[id_cout]['u1'], 2),
+                                        'cu2': "%.2f" % round(couts.donnees[id_cout]['u2'], 2),
+                                        'cu3': "%.2f" % round(couts.donnees[id_cout]['u3'], 2),
+                                        'cmo': "%.2f" % round(couts.donnees[id_cout]['mo'], 2),
+                                        'mu1': "%.2f" % somme[id_machine]['mu1'],
+                                        'mu2': "%.2f" % somme[id_machine]['mu2'],
+                                        'mu3': "%.2f" % somme[id_machine]['mu3'],
+                                        'mmo': "%.2f" % somme[id_machine]['mmo']}
+                        contenu_coutcats_compte += r'''
+                            %(machine)s & %(duree)s & %(mo)s & %(cu1)s & %(cu2)s & %(cu3)s & %(cmo)s & %(mu1)s
+                            & %(mu2)s & %(mu3)s & %(mmo)s \\
+                            \hline
+                            ''' % dico_machine
+
+                    dico_cat = {'mu1': "%.2f" % som_cat[id_cout]['mu1'],
+                                'mu2': "%.2f" % som_cat[id_cout]['mu2'],
+                                'mu3': "%.2f" % som_cat[id_cout]['mu3'],
+                                'mmo': "%.2f" % som_cat[id_cout]['mmo']}
+
+                    contenu_coutcats_compte += r'''
+                        \multicolumn{7}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
+                        \hline
+                        ''' % dico_cat
+
+                contenu_compte_annexe5 += Latex.long_tableau(contenu_coutcats_compte, structure_coutcats_compte,
+                                                        legende_coutcats_compte)
+
+            else:
+                contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.3 - Coûts d'utilisation des machines et main
+                    d'oeuvre par catégorie : table vide (pas d’utilisation machines)''')
+
+            # ## 5.4
+
+            contenu_coutprests_compte = ""
+            structure_coutprests_compte = r'''{|l|r|c|r|r|r|r|}'''
+            legende_coutprests_compte = r'''Table V.4 - Coûts des prestations livrées'''
+            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                somme = livraisons.sommes[code_client][id_compte]
+                for article in generaux.articles_d3:
+                    if article.code_d in somme:
+                        elu1 = article.eligible_U1
+                        elu2 = article.eligible_U2
+                        elu3 = article.eligible_U3
+                        if elu1 == "NON" and elu2 == "NON" and elu3 == "NON":
+                            continue
+
+                        if contenu_coutprests_compte != "":
+                            contenu_coutprests_compte += r'''
+                                \multicolumn{7}{c}{} \\
+                                '''
+
+                        contenu_coutprests_compte += r'''
+                            \hline
+                            \multicolumn{1}{|l|}{\scriptsize{
+                            \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                            }}} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
+                            & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} & \multicolumn{1}{c|}{Net} \\
+                            \hline
+                            '''
+                        for no_prestation, sip in sorted(somme[article.code_d].items()):
+                            dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
+                                                'quantite': sip['quantite'], 'unite': sip['unite'],
+                                                'pux': "%.2f" % sip['pux'], 'montantx': "%.2f" % sip['montantx'],
+                                                'rabais': "%.2f" % sip['rabais'],
+                                                'netx': "%.2f" % (sip['montantx'] - sip['rabais'])}
+                            contenu_coutprests_compte += r'''
+                                %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(pux)s & %(montantx)s
+                                & %(rabais)s & %(netx)s \\
+                                \hline
+                                ''' % dico_prestations
+                        dico_prestations = {'montantx': "%.2f" % sco['sommes_cat_m_x'][article.code_d],
+                                            'rabais': "%.2f" % sco['sommes_cat_r'][article.code_d],
+                                            'netx': "%.2f" % sco['tot_cat_x'][article.code_d]}
+                        contenu_coutprests_compte += r'''
+                            \multicolumn{4}{|r|}{Total} & %(montantx)s & %(rabais)s & %(netx)s \\
+                            \hline
+                            ''' % dico_prestations
+            if contenu_coutprests_compte != "":
+                contenu_compte_annexe5 += Latex.tableau(contenu_coutprests_compte, structure_coutprests_compte,
+                                                        legende_coutprests_compte)
+            else:
+                contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.4 - Coûts des prestations livrées :
+                    table vide (pas de prestations livrées)''')
 
             contenu_compte_annexe2 += r'''\clearpage'''
             contenu_compte_annexe4 += r'''\clearpage'''
@@ -957,7 +1135,6 @@ class Annexes(object):
         # ## Annexe 2
 
         contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_2, nombre_2)
-
         contenu += contenu_compte_annexe2
 
         # ## Annexe 3
@@ -1199,15 +1376,13 @@ class Annexes(object):
         # ## Annexe 4
 
         contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_4, nombre_4)
-
         contenu += contenu_compte_annexe4
 
         # ## Annexe 5
 
-        contenu += Annexes.titre_annexe(code_client, client, edition, reference,
-                                        "Justificatif des coûts d'utilisation par compte", "V")
-        contenu += Annexes.section(code_client, client, edition, reference,
-                                   "Justificatif des coûts d'utilisation par compte", "V")
+        if an_couts == "OUI":
+            contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_5, nombre_5)
+            contenu += contenu_compte_annexe5
 
         return contenu
 
