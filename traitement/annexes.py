@@ -1290,36 +1290,42 @@ class Annexes(object):
 
             for id_cout, mics in sorted(machines_utilisees.items()):
                 for nom_machine, id_machine in sorted(mics.items()):
-                    dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
-                                    'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
-                                    'hc': Outils.format_heure(somme[id_machine]['duree_hc'])}
-                    contenu_machuts_client += r'''
-                       \textbf{%(machine)s} & \hspace{5mm} %(hp)s & \hspace{5mm} %(hc)s \\
-                        \hline
-                        ''' % dico_machine
+                    if id_machine in scl['res']:
+                        pu_hp = re_somme[id_machine]['pu_hp']
+                        pu_hc = re_somme[id_machine]['pu_hc']
+                        tx_hp = machines.donnees[id_machine]['tx_occ_eff_hp']
+                        tx_hc = machines.donnees[id_machine]['tx_occ_eff_hc']
+                        if (pu_hc > 0 and tx_hc > 0) or (pu_hp > 0 and tx_hp > 0):
+                            dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
+                                            'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
+                                            'hc': Outils.format_heure(somme[id_machine]['duree_hc'])}
+                            contenu_machuts_client += r'''
+                               \textbf{%(machine)s} & \hspace{5mm} %(hp)s & \hspace{5mm} %(hc)s \\
+                                \hline
+                                ''' % dico_machine
 
-                    utilisateurs = Annexes.utilisateurs_in_somme(somme[id_machine]['users'], users)
+                            utilisateurs = Annexes.utilisateurs_in_somme(somme[id_machine]['users'], users)
 
-                    for nom, upi in sorted(utilisateurs.items()):
-                        for prenom, ids in sorted(upi.items()):
-                            for id_user in sorted(ids):
-                                smu = somme[id_machine]['users'][id_user]
-                                dico_user = {'user': nom + " " + prenom,
-                                             'hp': Outils.format_heure(smu['duree_hp']),
-                                             'hc': Outils.format_heure(smu['duree_hc'])}
-                                contenu_machuts_client += r'''
-                                    \hspace{5mm} %(user)s & %(hp)s & %(hc)s \\
-                                    \hline
-                                    ''' % dico_user
+                            for nom, upi in sorted(utilisateurs.items()):
+                                for prenom, ids in sorted(upi.items()):
+                                    for id_user in sorted(ids):
+                                        smu = somme[id_machine]['users'][id_user]
+                                        dico_user = {'user': nom + " " + prenom,
+                                                     'hp': Outils.format_heure(smu['duree_hp']),
+                                                     'hc': Outils.format_heure(smu['duree_hc'])}
+                                        contenu_machuts_client += r'''
+                                            \hspace{5mm} %(user)s & %(hp)s & %(hc)s \\
+                                            \hline
+                                            ''' % dico_user
 
-                                for id_compte in smu['comptes']:
-                                    smuc = smu['comptes'][id_compte]
-                                    dico_compte = {'compte': id_compte, 'hp': Outils.format_heure(smuc['duree_hp']),
-                                                   'hc': Outils.format_heure(smuc['duree_hc'])}
-                                    contenu_machuts_client += r'''
-                                        \hspace{10mm} %(compte)s & %(hp)s \hspace{5mm} & %(hc)s \hspace{5mm} \\
-                                        \hline
-                                        ''' % dico_compte
+                                        for id_compte in smu['comptes']:
+                                            smuc = smu['comptes'][id_compte]
+                                            dico_compte = {'compte': id_compte, 'hp': Outils.format_heure(smuc['duree_hp']),
+                                                           'hc': Outils.format_heure(smuc['duree_hc'])}
+                                            contenu_machuts_client += r'''
+                                                \hspace{10mm} %(compte)s & %(hp)s \hspace{5mm} & %(hc)s \hspace{5mm} \\
+                                                \hline
+                                                ''' % dico_compte
 
             contenu += Latex.long_tableau(contenu_machuts_client, structure_machuts_client, legende_machuts_client)
         else:

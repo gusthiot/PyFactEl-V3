@@ -7,13 +7,11 @@ class Sommes(object):
     Classe contenant les méthodes pour le calcul des sommes par compte, catégorie et client
     """
 
-    cles_somme_compte = ['somme_j_ai', 'somme_j_bi', 'somme_j_ci', 'somme_j_oi', 'somme_j_mai', 'somme_j_moi',
-                         'somme_j_dsi', 'somme_j_dhi', 'somme_j_mm', 'somme_j_mr', 'somme_j_mb', 'mj', 'si_facture',
-                         'res', 'mu1', 'mu2', 'mu3', 'mmo']
+    cles_somme_compte = ['somme_j_mai', 'somme_j_moi', 'somme_j_dsi', 'somme_j_dhi', 'somme_j_mm', 'somme_j_mr',
+                         'somme_j_mb', 'mj', 'si_facture', 'res', 'mu1', 'mu2', 'mu3', 'mmo']
 
-    cles_somme_client = ['somme_t_ai', 'somme_t_bi', 'somme_t_ci', 'somme_t_oi', 'mat', 'mot', 'dst', 'dht',
-                         'somme_t_mm', 'somme_t_mr', 'somme_t_mb', 'mt', 'somme_eq', 'somme_t', 'em', 'er0', 'er', 'e',
-                         'res', 'rm', 'rr', 'r']
+    cles_somme_client = ['mat', 'mot', 'dst', 'dht', 'somme_t_mm', 'somme_t_mr', 'somme_t_mb', 'mt', 'somme_eq',
+                         'somme_t', 'em', 'er0', 'er', 'e', 'res', 'rm', 'rr', 'r']
 
     def __init__(self, verification, generaux):
         """
@@ -40,7 +38,7 @@ class Sommes(object):
         :param clients: clients importés et vérifiés
         :param machines: machines importées et vérifiées
         """
-        self.somme_par_compte(livraisons, acces, prestations)
+        self.somme_par_compte(livraisons, acces, prestations, clients)
         self.somme_par_client(clients, reservations, machines, acces)
 
     def nouveau_somme(self, cles):
@@ -65,12 +63,13 @@ class Sommes(object):
             somme['tot_cat_x'][categorie] = 0
         return somme
 
-    def somme_par_compte(self, livraisons, acces, prestations):
+    def somme_par_compte(self, livraisons, acces, prestations, clients):
         """
         calcule les sommes par comptes sous forme de dictionnaire : client->compte->clés_sommes
         :param livraisons: livraisons importées et vérifiées
         :param acces: accès machines importés et vérifiés
         :param prestations: prestations importées et vérifiées
+        :param clients: clients importés et vérifiés
         """
 
         if self.verification.a_verifier != 0:
@@ -80,27 +79,33 @@ class Sommes(object):
             return
 
         spco = {}
-        for acce in acces.donnees:
-            id_compte = acce['id_compte']
-            code_client = acce['code_client']
+        for code_client in acces.sommes:
             if code_client not in spco:
                 spco[code_client] = {}
             spco_cl = spco[code_client]
-            if id_compte not in spco_cl:
-                spco_cl[id_compte] = self.nouveau_somme(Sommes.cles_somme_compte)
-            somme = spco_cl[id_compte]
-            somme['somme_j_ai'] += acce['ai']
-            somme['somme_j_bi'] += acce['bi']
-            somme['somme_j_ci'] += acce['ci']
-            somme['somme_j_oi'] += acce['oi']
-            somme['somme_j_mai'] += acce['mai']
-            somme['somme_j_moi'] += acce['moi']
-            somme['somme_j_dsi'] += acce['dsi']
-            somme['somme_j_dhi'] += acce['dhi']
-            somme['somme_j_mm'] += acce['mm']
-            somme['somme_j_mr'] += acce['mr']
-            somme['somme_j_mb'] += acce['mb']
-            somme['mj'] += acce['m']
+            for id_compte in acces.sommes[code_client]['comptes']:
+                if id_compte not in spco_cl:
+                    spco_cl[id_compte] = self.nouveau_somme(Sommes.cles_somme_compte)
+                somme = spco_cl[id_compte]
+                ac_som = acces.sommes[code_client]['comptes']
+                if id_compte in ac_som:
+                    for id_machine, som in ac_som[id_compte].items():
+                        somme['mu1'] += som['mu1']
+                        somme['mu2'] += som['mu2']
+                        somme['mu3'] += som['mu3']
+                        somme['mmo'] += som['mmo']
+                        mai = som['mai_hp'] + som['mai_hc']
+                        somme['somme_j_mai'] += mai
+                        moi = som['moi_hp'] + som['moi_hc']
+                        somme['somme_j_moi'] += moi
+                        dsi = som['dsi_hp'] + som['dsi_hc']
+                        somme['somme_j_dsi'] += dsi
+                        somme['somme_j_dhi'] += som['dhi']
+                        somme['somme_j_mm'] += mai + moi
+                        client = clients.donnees[code_client]
+                        somme['somme_j_mr'] += client['rs'] * dsi + client['rh'] * som['dhi']
+                        somme['somme_j_mb'] += client['bs'] * dsi + client['bh'] * som['dhi']
+                somme['mj'] = somme['somme_j_mm'] - somme['somme_j_mr']
 
         for livraison in livraisons.donnees:
             id_compte = livraison['id_compte']
@@ -121,25 +126,14 @@ class Sommes(object):
             somme['tot_cat'][prestation['categorie']] += livraison['montant'] - livraison['rabais_r']
             somme['tot_cat_x'][prestation['categorie']] += livraison['montantx'] - livraison['rabais_r']
 
-
         for code_client in spco:
-            if code_client in acces.sommes:
-                for id_compte in spco[code_client]:
-                    somme = spco[code_client][id_compte]
-
-                    tot = somme['somme_j_mm']
-                    for categorie in self.categories:
-                        tot += somme['sommes_cat_m'][categorie]
-                    if tot > 0:
-                        somme['si_facture'] = 1
-
-                    ac_som = acces.sommes[code_client]['categories']
-                    if id_compte in ac_som:
-                        for id_cout, som in ac_som[id_compte].items():
-                            somme['mu1'] += som['mu1']
-                            somme['mu2'] += som['mu2']
-                            somme['mu3'] += som['mu3']
-                            somme['mmo'] += som['mmo']
+            for id_compte in spco[code_client]:
+                somme = spco[code_client][id_compte]
+                tot = somme['somme_j_mm']
+                for categorie in self.categories:
+                    tot += somme['sommes_cat_m'][categorie]
+                if tot > 0:
+                    somme['si_facture'] = 1
 
         # print("")
         # print("spco")
@@ -180,11 +174,6 @@ class Sommes(object):
                 somme['rr'] = 0
                 somme['r'] = 0
                 for id_compte, som_co in spco_cl.items():
-
-                    somme['somme_t_ai'] += som_co['somme_j_ai']
-                    somme['somme_t_bi'] += som_co['somme_j_bi']
-                    somme['somme_t_ci'] += som_co['somme_j_ci']
-                    somme['somme_t_oi'] += som_co['somme_j_oi']
                     somme['mat'] += som_co['somme_j_mai']
                     somme['mot'] += som_co['somme_j_moi']
                     somme['dst'] += som_co['somme_j_dsi']
