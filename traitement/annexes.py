@@ -186,7 +186,7 @@ class Annexes(object):
         for article in generaux.articles_d3:
             contenu_prestations_client_tab[article.code_d] = ""
 
-        client_comptes = sommes.sommes_comptes[code_client]
+        comptes_utilises = Annexes.comptes_in_somme(sommes.sommes_comptes[code_client], comptes)
 
         titre_5 = "Justificatif des coûts d'utilisation par compte"
         nombre_5 = "V"
@@ -198,13 +198,13 @@ class Annexes(object):
         contenu_compte_annexe4 = ""
         contenu_compte_annexe5 = ""
 
-        for id_compte in sorted(client_comptes.keys()):
+        for num_compte, id_compte in sorted(comptes_utilises.items()):
 
             # ## COMPTE
 
             sco = sommes.sommes_comptes[code_client][id_compte]
             compte = comptes.donnees[id_compte]
-            intitule_compte = id_compte + " - " + Latex.echappe_caracteres(compte['intitule'])
+            intitule_compte = num_compte + " - " + Latex.echappe_caracteres(compte['intitule'])
 
             titre2 = "Récapitulatif du compte : " + intitule_compte
             contenu_compte_annexe2 += Annexes.section(code_client, client, edition, reference, titre2, nombre_2)
@@ -220,8 +220,9 @@ class Annexes(object):
             if sco['si_facture'] > 0:
                 poste = inc_fact * 10
                 intitule = intitule_compte + " - " + generaux.articles[2].intitule_long
-                dico_fact_compte = {'intitule': intitule, 'poste': str(poste), 'mm': "%.2f" % sco['somme_j_mm'],
-                                    'mr': "%.2f" % sco['somme_j_mr'], 'mj': "%.2f" % sco['mj']}
+                dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
+                                    'mm': Outils.format_2_dec(sco['somme_j_mm']),
+                                    'mr': Outils.format_2_dec(sco['somme_j_mr']), 'mj': Outils.format_2_dec(sco['mj'])}
                 contenu_fact_compte += r'''
                     %(poste)s & %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
                     \hline
@@ -233,9 +234,9 @@ class Annexes(object):
                     if sco['sommes_cat_m'][categorie] > 0:
                         intitule = intitule_compte + " - " + Latex.echappe_caracteres(article.intitule_long)
                         dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
-                                            'mm': "%.2f" % sco['sommes_cat_m'][article.code_d],
-                                            'mr': "%.2f" % sco['sommes_cat_r'][article.code_d],
-                                            'mj': "%.2f" % sco['tot_cat'][article.code_d]}
+                                            'mm': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                            'mr': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                            'mj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
                         contenu_fact_compte += r'''
                             %(poste)s & %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
                             \hline
@@ -247,16 +248,16 @@ class Annexes(object):
             # ## ligne 1.5
 
             total = sco['mj']
-            dico_recap_compte = {'compte': intitule_compte, 'procede': "%.2f" % sco['mj']}
+            dico_recap_compte = {'compte': intitule_compte, 'procede': Outils.format_2_dec(sco['mj'])}
 
             ligne = r'''%(compte)s & %(procede)s ''' % dico_recap_compte
 
             for categorie in generaux.codes_d3():
                 total += sco['tot_cat'][categorie]
-                ligne += r''' & ''' + "%.2f" % sco['tot_cat'][categorie]
+                ligne += r''' & ''' + Outils.format_2_dec(sco['tot_cat'][categorie])
 
             if total > 0:
-                dico_recap_compte['total'] = "%.2f" % total
+                dico_recap_compte['total'] = Outils.format_2_dec(total)
                 ligne += r'''& %(total)s \\
                     \hline
                     ''' % dico_recap_compte
@@ -266,10 +267,12 @@ class Annexes(object):
 
             rsj = client['rs'] * sco['somme_j_dsi']
             rhj = client['rh'] * sco['somme_j_dhi']
-            dico_procedes_compte = {'intitule': intitule_compte, 'maij': "%.2f" % sco['somme_j_mai'],
-                                    'mm': "%.2f" % sco['somme_j_mm'], 'mr': "%.2f" % sco['somme_j_mr'],
-                                    'rsj': "%.2f" % rsj, 'rhj': "%.2f" % rhj,
-                                    'moij': "%.2f" % sco['somme_j_moi'], 'mj': "%.2f" % sco['mj']}
+            dico_procedes_compte = {'intitule': intitule_compte, 'maij': Outils.format_2_dec(sco['somme_j_mai']),
+                                    'mm': Outils.format_2_dec(sco['somme_j_mm']),
+                                    'mr': Outils.format_2_dec(sco['somme_j_mr']),
+                                    'rsj': Outils.format_2_dec(rsj), 'rhj': Outils.format_2_dec(rhj),
+                                    'moij': Outils.format_2_dec(sco['somme_j_moi']),
+                                    'mj': Outils.format_2_dec(sco['mj'])}
             contenu_procedes_compte += r'''
                 %(intitule)s & %(maij)s & %(moij)s & %(rsj)s & %(rhj)s & %(mm)s & %(mr)s & %(mj)s \\
                 \hline
@@ -289,9 +292,9 @@ class Annexes(object):
                                 \hline
                                 '''
                         dico_prestations_client = {'intitule': intitule_compte,
-                                                   'cmj': "%.2f" % sco['sommes_cat_m'][article.code_d],
-                                                   'crj': "%.2f" % sco['sommes_cat_r'][article.code_d],
-                                                   'cj': "%.2f" % sco['tot_cat'][article.code_d]}
+                                                   'cmj': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                                   'crj': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                                   'cj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
                         contenu_prestations_client_tab[article.code_d] += r'''
                         %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
                         \hline
@@ -302,8 +305,8 @@ class Annexes(object):
             if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
                 bsj = client['bs'] * sco['somme_j_dsi']
                 bhj = client['bh'] * sco['somme_j_dhi']
-                dico_bonus_compte = {'compte': intitule_compte, 'bsj': "%.2f" % bsj, 'bhj': "%.2f" % bhj,
-                                     'tot': "%.2f" % sco['somme_j_mb']}
+                dico_bonus_compte = {'compte': intitule_compte, 'bsj': Outils.format_2_dec(bsj),
+                                     'bhj': Outils.format_2_dec(bhj), 'tot': Outils.format_2_dec(sco['somme_j_mb'])}
                 contenu_bonus_compte += r'''
                     %(compte)s & %(bsj)s & %(bhj)s & %(tot)s \\
                     \hline
@@ -314,11 +317,14 @@ class Annexes(object):
             structure_recap_poste = r'''{|l|r|r|r|}'''
             legende_recap_poste = r'''Table II.1 - Récapitulatif du compte'''
 
-            dico_recap_poste = {'mm': "%.2f" % sco['somme_j_mm'], 'mr': "%.2f" % sco['somme_j_mr'],
-                                'maij': "%.2f" % sco['somme_j_mai'], 'dsij': "%.2f" % sco['somme_j_dsi'],
-                                'dhij': "%.2f" % sco['somme_j_dhi'], 'mj': "%.2f" % sco['mj'],
-                                'nmij': "%.2f" % (sco['somme_j_mai']-sco['somme_j_mr']),
-                                'moij': "%.2f" % sco['somme_j_moi'], 'int_proc': generaux.articles[2].intitule_long}
+            dico_recap_poste = {'mm': Outils.format_2_dec(sco['somme_j_mm']),
+                                'mr': Outils.format_2_dec(sco['somme_j_mr']),
+                                'maij': Outils.format_2_dec(sco['somme_j_mai']),
+                                'dsij': Outils.format_2_dec(sco['somme_j_dsi']),
+                                'dhij': Outils.format_2_dec(sco['somme_j_dhi']), 'mj': Outils.format_2_dec(sco['mj']),
+                                'nmij': Outils.format_2_dec((sco['somme_j_mai']-sco['somme_j_mr'])),
+                                'moij': Outils.format_2_dec(sco['somme_j_moi']),
+                                'int_proc': generaux.articles[2].intitule_long}
 
             contenu_recap_poste = r'''
                 \cline{2-4}
@@ -337,15 +343,15 @@ class Annexes(object):
             for article in generaux.articles_d3:
                 total += sco['tot_cat'][article.code_d]
                 dico_recap_poste = {'intitule': Latex.echappe_caracteres(article.intitule_long),
-                                    'cmj': "%.2f" % sco['sommes_cat_m'][article.code_d],
-                                    'crj': "%.2f" % sco['sommes_cat_r'][article.code_d],
-                                    'cj': "%.2f" % sco['tot_cat'][article.code_d]}
+                                    'cmj': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                    'crj': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                    'cj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
                 contenu_recap_poste += r'''
                 %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
                 \hline
                 ''' % dico_recap_poste
 
-            contenu_recap_poste += r'''\multicolumn{3}{|r|}{Total} & ''' + "%.2f" % total + r'''\\
+            contenu_recap_poste += r'''\multicolumn{3}{|r|}{Total} & ''' + Outils.format_2_dec(total) + r'''\\
                 \hline
                 '''
 
@@ -381,16 +387,16 @@ class Annexes(object):
                                         'hc': Outils.format_heure(somme[id_machine]['duree_hc']),
                                         'mo_hp': Outils.format_heure(somme[id_machine]['mo_hp']),
                                         'mo_hc': Outils.format_heure(somme[id_machine]['mo_hc']),
-                                        'pu_m': "%.2f" % somme[id_machine]['pum'],
-                                        'puo_hp': "%.2f" % somme[id_machine]['puo_hp'],
-                                        'puo_hc': "%.2f" % somme[id_machine]['puo_hc'],
-                                        'mai_hp': "%.2f" % somme[id_machine]['mai_hp'],
-                                        'mai_hc': "%.2f" % somme[id_machine]['mai_hc'],
-                                        'moi_hp': "%.2f" % somme[id_machine]['moi_hp'],
-                                        'moi_hc': "%.2f" % somme[id_machine]['moi_hc'],
-                                        'dsi_hp': "%.2f" % somme[id_machine]['dsi_hp'],
-                                        'dsi_hc': "%.2f" % somme[id_machine]['dsi_hc'],
-                                        'dhi': "%.2f" % somme[id_machine]['dhi']}
+                                        'pu_m': Outils.format_2_dec(somme[id_machine]['pum']),
+                                        'puo_hp': Outils.format_2_dec(somme[id_machine]['puo_hp']),
+                                        'puo_hc': Outils.format_2_dec(somme[id_machine]['puo_hc']),
+                                        'mai_hp': Outils.format_2_dec(somme[id_machine]['mai_hp']),
+                                        'mai_hc': Outils.format_2_dec(somme[id_machine]['mai_hc']),
+                                        'moi_hp': Outils.format_2_dec(somme[id_machine]['moi_hp']),
+                                        'moi_hc': Outils.format_2_dec(somme[id_machine]['moi_hc']),
+                                        'dsi_hp': Outils.format_2_dec(somme[id_machine]['dsi_hp']),
+                                        'dsi_hc': Outils.format_2_dec(somme[id_machine]['dsi_hc']),
+                                        'dhi': Outils.format_2_dec(somme[id_machine]['dhi'])}
 
                         if somme[id_machine]['duree_hp'] > 0 or somme[id_machine]['mo_hp'] > 0:
                             contenu_utilise_compte += r'''
@@ -406,9 +412,12 @@ class Annexes(object):
                                 \hline
                                 ''' % dico_machine
 
-                dico_tot = {'maij': "%.2f" % sco['somme_j_mai'], 'moij': "%.2f" % sco['somme_j_moi'],
-                            'dsij': "%.2f" % sco['somme_j_dsi'], 'dhij': "%.2f" % sco['somme_j_dhi'],
-                            'rabais': "%.2f" % sco['somme_j_mr'], 'bonus': "%.2f" % sco['somme_j_mb']}
+                dico_tot = {'maij': Outils.format_2_dec(sco['somme_j_mai']),
+                            'moij': Outils.format_2_dec(sco['somme_j_moi']),
+                            'dsij': Outils.format_2_dec(sco['somme_j_dsi']),
+                            'dhij': Outils.format_2_dec(sco['somme_j_dhi']),
+                            'rabais': Outils.format_2_dec(sco['somme_j_mr']),
+                            'bonus': Outils.format_2_dec(sco['somme_j_mb'])}
                 contenu_utilise_compte += r'''
                     \multicolumn{6}{|r|}{Total} & %(maij)s & %(moij)s & %(dsij)s & %(dhij)s \\
                     \hline
@@ -449,15 +458,16 @@ class Annexes(object):
                         for no_prestation, sip in sorted(somme[article.code_d].items()):
                             dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
                                                 'quantite': sip['quantite'], 'unite': sip['unite'],
-                                                'pu': "%.2f" % sip['pu'], 'montant': "%.2f" % sip['montant'],
-                                                'rabais': "%.2f" % sip['rabais']}
+                                                'pu': Outils.format_2_dec(sip['pu']),
+                                                'montant': Outils.format_2_dec(sip['montant']),
+                                                'rabais': Outils.format_2_dec(sip['rabais'])}
                             contenu_prests_compte += r'''
                                 %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(pu)s & %(montant)s
                                 & %(rabais)s  \\
                                 \hline
                                 ''' % dico_prestations
-                        dico_prestations = {'montant': "%.2f" % sco['sommes_cat_m'][article.code_d],
-                                            'rabais': "%.2f" % sco['sommes_cat_r'][article.code_d]}
+                        dico_prestations = {'montant': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                            'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d])}
                         contenu_prests_compte += r'''
                             \multicolumn{4}{|r|}{Total} & %(montant)s & %(rabais)s  \\
                             \hline
@@ -588,7 +598,7 @@ class Annexes(object):
                         for no_prestation, sip in sorted(somme[article.code_d].items()):
                             dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
                                                 'quantite': sip['quantite'], 'unite': sip['unite'],
-                                                'rabais': "%.2f" % sip['rabais']}
+                                                'rabais': Outils.format_2_dec(sip['rabais'])}
                             contenu_prestations_compte += r'''
                                 %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & \hspace{5mm} %(rabais)s  \\
                                 \hline
@@ -601,7 +611,8 @@ class Annexes(object):
                                     for id_user in sorted(ids):
                                         spu = sip['users'][id_user]
                                         dico_user = {'user': nom + " " + prenom, 'quantite': spu['quantite'],
-                                                     'unite': sip['unite'], 'rabais': "%.2f" % spu['rabais']}
+                                                     'unite': sip['unite'],
+                                                     'rabais': Outils.format_2_dec(spu['rabais'])}
                                         contenu_prestations_compte += r'''
                                             \hspace{5mm} %(user)s & %(quantite)s & %(unite)s & %(rabais)s \\
                                             \hline
@@ -617,8 +628,8 @@ class Annexes(object):
                                                 dl = "Dt livraison: " + \
                                                      Latex.echappe_caracteres(liv['date_livraison']) + ";"
                                             dico_pos = {'date_liv': dl, 'quantite': liv['quantite'],
-                                                        'rabais': "%.2f" % liv['rabais_r'], 'id': liv['id_livraison'],
-                                                        'unite': liv['unite'],
+                                                        'rabais': Outils.format_2_dec(liv['rabais_r']),
+                                                        'id': liv['id_livraison'], 'unite': liv['unite'],
                                                         'responsable': Latex.echappe_caracteres(liv['responsable']),
                                                         'commande': Latex.echappe_caracteres(liv['date_commande']),
                                                         'remarque': Latex.echappe_caracteres(rem)}
@@ -639,10 +650,10 @@ class Annexes(object):
             structure_eligibles_compte = r'''{|l|r|r|r|}'''
             legende_eligibles_compte = r'''Table V.1 - Coûts d'utilisation '''
 
-            dico_eligibles = {'mu1': "%.2f" % sco['mu1'],
-                              'mu2': "%.2f" % sco['mu2'],
-                              'mu3': "%.2f" % sco['mu3'],
-                              'mmo': "%.2f" % sco['mmo']}
+            dico_eligibles = {'mu1': Outils.format_2_dec(sco['mu1']),
+                              'mu2': Outils.format_2_dec(sco['mu2']),
+                              'mu3': Outils.format_2_dec(sco['mu3']),
+                              'mmo': Outils.format_2_dec(sco['mmo'])}
             tot1 = sco['mu1'] + sco['mmo']
             tot2 = sco['mu2'] + sco['mmo']
             tot3 = sco['mu3'] + sco['mmo']
@@ -679,14 +690,15 @@ class Annexes(object):
                         tot1 += u1
                         tot2 += u2
                         tot3 += u3
-                        dico_article = {'intitule': article.intitule_long, 'u1': "%.2f" % u1, 'u2': "%.2f" % u2,
-                                        'u3': "%.2f" % u3}
+                        dico_article = {'intitule': article.intitule_long, 'u1': Outils.format_2_dec(u1),
+                                        'u2': Outils.format_2_dec(u2), 'u3': Outils.format_2_dec(u3)}
                         contenu_eligibles_compte += r'''
                             %(intitule)s & %(u1)s & %(u2)s & %(u3)s \\
                             \hline
                             ''' % dico_article
 
-            dico_tot = {'tot1': "%.2f" % tot1, 'tot2': "%.2f" % tot2, 'tot3': "%.2f" % tot3}
+            dico_tot = {'tot1': Outils.format_2_dec(tot1), 'tot2': Outils.format_2_dec(tot2),
+                        'tot3': Outils.format_2_dec(tot3)}
             contenu_eligibles_compte += r'''
                 \multicolumn{1}{|r|}{Total} & %(tot1)s & %(tot2)s & %(tot3)s \\
                 \hline
@@ -713,9 +725,9 @@ class Annexes(object):
 
                 for id_cout, som_cat in sorted(som_cats.items()):
 
-                    dico_cat = {'intitule': couts.donnees[id_cout]['intitule'], 'mu1': "%.2f" % som_cat['mu1'],
-                                'mu2': "%.2f" % som_cat['mu2'], 'mu3': "%.2f" % som_cat['mu3'],
-                                'mmo': "%.2f" % som_cat['mmo']}
+                    dico_cat = {'intitule': couts.donnees[id_cout]['intitule'],
+                                'mu1': Outils.format_2_dec(som_cat['mu1']), 'mu2': Outils.format_2_dec(som_cat['mu2']),
+                                'mu3': Outils.format_2_dec(som_cat['mu3']), 'mmo': Outils.format_2_dec(som_cat['mmo'])}
 
                     contenu_coutmachines_compte += r'''
                         %(intitule)s & %(mu1)s & %(mu2)s & %(mu3)s
@@ -723,10 +735,8 @@ class Annexes(object):
                         \hline
                         ''' % dico_cat
 
-                dico_compte = {'mu1': "%.2f" % sco['mu1'],
-                               'mu2': "%.2f" % sco['mu2'],
-                               'mu3': "%.2f" % sco['mu3'],
-                               'mmo': "%.2f" % sco['mmo']}
+                dico_compte = {'mu1': Outils.format_2_dec(sco['mu1']), 'mu2': Outils.format_2_dec(sco['mu2']),
+                               'mu3': Outils.format_2_dec(sco['mu3']), 'mmo': Outils.format_2_dec(sco['mmo'])}
 
                 contenu_coutmachines_compte += r'''
                     \multicolumn{1}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
@@ -777,24 +787,24 @@ class Annexes(object):
 
                         dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
                                         'duree': Outils.format_heure(duree), 'mo': Outils.format_heure(mo),
-                                        'cu1': "%.2f" % round(couts.donnees[id_cout]['u1'], 2),
-                                        'cu2': "%.2f" % round(couts.donnees[id_cout]['u2'], 2),
-                                        'cu3': "%.2f" % round(couts.donnees[id_cout]['u3'], 2),
-                                        'cmo': "%.2f" % round(couts.donnees[id_cout]['mo'], 2),
-                                        'mu1': "%.2f" % somme[id_machine]['mu1'],
-                                        'mu2': "%.2f" % somme[id_machine]['mu2'],
-                                        'mu3': "%.2f" % somme[id_machine]['mu3'],
-                                        'mmo': "%.2f" % somme[id_machine]['mmo']}
+                                        'cu1': Outils.format_2_dec(couts.donnees[id_cout]['u1']),
+                                        'cu2': Outils.format_2_dec(couts.donnees[id_cout]['u2']),
+                                        'cu3': Outils.format_2_dec(couts.donnees[id_cout]['u3']),
+                                        'cmo': Outils.format_2_dec(couts.donnees[id_cout]['mo']),
+                                        'mu1': Outils.format_2_dec(somme[id_machine]['mu1']),
+                                        'mu2': Outils.format_2_dec(somme[id_machine]['mu2']),
+                                        'mu3': Outils.format_2_dec(somme[id_machine]['mu3']),
+                                        'mmo': Outils.format_2_dec(somme[id_machine]['mmo'])}
                         contenu_coutcats_compte += r'''
                             %(machine)s & %(duree)s & %(mo)s & %(cu1)s & %(cu2)s & %(cu3)s & %(cmo)s & %(mu1)s
                             & %(mu2)s & %(mu3)s & %(mmo)s \\
                             \hline
                             ''' % dico_machine
 
-                    dico_cat = {'mu1': "%.2f" % som_cat[id_cout]['mu1'],
-                                'mu2': "%.2f" % som_cat[id_cout]['mu2'],
-                                'mu3': "%.2f" % som_cat[id_cout]['mu3'],
-                                'mmo': "%.2f" % som_cat[id_cout]['mmo']}
+                    dico_cat = {'mu1': Outils.format_2_dec(som_cat[id_cout]['mu1']),
+                                'mu2': Outils.format_2_dec(som_cat[id_cout]['mu2']),
+                                'mu3': Outils.format_2_dec(som_cat[id_cout]['mu3']),
+                                'mmo': Outils.format_2_dec(som_cat[id_cout]['mmo'])}
 
                     contenu_coutcats_compte += r'''
                         \multicolumn{7}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
@@ -839,17 +849,18 @@ class Annexes(object):
                         for no_prestation, sip in sorted(somme[article.code_d].items()):
                             dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
                                                 'quantite': sip['quantite'], 'unite': sip['unite'],
-                                                'pux': "%.2f" % sip['pux'], 'montantx': "%.2f" % sip['montantx'],
-                                                'rabais': "%.2f" % sip['rabais'],
-                                                'netx': "%.2f" % (sip['montantx'] - sip['rabais'])}
+                                                'pux': Outils.format_2_dec(sip['pux']),
+                                                'montantx': Outils.format_2_dec(sip['montantx']),
+                                                'rabais': Outils.format_2_dec(sip['rabais']),
+                                                'netx': Outils.format_2_dec((sip['montantx'] - sip['rabais']))}
                             contenu_coutprests_compte += r'''
                                 %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(pux)s & %(montantx)s
                                 & %(rabais)s & %(netx)s \\
                                 \hline
                                 ''' % dico_prestations
-                        dico_prestations = {'montantx': "%.2f" % sco['sommes_cat_m_x'][article.code_d],
-                                            'rabais': "%.2f" % sco['sommes_cat_r'][article.code_d],
-                                            'netx': "%.2f" % sco['tot_cat_x'][article.code_d]}
+                        dico_prestations = {'montantx': Outils.format_2_dec(sco['sommes_cat_m_x'][article.code_d]),
+                                            'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                            'netx': Outils.format_2_dec(sco['tot_cat_x'][article.code_d])}
                         contenu_coutprests_compte += r'''
                             \multicolumn{4}{|r|}{Total} & %(montantx)s & %(rabais)s & %(netx)s \\
                             \hline
@@ -878,8 +889,9 @@ class Annexes(object):
         structure_recap_fact = r'''{|c|l|r|r|r|}'''
         legende_recap_fact = r'''Table I.1 - Récapitulatif des postes de la facture'''
 
-        dico_recap_fact = {'emom': "%.2f" % scl['em'], 'emor': "%.2f" % scl['er'], 'emo': "%.2f" % scl['e'],
-                           'resm': "%.2f" % scl['rm'], 'resr': "%.2f" % scl['rr'], 'res': "%.2f" % scl['r'],
+        dico_recap_fact = {'emom': Outils.format_2_dec(scl['em']), 'emor': Outils.format_2_dec(scl['er']),
+                           'emo': Outils.format_2_dec(scl['e']), 'resm': Outils.format_2_dec(scl['rm']),
+                           'resr': Outils.format_2_dec(scl['rr']), 'res': Outils.format_2_dec(scl['r']),
                            'int_emo': generaux.articles[0].intitule_long,
                            'int_res': generaux.articles[1].intitule_long,
                            'p_emo': generaux.poste_emolument, 'p_res': generaux.poste_reservation}
@@ -904,12 +916,14 @@ class Annexes(object):
         structure_recap_poste_cl = r'''{|l|r|r|r|}'''
         legende_recap_poste_cl = r'''Table I.2 - Récapitulatif des postes'''
 
-        dico_recap_poste_cl = {'emom': "%.2f" % scl['em'], 'emor': "%.2f" % scl['er'], 'emo': "%.2f" % scl['e'],
-                               'resm': "%.2f" % scl['rm'], 'resr': "%.2f" % scl['rr'], 'res': "%.2f" % scl['r'],
+        dico_recap_poste_cl = {'emom': Outils.format_2_dec(scl['em']), 'emor': Outils.format_2_dec(scl['er']),
+                               'emo': Outils.format_2_dec(scl['e']), 'resm': Outils.format_2_dec(scl['rm']),
+                               'resr': Outils.format_2_dec(scl['rr']), 'res': Outils.format_2_dec(scl['r']),
                                'int_emo': generaux.articles[0].intitule_long,
                                'int_res': generaux.articles[1].intitule_long,
-                               'int_proc': generaux.articles[2].intitule_long, 'mm': "%.2f" % scl['somme_t_mm'],
-                               'mr': "%.2f" % scl['somme_t_mr'], 'mt': "%.2f" % scl['mt']}
+                               'int_proc': generaux.articles[2].intitule_long,
+                               'mm': Outils.format_2_dec(scl['somme_t_mm']),
+                               'mr': Outils.format_2_dec(scl['somme_t_mr']), 'mt': Outils.format_2_dec(scl['mt'])}
 
         contenu_recap_poste_cl = r'''
             \cline{2-4}
@@ -926,15 +940,16 @@ class Annexes(object):
 
         for article in generaux.articles_d3:
             dico_recap_poste_cl = {'intitule': Latex.echappe_caracteres(article.intitule_long),
-                                   'mm': "%.2f" % scl['sommes_cat_m'][article.code_d],
-                                   'mr': "%.2f" % scl['sommes_cat_r'][article.code_d],
-                                   'mj': "%.2f" % scl['tot_cat'][article.code_d]}
+                                   'mm': Outils.format_2_dec(scl['sommes_cat_m'][article.code_d]),
+                                   'mr': Outils.format_2_dec(scl['sommes_cat_r'][article.code_d]),
+                                   'mj': Outils.format_2_dec(scl['tot_cat'][article.code_d])}
             contenu_recap_poste_cl += r'''
                 %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
                 \hline
                 ''' % dico_recap_poste_cl
 
-        contenu_recap_poste_cl += r'''\multicolumn{3}{|r|}{Total} & ''' + "%.2f" % (scl['somme_t'] + scl['e']) + r'''\\
+        contenu_recap_poste_cl += r'''\multicolumn{3}{|r|}{Total}
+            & ''' + Outils.format_2_dec((scl['somme_t'] + scl['e'])) + r'''\\
             \hline
             '''
 
@@ -945,10 +960,11 @@ class Annexes(object):
         structure_emolument = r'''{|r|r|l|r|r|r|r|r|}'''
         legende_emolument = r'''Table I.3 - Emolument mensuel'''
 
-        dico_emolument = {'emb':  "%.2f" % client['emol_base_mens'], 'ef':  "%.2f" % client['emol_fixe'],
-                          'pente': client['coef'], 'tot_eq_r': "%.2f" % scl['r'],
-                          'tot_eq_m': "%.2f" % scl['mat'], 'tot_eq': "%.2f" % scl['somme_eq'],
-                          'rabais': "%.2f" % scl['er'], 'emo': scl['e']}
+        dico_emolument = {'emb':  Outils.format_2_dec(client['emol_base_mens']),
+                          'ef':  Outils.format_2_dec(client['emol_fixe']),
+                          'pente': client['coef'], 'tot_eq_r': Outils.format_2_dec(scl['r']),
+                          'tot_eq_m': Outils.format_2_dec(scl['mat']), 'tot_eq': Outils.format_2_dec(scl['somme_eq']),
+                          'rabais': Outils.format_2_dec(scl['er']), 'emo': scl['e']}
 
         contenu_emolument = r'''
             \hline
@@ -985,9 +1001,10 @@ class Annexes(object):
                 tot_hc = scl['res'][id_machine]['tot_hc']
 
                 dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
-                                'pu_hp': "%.2f" % re_somme['pu_hp'], 'pu_hc': "%.2f" % re_somme['pu_hc'],
-                                'mont_hp': "%.2f" % scl['res'][id_machine]['mont_hp'],
-                                'mont_hc': "%.2f" % scl['res'][id_machine]['mont_hc'],
+                                'pu_hp': Outils.format_2_dec(re_somme['pu_hp']),
+                                'pu_hc': Outils.format_2_dec(re_somme['pu_hc']),
+                                'mont_hp': Outils.format_2_dec(scl['res'][id_machine]['mont_hp']),
+                                'mont_hc': Outils.format_2_dec(scl['res'][id_machine]['mont_hc']),
                                 'tot_hp': Outils.format_heure(tot_hp), 'tot_hc': Outils.format_heure(tot_hc)}
 
                 if tot_hp > 0:
@@ -1000,7 +1017,8 @@ class Annexes(object):
                          \hline
                          ''' % dico_machine
 
-        dico_frais = {'rm': "%.2f" % scl['rm'], 'r': "%.2f" % scl['r'], 'rr': "%.2f" % scl['rr']}
+        dico_frais = {'rm': Outils.format_2_dec(scl['rm']), 'r': Outils.format_2_dec(scl['r']),
+                      'rr': Outils.format_2_dec(scl['rr'])}
         contenu_frais_client += r'''
             \multicolumn{4}{|r|}{Total} & %(rm)s \\
             \hline
@@ -1032,12 +1050,13 @@ class Annexes(object):
 
         contenu_recap += contenu_recap_compte
 
-        dico_recap = {'procedes': "%.2f" % scl['mt'], 'total': "%.2f" % (scl['somme_t']-scl['r'])}
+        dico_recap = {'procedes': Outils.format_2_dec(scl['mt']),
+                      'total': Outils.format_2_dec((scl['somme_t']-scl['r']))}
 
         contenu_recap += r'''Total article & %(procedes)s''' % dico_recap
 
         for categorie in generaux.codes_d3():
-            contenu_recap += r''' & ''' + "%.2f" % scl['tot_cat'][categorie]
+            contenu_recap += r''' & ''' + Outils.format_2_dec(scl['tot_cat'][categorie])
 
         contenu_recap += r'''& %(total)s \\
             \hline
@@ -1064,9 +1083,12 @@ class Annexes(object):
 
             rst = client['rs'] * scl['dst']
             rht = client['rh'] * scl['dht']
-            dico_procedes_client = {'mat': "%.2f" % scl['mat'], 'mr': "%.2f" % scl['somme_t_mr'],
-                                    'mm': "%.2f" % scl['somme_t_mm'], 'mot': "%.2f" % scl['mot'],
-                                    'mt': "%.2f" % scl['mt'], 'rst': "%.2f" % rst, 'rht': "%.2f" % rht}
+            dico_procedes_client = {'mat': Outils.format_2_dec(scl['mat']),
+                                    'mr': Outils.format_2_dec(scl['somme_t_mr']),
+                                    'mm': Outils.format_2_dec(scl['somme_t_mm']),
+                                    'mot': Outils.format_2_dec(scl['mot']),
+                                    'mt': Outils.format_2_dec(scl['mt']),
+                                    'rst': Outils.format_2_dec(rst), 'rht': Outils.format_2_dec(rht)}
             contenu_procedes_client += r'''
                 Total & %(mat)s & %(mot)s & %(rst)s & %(rht)s & %(mm)s & %(mr)s & %(mt)s \\
                 \hline
@@ -1087,9 +1109,9 @@ class Annexes(object):
             i = 0
             for article in generaux.articles_d3:
                 if contenu_prestations_client_tab[article.code_d] != "":
-                    dico_prestations_client = {'cmt': "%.2f" % scl['sommes_cat_m'][article.code_d],
-                                               'crt': "%.2f" % scl['sommes_cat_r'][article.code_d],
-                                               'ct': "%.2f" % scl['tot_cat'][article.code_d]}
+                    dico_prestations_client = {'cmt': Outils.format_2_dec(scl['sommes_cat_m'][article.code_d]),
+                                               'crt': Outils.format_2_dec(scl['sommes_cat_r'][article.code_d]),
+                                               'ct': Outils.format_2_dec(scl['tot_cat'][article.code_d])}
                     contenu_prestations_client_tab[article.code_d] += r'''
                     Total & %(cmt)s & %(crt)s & %(ct)s \\
                     \hline
@@ -1104,7 +1126,7 @@ class Annexes(object):
                                      legende_prestations_client_recap)
 
         else:
-            contenu += Latex.tableau_vide(r'''Table II.1 - Récapitulatif des prestations livrées :
+            contenu += Latex.tableau_vide(r'''Table I.7 - Récapitulatif des prestations livrées :
                 table vide (pas de prestations livrées)''')
 
         # ## 1.8
@@ -1124,7 +1146,8 @@ class Annexes(object):
 
             bst = client['bs'] * scl['dst']
             bht = client['bh'] * scl['dht']
-            dico_bonus = {'bst': "%.2f" % bst, 'bht': "%.2f" % bht, 'mbt': "%.2f" % scl['somme_t_mb']}
+            dico_bonus = {'bst': Outils.format_2_dec(bst), 'bht': Outils.format_2_dec(bht),
+                          'mbt': Outils.format_2_dec(scl['somme_t_mb'])}
             contenu_bonus += r'''Total & %(bst)s & %(bht)s & %(mbt)s \\
                 \hline
                 ''' % dico_bonus
@@ -1449,7 +1472,7 @@ class Annexes(object):
         création de la liste des utilisateurs présents dans une somme
         :param somme: somme concernée
         :param users: données users
-        :return: liste d'utilisateurs
+        :return: liste d'utilisateurs triée par nom, puis par prénom
         """
         utilisateurs = {}
         for key in somme:
@@ -1469,7 +1492,7 @@ class Annexes(object):
         création de la liste des machines présentes dans une somme
         :param somme: somme concernée
         :param machines: données machines
-        :return: liste de machines
+        :return: liste de machines triée par id_cout, puis par nom
         """
         machines_utilisees = {}
         for key in somme:
@@ -1480,3 +1503,19 @@ class Annexes(object):
             machines_utilisees[id_cout][nom] = key
 
         return machines_utilisees
+
+    @staticmethod
+    def comptes_in_somme(somme, comptes):
+        """
+        création de la liste des comptes présents dans une somme
+        :param somme: somme concernée
+        :param comptes: données comptes
+        :return: liste de comptes, triée par numéro
+        """
+        comptes_utilises = {}
+        for key in somme:
+            numero = comptes.donnees[key]['numero']
+            if numero not in comptes_utilises:
+                comptes_utilises[numero] = key
+
+        return comptes_utilises

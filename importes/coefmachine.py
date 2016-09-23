@@ -81,9 +81,6 @@ class CoefMachine(Fichier):
                 couple = [donnee['categorie'], donnee['id_classe_tarif']]
                 if couple not in couples:
                     couples.append(couple)
-                    del donnee['annee']
-                    del donnee['mois']
-                    donnees_dict[donnee['id_classe_tarif']+donnee['categorie']] = donnee
                 else:
                     msg += "Couple categorie '" + donnee['categorie'] + "' et classe de tarif '" + \
                            donnee['id_classe_tarif'] + "' de la ligne " + str(ligne) + " pas unique\n"
@@ -103,6 +100,9 @@ class CoefMachine(Fichier):
             donnee['coef_r'], info = Outils.est_un_nombre(donnee['coef_r'], "le coefficient R", ligne)
             msg += info
 
+            del donnee['annee']
+            del donnee['mois']
+            donnees_dict[donnee['id_classe_tarif'] + donnee['categorie']] = donnee
             ligne += 1
 
         self.donnees = donnees_dict

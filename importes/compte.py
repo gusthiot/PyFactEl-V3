@@ -7,7 +7,7 @@ class Compte(Fichier):
     Classe pour l'importation des données de Comptes Cmi
     """
 
-    cles = ['annee', 'mois', 'id_compte', 'intitule', 'code_client', 'abrev_labo']
+    cles = ['annee', 'mois', 'id_compte', 'numero', 'intitule', 'code_client', 'abrev_labo']
     nom_fichier = "compte.csv"
     libelle = "Comptes"
     
@@ -60,13 +60,13 @@ class Compte(Fichier):
                 msg += "le compte id de la ligne " + str(ligne) + " ne peut être vide\n"
             elif donnee['id_compte'] not in ids:
                 ids.append(donnee['id_compte'])
-                del donnee['annee']
-                del donnee['mois']
-                donnees_dict[donnee['id_compte']] = donnee
             else:
                 msg += "l'id compte '" + donnee['id_compte'] + "' de la ligne " + str(ligne) +\
                        " n'est pas unique\n"
 
+            del donnee['annee']
+            del donnee['mois']
+            donnees_dict[donnee['id_compte']] = donnee
             ligne += 1
 
         self.donnees = donnees_dict

@@ -67,9 +67,6 @@ class Client(Fichier):
                 msg += "le code client de la ligne " + str(ligne) + " ne peut être vide\n"
             elif donnee['code'] not in self.codes:
                 self.codes.append(donnee['code'])
-                del donnee['annee']
-                del donnee['mois']
-                donnees_dict[donnee['code']] = donnee
             else:
                 msg += "le code client '" + donnee['code'] + "' de la ligne " + str(ligne) +\
                        " n'est pas unique\n"
@@ -114,6 +111,10 @@ class Client(Fichier):
             if av_hc == 'BONUS':
                 donnee['bh'] = 1
                 donnee['rh'] = 0
+
+            del donnee['annee']
+            del donnee['mois']
+            donnees_dict[donnee['code']] = donnee
 
             ligne += 1
 

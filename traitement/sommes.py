@@ -130,8 +130,6 @@ class Sommes(object):
                     tot = somme['somme_j_mm']
                     for categorie in self.categories:
                         tot += somme['sommes_cat_m'][categorie]
-                    if code_client == "219298":
-                        print(id_compte, tot)
                     if tot > 0:
                         somme['si_facture'] = 1
 

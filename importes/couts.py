@@ -60,9 +60,6 @@ class Couts(Fichier):
                 msg += "l'id catégorie de la ligne " + str(ligne) + " ne peut être vide\n"
             elif donnee['id_cat_cout'] not in ids:
                 ids.append(donnee['id_cat_cout'])
-                del donnee['annee']
-                del donnee['mois']
-                donnees_dict[donnee['id_cat_cout']] = donnee
             else:
                 msg += "l'id catégorie '" + donnee['id_cat_cout'] + "' de la ligne " + str(ligne) +\
                        " n'est pas unique\n"
@@ -79,6 +76,9 @@ class Couts(Fichier):
             donnee['mo'], info = Outils.est_un_nombre(donnee['mo'], "le coût MO ", ligne)
             msg += info
 
+            del donnee['annee']
+            del donnee['mois']
+            donnees_dict[donnee['id_cat_cout']] = donnee
             ligne += 1
 
         self.donnees = donnees_dict

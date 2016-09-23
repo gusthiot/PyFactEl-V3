@@ -54,12 +54,15 @@ class BilanMensuel(object):
                 bht = client['bh'] * scl['dht']
 
                 ligne = [edition.annee, edition.mois, reference, code_client, client['code_sap'], client['abrev_labo'],
-                         client['nom_labo'], 'U', client['type_labo'], scl['em'], "%.2f" % scl['somme_eq'], scl['er'],
-                         client['emol_sans_activite'], nb_u, nb_c, "%.2f" % scl['mat'], "%.2f" % scl['mot'],
-                         "%.2f" % scl['dst'], "%.2f" % scl['dht'], scl['e'], "%.2f" % scl['r'], "%.2f" % scl['mt']]
+                         client['nom_labo'], 'U', client['type_labo'], scl['em'], Outils.format_2_dec(scl['somme_eq']),
+                         scl['er'], client['emol_sans_activite'], nb_u, nb_c, Outils.format_2_dec(scl['mat']),
+                         Outils.format_2_dec(scl['mot']), Outils.format_2_dec(scl['dst']),
+                         Outils.format_2_dec(scl['dht']), scl['e'], Outils.format_2_dec(scl['r']),
+                         Outils.format_2_dec(scl['mt'])]
                 for categorie in generaux.codes_d3():
-                    ligne.append("%.2f" % scl['tot_cat'][categorie])
-                ligne += ["%.2f" % total, "%.2f" % bst, "%.2f" % bht, "%.2f" % scl['somme_t_mb']]
+                    ligne.append(Outils.format_2_dec(scl['tot_cat'][categorie]))
+                ligne += [Outils.format_2_dec(total), Outils.format_2_dec(bst), Outils.format_2_dec(bht),
+                          Outils.format_2_dec(scl['somme_t_mb'])]
                 fichier_writer.writerow(ligne)
 
     @staticmethod

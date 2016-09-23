@@ -60,13 +60,13 @@ class User(Fichier):
                 msg += "l'id user de la ligne " + str(ligne) + " ne peut être vide\n"
             elif donnee['id_user'] not in ids:
                 ids.append(donnee['id_user'])
-                del donnee['annee']
-                del donnee['mois']
-                donnees_dict[donnee['id_user']] = donnee
             else:
                 msg += "l'id user '" + donnee['id_user'] + "' de la ligne " + str(ligne) +\
                        " n'est pas unique\n"
 
+            del donnee['annee']
+            del donnee['mois']
+            donnees_dict[donnee['id_user']] = donnee
             ligne += 1
 
         self.donnees = donnees_dict

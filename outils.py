@@ -117,18 +117,6 @@ class Outils(object):
         return signe + heures + ':' + minutes
 
     @staticmethod
-    def format_si_nul(nombre):
-        """
-        formate un nombre flottant à 2 chiffres après la virgule, retourn '-' si nul
-        :param nombre: nombre flottant à formatter
-        :return: nombre formaté
-        """
-        if nombre > 0:
-            return "%.2f" % nombre
-        else:
-            return '-'
-
-    @staticmethod
     def mois_string(mois):
         """
         prend un mois comme nombre, et le retourne comme string, avec un '0' devant si plus petit que 10
@@ -249,3 +237,16 @@ class Outils(object):
             return fl_d, ""
         except ValueError:
             return 0, colonne + " de la ligne " + str(ligne) + " doit être un nombre\n"
+
+    @staticmethod
+    def format_2_dec(nombre):
+        """
+        affiche un nombre en float arrondi avec 2 chiffres après la virgule
+        :param nombre: nombre à afficher
+        :return: nombre arrondi, avec 2 chiffres après la virgule, en string
+        """
+        try:
+            float(nombre)
+            return "%.2f" % round(nombre, 2)
+        except ValueError:
+            return "pas un nombre"

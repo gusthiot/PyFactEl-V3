@@ -60,9 +60,6 @@ class Machine(Fichier):
                 msg += "le machine id de la ligne " + str(ligne) + " ne peut être vide\n"
             elif donnee['id_machine'] not in ids:
                 ids.append(donnee['id_machine'])
-                del donnee['annee']
-                del donnee['mois']
-                donnees_dict[donnee['id_machine']] = donnee
             else:
                 msg += "l'id machine '" + donnee['id_machine'] + "' de la ligne " + str(ligne) +\
                        " n'est pas unique\n"
@@ -115,6 +112,9 @@ class Machine(Fichier):
                                                                     ligne)
             msg += info
 
+            del donnee['annee']
+            del donnee['mois']
+            donnees_dict[donnee['id_machine']] = donnee
             ligne += 1
 
         self.donnees = donnees_dict
