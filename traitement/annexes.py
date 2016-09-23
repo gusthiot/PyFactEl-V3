@@ -980,55 +980,59 @@ class Annexes(object):
 
         # ## 1.4
 
-        structure_frais_client = r'''{|l|c|c|r|r|}'''
-        legende_frais_client = r'''Table I.4 - Pénalités de réservation'''
+        if code_client in reservations.sommes:
+            structure_frais_client = r'''{|l|c|c|r|r|}'''
+            legende_frais_client = r'''Table I.4 - Pénalités de réservation'''
 
-        contenu_frais_client = r'''
-            \cline{3-5}
-            \multicolumn{2}{c|}{} & Pénalités & \multicolumn{1}{c|}{PU} & \multicolumn{1}{c|}{Montant} \\
-            \cline{3-5}
-            \multicolumn{2}{c|}{} & Durée & \multicolumn{1}{c|}{CHF/h} & \multicolumn{1}{c|}{CHF} \\
-            \hline
-            '''
+            contenu_frais_client = r'''
+                \cline{3-5}
+                \multicolumn{2}{c|}{} & Pénalités & \multicolumn{1}{c|}{PU} & \multicolumn{1}{c|}{Montant} \\
+                \cline{3-5}
+                \multicolumn{2}{c|}{} & Durée & \multicolumn{1}{c|}{CHF/h} & \multicolumn{1}{c|}{CHF} \\
+                \hline
+                '''
 
-        machines_utilisees = Annexes.machines_in_somme(scl['res'], machines)
+            machines_utilisees = Annexes.machines_in_somme(scl['res'], machines)
 
-        for id_cout, mics in sorted(machines_utilisees.items()):
-            for nom_machine, id_machine in sorted(mics.items()):
-                re_somme = reservations.sommes[code_client][id_machine]
+            for id_cout, mics in sorted(machines_utilisees.items()):
+                for nom_machine, id_machine in sorted(mics.items()):
+                    re_somme = reservations.sommes[code_client][id_machine]
 
-                tot_hp = scl['res'][id_machine]['tot_hp']
-                tot_hc = scl['res'][id_machine]['tot_hc']
+                    tot_hp = scl['res'][id_machine]['tot_hp']
+                    tot_hc = scl['res'][id_machine]['tot_hc']
 
-                dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
-                                'pu_hp': Outils.format_2_dec(re_somme['pu_hp']),
-                                'pu_hc': Outils.format_2_dec(re_somme['pu_hc']),
-                                'mont_hp': Outils.format_2_dec(scl['res'][id_machine]['mont_hp']),
-                                'mont_hc': Outils.format_2_dec(scl['res'][id_machine]['mont_hc']),
-                                'tot_hp': Outils.format_heure(tot_hp), 'tot_hc': Outils.format_heure(tot_hc)}
+                    dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
+                                    'pu_hp': Outils.format_2_dec(re_somme['pu_hp']),
+                                    'pu_hc': Outils.format_2_dec(re_somme['pu_hc']),
+                                    'mont_hp': Outils.format_2_dec(scl['res'][id_machine]['mont_hp']),
+                                    'mont_hc': Outils.format_2_dec(scl['res'][id_machine]['mont_hc']),
+                                    'tot_hp': Outils.format_heure(tot_hp), 'tot_hc': Outils.format_heure(tot_hc)}
 
-                if tot_hp > 0:
-                    contenu_frais_client += r'''%(machine)s & HP & %(tot_hp)s & %(pu_hp)s & %(mont_hp)s \\
-                         \hline
-                         ''' % dico_machine
+                    if tot_hp > 0:
+                        contenu_frais_client += r'''%(machine)s & HP & %(tot_hp)s & %(pu_hp)s & %(mont_hp)s \\
+                             \hline
+                             ''' % dico_machine
 
-                if tot_hc > 0:
-                    contenu_frais_client += r'''%(machine)s & HC & %(tot_hc)s & %(pu_hc)s & %(mont_hc)s \\
-                         \hline
-                         ''' % dico_machine
+                    if tot_hc > 0:
+                        contenu_frais_client += r'''%(machine)s & HC & %(tot_hc)s & %(pu_hc)s & %(mont_hc)s \\
+                             \hline
+                             ''' % dico_machine
 
-        dico_frais = {'rm': Outils.format_2_dec(scl['rm']), 'r': Outils.format_2_dec(scl['r']),
-                      'rr': Outils.format_2_dec(scl['rr'])}
-        contenu_frais_client += r'''
-            \multicolumn{4}{|r|}{Total} & %(rm)s \\
-            \hline
-            \multicolumn{4}{|r|}{Rabais} & %(rr)s \\
-            \hline
-            \multicolumn{4}{|r|}{\textbf{Total à payer}} & \textbf{%(r)s} \\
-            \hline
-            ''' % dico_frais
+            dico_frais = {'rm': Outils.format_2_dec(scl['rm']), 'r': Outils.format_2_dec(scl['r']),
+                          'rr': Outils.format_2_dec(scl['rr'])}
+            contenu_frais_client += r'''
+                \multicolumn{4}{|r|}{Total} & %(rm)s \\
+                \hline
+                \multicolumn{4}{|r|}{Rabais} & %(rr)s \\
+                \hline
+                \multicolumn{4}{|r|}{\textbf{Total à payer}} & \textbf{%(r)s} \\
+                \hline
+                ''' % dico_frais
 
-        contenu += Latex.tableau(contenu_frais_client, structure_frais_client, legende_frais_client)
+            contenu += Latex.tableau(contenu_frais_client, structure_frais_client, legende_frais_client)
+        else:
+            contenu += Latex.tableau_vide(r'''Table I.4 - Pénalités de réservation :
+                table vide (pas de pénalités de réservation)''')
 
         # ## 1.5
 
@@ -1164,14 +1168,14 @@ class Annexes(object):
 
         # ## Annexe 3
 
-        contenu += Annexes.titre_annexe(code_client, client, edition, reference,
-                                        "Annexe détaillée des pénalités de réservation", "III")
-        contenu += Annexes.section(code_client, client, edition, reference,
-                                   "Annexe détaillée des pénalités de réservation", "III")
+        if code_client in reservations.sommes:
+            contenu += Annexes.titre_annexe(code_client, client, edition, reference,
+                                            "Annexe détaillée des pénalités de réservation", "III")
+            contenu += Annexes.section(code_client, client, edition, reference,
+                                       "Annexe détaillée des pénalités de réservation", "III")
 
-        # ## 3.1
+            # ## 3.1
 
-        if scl['res'] and len(scl['res'].keys()) > 0:
             structure_stats_client = r'''{|l|c|c|c|c|c|c|}'''
             legende_stats_client = r'''Table III.1 - Statistiques des réservations et des utilisations machines'''
             contenu_stats_client = r'''
@@ -1270,71 +1274,68 @@ class Annexes(object):
                                             ''' % dico_user
 
             contenu += Latex.long_tableau(contenu_stats_client, structure_stats_client, legende_stats_client)
-        else:
-            contenu += Latex.tableau_vide(r'''Table III.1 - Statistiques des réservations et des utilisations machines :
-                table vide (pas de pénalités de réservation)''')
 
-        # ## 3.2
+            # ## 3.2
 
-        if code_client in acces.sommes:
-            structure_machuts_client = r'''{|l|c|c|}'''
-            legende_machuts_client = r'''Table III.2 - Récapitulatif des utilisations machines par utilisateur'''
-            contenu_machuts_client = r'''
-                \cline{2-3}
-                \multicolumn{1}{c|}{} & HP & HC \\
-                \hline'''
+            if code_client in acces.sommes:
+                structure_machuts_client = r'''{|l|c|c|}'''
+                legende_machuts_client = r'''Table III.2 - Récapitulatif des utilisations machines par utilisateur'''
+                contenu_machuts_client = r'''
+                    \cline{2-3}
+                    \multicolumn{1}{c|}{} & HP & HC \\
+                    \hline'''
 
-            somme = acces.sommes[code_client]['machines']
+                somme = acces.sommes[code_client]['machines']
 
-            machines_utilisees = Annexes.machines_in_somme(somme, machines)
+                machines_utilisees = Annexes.machines_in_somme(somme, machines)
 
-            for id_cout, mics in sorted(machines_utilisees.items()):
-                for nom_machine, id_machine in sorted(mics.items()):
-                    if id_machine in scl['res']:
-                        pu_hp = re_somme[id_machine]['pu_hp']
-                        pu_hc = re_somme[id_machine]['pu_hc']
-                        tx_hp = machines.donnees[id_machine]['tx_occ_eff_hp']
-                        tx_hc = machines.donnees[id_machine]['tx_occ_eff_hc']
-                        if (pu_hc > 0 and tx_hc > 0) or (pu_hp > 0 and tx_hp > 0):
-                            dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
-                                            'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
-                                            'hc': Outils.format_heure(somme[id_machine]['duree_hc'])}
-                            contenu_machuts_client += r'''
-                               \textbf{%(machine)s} & \hspace{5mm} %(hp)s & \hspace{5mm} %(hc)s \\
-                                \hline
-                                ''' % dico_machine
+                for id_cout, mics in sorted(machines_utilisees.items()):
+                    for nom_machine, id_machine in sorted(mics.items()):
+                        if id_machine in scl['res']:
+                            pu_hp = re_somme[id_machine]['pu_hp']
+                            pu_hc = re_somme[id_machine]['pu_hc']
+                            tx_hp = machines.donnees[id_machine]['tx_occ_eff_hp']
+                            tx_hc = machines.donnees[id_machine]['tx_occ_eff_hc']
+                            if (pu_hc > 0 and tx_hc > 0) or (pu_hp > 0 and tx_hp > 0):
+                                dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
+                                                'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
+                                                'hc': Outils.format_heure(somme[id_machine]['duree_hc'])}
+                                contenu_machuts_client += r'''
+                                   \textbf{%(machine)s} & \hspace{5mm} %(hp)s & \hspace{5mm} %(hc)s \\
+                                    \hline
+                                    ''' % dico_machine
 
-                            utilisateurs = Annexes.utilisateurs_in_somme(somme[id_machine]['users'], users)
+                                utilisateurs = Annexes.utilisateurs_in_somme(somme[id_machine]['users'], users)
 
-                            for nom, upi in sorted(utilisateurs.items()):
-                                for prenom, ids in sorted(upi.items()):
-                                    for id_user in sorted(ids):
-                                        smu = somme[id_machine]['users'][id_user]
-                                        dico_user = {'user': nom + " " + prenom,
-                                                     'hp': Outils.format_heure(smu['duree_hp']),
-                                                     'hc': Outils.format_heure(smu['duree_hc'])}
-                                        contenu_machuts_client += r'''
-                                            \hspace{5mm} %(user)s & %(hp)s & %(hc)s \\
-                                            \hline
-                                            ''' % dico_user
-
-                                        for id_compte in smu['comptes']:
-                                            smuc = smu['comptes'][id_compte]
-                                            dico_compte = {'compte': id_compte, 'hp': Outils.format_heure(smuc['duree_hp']),
-                                                           'hc': Outils.format_heure(smuc['duree_hc'])}
+                                for nom, upi in sorted(utilisateurs.items()):
+                                    for prenom, ids in sorted(upi.items()):
+                                        for id_user in sorted(ids):
+                                            smu = somme[id_machine]['users'][id_user]
+                                            dico_user = {'user': nom + " " + prenom,
+                                                         'hp': Outils.format_heure(smu['duree_hp']),
+                                                         'hc': Outils.format_heure(smu['duree_hc'])}
                                             contenu_machuts_client += r'''
-                                                \hspace{10mm} %(compte)s & %(hp)s \hspace{5mm} & %(hc)s \hspace{5mm} \\
+                                                \hspace{5mm} %(user)s & %(hp)s & %(hc)s \\
                                                 \hline
-                                                ''' % dico_compte
+                                                ''' % dico_user
 
-            contenu += Latex.long_tableau(contenu_machuts_client, structure_machuts_client, legende_machuts_client)
-        else:
-            contenu += Latex.tableau_vide(r'''Table III.2 - Récapitulatif des utilisations machines par utilisateur :
-                table vide (pas d’utilisation machines)''')
+                                            for id_compte in smu['comptes']:
+                                                smuc = smu['comptes'][id_compte]
+                                                dico_compte = {'compte': id_compte,
+                                                               'hp': Outils.format_heure(smuc['duree_hp']),
+                                                               'hc': Outils.format_heure(smuc['duree_hc'])}
+                                                contenu_machuts_client += r'''
+                                                    \hspace{10mm} %(compte)s & %(hp)s \hspace{5mm} & %(hc)s \hspace{5mm} \\
+                                                    \hline
+                                                    ''' % dico_compte
 
-        # ## 3.3
+                contenu += Latex.long_tableau(contenu_machuts_client, structure_machuts_client, legende_machuts_client)
+            else:
+                contenu += Latex.tableau_vide(r'''Table III.2 - Récapitulatif des utilisations machines par utilisateur :
+                    table vide (pas d’utilisation machines)''')
 
-        if code_client in reservations.sommes:
+            # ## 3.3
+
             structure_reserve_client = r'''{|c|c|c|c|c|}'''
             legende_reserve_client = r'''Table III.3 - Détail des réservations machines par utilisateur'''
 
@@ -1400,9 +1401,11 @@ class Annexes(object):
                                             ''' % dico_pos
 
             contenu += Latex.long_tableau(contenu_reserve_client, structure_reserve_client, legende_reserve_client)
+
         else:
-            contenu += Latex.tableau_vide(r'''Table III.3 - Détail des réservations machines par utilisateur :
-                table vide (pas de réservation machines)''')
+            contenu += Annexes.titre_annexe(code_client, client, edition, reference,
+                                            r'''Annexe détaillée des pénalités de réservation} \newline\newline
+                                             \textit{Annexe vide : pas de pénalités de réservation  ''', "III")
 
         # ## Annexe 4
 

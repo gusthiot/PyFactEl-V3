@@ -120,8 +120,8 @@ class Livraison(Fichier):
             no_prestation = prestation['no_prestation']
             client = clients.donnees[code_client]
             coefprest = coefprests.donnees[client['id_classe_tarif'] + prestation['categorie']]
-            donnee['prix_unit_client'] = round(prestation['prix_unit'] * coefprest['coefficient'], 2)
-            donnee['montant'] = round(donnee['quantite'] * donnee['prix_unit_client'], 2)
+            prix_unit_client = round(prestation['prix_unit'] * coefprest['coefficient'], 2)
+            donnee['montant'] = round(donnee['quantite'] * prix_unit_client, 2)
             donnee['montantx'] = round(donnee['quantite'] * prestation['prix_unit'], 2)
             donnee['rabais_r'] = round(donnee['rabais'], 2)
             categorie = prestation['categorie']
@@ -135,7 +135,7 @@ class Livraison(Fichier):
                 scl[id_compte][categorie] = {}
             if no_prestation not in scl[id_compte][categorie]:
                 scl[id_compte][categorie][no_prestation] = {'nom': prestation['designation'], 'unite': donnee['unite'],
-                                                            'pu': donnee['prix_unit_client'], 'montantx': 0,
+                                                            'pu': prix_unit_client, 'montantx': 0,
                                                             'pux': round(prestation['prix_unit'], 2), 'quantite': 0,
                                                             'rabais': 0, 'montant': 0, 'users': {}}
 
