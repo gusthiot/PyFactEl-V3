@@ -249,6 +249,7 @@ class Sommes(object):
                 somme['rr'] = Rabais.rabais_reservation_petit_montant(somme['rm'], self.min_fact_rese)
                 somme['r'] = somme['rm'] - somme['rr']
 
+            for code_client, somme in spcl.items():
                 client = clients.donnees[code_client]
                 somme['somme_eq'], somme['somme_t'], somme['em'], somme['er0'], somme['er'] = \
                     Rabais.rabais_emolument(somme['r'], somme['mt'], somme['mot'], somme['tot_cat'],
