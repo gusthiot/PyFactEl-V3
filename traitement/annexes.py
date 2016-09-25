@@ -204,7 +204,7 @@ class Annexes(object):
 
             sco = sommes.sommes_comptes[code_client][id_compte]
             compte = comptes.donnees[id_compte]
-            intitule_compte = num_compte + " - " + Latex.echappe_caracteres(compte['intitule'])
+            intitule_compte = compte['numero'] + " - " + Latex.echappe_caracteres(compte['intitule'])
 
             titre2 = "Récapitulatif du compte : " + intitule_compte
             contenu_compte_annexe2 += Annexes.section(code_client, client, edition, reference, titre2, nombre_2)
@@ -909,6 +909,10 @@ class Annexes(object):
 
         contenu_recap_fact += contenu_fact_compte
 
+        contenu_recap_fact += r'''\multicolumn{4}{|r|}{Total}
+            & ''' + Outils.format_2_dec((scl['somme_t'] + scl['e'])) + r'''\\
+            \hline
+            '''
         contenu += Latex.tableau(contenu_recap_fact, structure_recap_fact, legende_recap_fact)
 
         # ## 1.2
@@ -1319,9 +1323,14 @@ class Annexes(object):
                                                 \hline
                                                 ''' % dico_user
 
-                                            for id_compte in smu['comptes']:
+                                            comptes_utilises = Annexes.comptes_in_somme(smu['comptes'], comptes)
+
+                                            for num_compte, id_compte in sorted(comptes_utilises.items()):
                                                 smuc = smu['comptes'][id_compte]
-                                                dico_compte = {'compte': id_compte,
+                                                compte = comptes.donnees[id_compte]
+                                                intitule_compte = compte['numero'] + " - "
+                                                intitule_compte += Latex.echappe_caracteres(compte['intitule'])
+                                                dico_compte = {'compte': intitule_compte,
                                                                'hp': Outils.format_heure(smuc['duree_hp']),
                                                                'hc': Outils.format_heure(smuc['duree_hc'])}
                                                 contenu_machuts_client += r'''
@@ -1522,9 +1531,18 @@ class Annexes(object):
         :return: liste de comptes, triée par numéro
         """
         comptes_utilises = {}
+        max_size = 0
         for key in somme:
             numero = comptes.donnees[key]['numero']
-            if numero not in comptes_utilises:
-                comptes_utilises[numero] = key
+            if len(numero) > max_size:
+                max_size = len(numero)
+
+        for key in somme:
+            numero = comptes.donnees[key]['numero']
+            num = numero
+            for dif in range(len(numero),max_size):
+                num = '0' + num
+            if num not in comptes_utilises:
+                comptes_utilises[num] = key
 
         return comptes_utilises
