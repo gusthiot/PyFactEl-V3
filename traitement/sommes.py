@@ -207,14 +207,8 @@ class Sommes(object):
                     pu_hc = somme_res[id_machine]['pu_hc']
                     tx_hp = machines.donnees[id_machine]['tx_occ_eff_hp']
                     tx_hc = machines.donnees[id_machine]['tx_occ_eff_hc']
-                    ok_hp = False
-                    ok_hc = False
-                    if re_hp > 0 and pu_hp > 0 and tx_hp > 0:
-                        ok_hp = True
-                    if re_hc > 0 and pu_hc > 0 and tx_hc > 0:
-                        ok_hc = True
 
-                    if ok_hp or ok_hc:
+                    if re_hp > 0 or re_hc > 0:
                         somme['res'][id_machine] = {'tot_hp': 0, 'tot_hc': 0, 'users': {}, 'mont_hp': 0, 'mont_hc': 0}
 
                         users = somme['res'][id_machine]['users']

@@ -118,22 +118,36 @@ class Reservation(Fichier):
                 self.sommes[code_client] = {}
             scl = self.sommes[code_client]
 
-            if id_machine not in scl:
-                pu_hp = round(coefmachine['coef_r'] * machine['t_h_reservation_hp'], 2)
-                pu_hc = round(coefmachine['coef_r'] * machine['t_h_reservation_hc'], 2)
-                scl[id_machine] = {'res_hp': 0, 'res_hc': 0, 'pu_hp': pu_hp, 'pu_hc': pu_hc, 'users': {}}
+            tx_hp = machine['tx_occ_eff_hp']
+            tx_hc = machine['tx_occ_eff_hc']
+            pu_hp = round(coefmachine['coef_r'] * machine['t_h_reservation_hp'], 2)
+            pu_hc = round(coefmachine['coef_r'] * machine['t_h_reservation_hc'], 2)
+            ok_hp = False
+            ok_hc = False
+            if duree_fact_hp > 0 and pu_hp > 0 and tx_hp > 0:
+                ok_hp = True
+            if duree_fact_hc > 0 and pu_hc > 0 and tx_hc > 0:
+                ok_hc = True
 
-            scm = scl[id_machine]
+            if ok_hp or ok_hc:
+                if id_machine not in scl:
+                    scl[id_machine] = {'res_hp': 0, 'res_hc': 0, 'pu_hp': pu_hp, 'pu_hc': pu_hc, 'users': {}}
 
-            scm['res_hp'] += duree_fact_hp
-            scm['res_hc'] += duree_fact_hc
+                scm = scl[id_machine]
 
-            if id_user not in scm['users']:
-                scm['users'][id_user] = {'res_hp': 0, 'res_hc': 0, 'data': []}
+                if ok_hp:
+                    scm['res_hp'] += duree_fact_hp
+                if ok_hc:
+                    scm['res_hc'] += duree_fact_hc
 
-            scm['users'][id_user]['res_hp'] += duree_fact_hp
-            scm['users'][id_user]['res_hc'] += duree_fact_hc
-            scm['users'][id_user]['data'].append(pos)
+                if id_user not in scm['users']:
+                    scm['users'][id_user] = {'res_hp': 0, 'res_hc': 0, 'data': []}
+
+                if ok_hp:
+                    scm['users'][id_user]['res_hp'] += duree_fact_hp
+                if ok_hc:
+                    scm['users'][id_user]['res_hc'] += duree_fact_hc
+                scm['users'][id_user]['data'].append(pos)
 
             donnees_list.append(donnee)
             pos += 1

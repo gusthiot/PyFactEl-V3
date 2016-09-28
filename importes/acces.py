@@ -166,7 +166,9 @@ class Acces(Fichier):
 
             scma = self.sommes[code_client]['machines']
             if id_machine not in scma:
-                scma[id_machine] = {'duree_hp': 0, 'duree_hc': 0, 'users': {}}
+                pur_hp = round(coefmachine['coef_r'] * machine['t_h_reservation_hp'], 2)
+                pur_hc = round(coefmachine['coef_r'] * machine['t_h_reservation_hc'], 2)
+                scma[id_machine] = {'duree_hp': 0, 'duree_hc': 0,  'pur_hp': pur_hp, 'pur_hc': pur_hc, 'users': {}}
             scma[id_machine]['duree_hp'] += donnee['duree_machine_hp']
             scma[id_machine]['duree_hc'] += donnee['duree_machine_hc']
 
