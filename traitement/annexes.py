@@ -413,20 +413,20 @@ class Annexes(object):
                                 \hline
                                 ''' % dico_machine
 
-                dico_tot = {'maij_d': Outils.format_2_dec(sco['somme_j_mai'] - sco['somme_j_mai_arr']),
-                            'moij_d': Outils.format_2_dec(sco['somme_j_moi'] - sco['somme_j_moi_arr']),
-                            'dsij_d': Outils.format_2_dec(sco['somme_j_dsi'] - sco['somme_j_dsi_arr']),
-                            'dhij_d': Outils.format_2_dec(sco['somme_j_dhi'] - sco['somme_j_dhi_arr']),
-                            'maij_ar': Outils.format_2_dec(sco['somme_j_mai_arr']),
-                            'moij_ar': Outils.format_2_dec(sco['somme_j_moi_arr']),
-                            'dsij_ar': Outils.format_2_dec(sco['somme_j_dsi_arr']),
-                            'dhij_ar': Outils.format_2_dec(sco['somme_j_dhi_arr']),
+                dico_tot = {'maij_d': Outils.format_2_dec(sco['somme_j_mai_d']),
+                            'moij_d': Outils.format_2_dec(sco['somme_j_moi_d']),
+                            'dsij_d': Outils.format_2_dec(sco['somme_j_dsi_d']),
+                            'dhij_d': Outils.format_2_dec(sco['somme_j_dhi_d']),
+                            'maij': Outils.format_2_dec(sco['somme_j_mai']),
+                            'moij': Outils.format_2_dec(sco['somme_j_moi']),
+                            'dsij': Outils.format_2_dec(sco['somme_j_dsi']),
+                            'dhij': Outils.format_2_dec(sco['somme_j_dhi']),
                             'rabais': Outils.format_2_dec(sco['somme_j_mr']),
                             'bonus': Outils.format_2_dec(sco['somme_j_mb'])}
                 contenu_utilise_compte += r'''
                     \multicolumn{6}{|r|}{Arrondi} & %(maij_d)s & %(moij_d)s & %(dsij_d)s & %(dhij_d)s \\
                     \hline
-                    \multicolumn{6}{|r|}{Total} & %(maij_ar)s & %(moij_ar)s & %(dsij_ar)s & %(dhij_ar)s \\
+                    \multicolumn{6}{|r|}{Total} & %(maij)s & %(moij)s & %(dsij)s & %(dhij)s \\
                     \hline
                     ''' % dico_tot
                 if av_ds == "RABAIS" or av_hc == "RABAIS":
@@ -462,9 +462,9 @@ class Annexes(object):
 
                         contenu_prests_compte += r'''
                             \hline
-                            \multicolumn{1}{|l|}{\scriptsize{
+                            \multicolumn{1}{|l|}{
                             \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
-                            }}} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
+                            }} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
                             & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} \\
                             \hline
                             '''
@@ -479,16 +479,14 @@ class Annexes(object):
                                 & %(rabais)s  \\
                                 \hline
                                 ''' % dico_prestations
-                        montant_d = sco['sommes_cat_m'][article.code_d] - sco['sommes_cat_m_arr'][article.code_d]
-                        rabais_d = sco['sommes_cat_r'][article.code_d] - sco['sommes_cat_r_arr'][article.code_d]
-                        dico_prestations = {'montant_d': Outils.format_2_dec(montant_d),
-                                            'rabais_d': Outils.format_2_dec(rabais_d),
-                                            'montant_arr': Outils.format_2_dec(sco['sommes_cat_m_arr'][article.code_d]),
-                                            'rabais_arr': Outils.format_2_dec(sco['sommes_cat_r_arr'][article.code_d])}
+                        dico_prestations = {'montant_d': Outils.format_2_dec(sco['sommes_cat_m_d'][article.code_d]),
+                                            'rabais_d': Outils.format_2_dec(sco['sommes_cat_r_d'][article.code_d]),
+                                            'montant': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                            'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d])}
                         contenu_prests_compte += r'''
                             \multicolumn{4}{|r|}{Arrondi} & %(montant_d)s & %(rabais_d)s  \\
                             \hline
-                            \multicolumn{4}{|r|}{Total} & %(montant_arr)s & %(rabais_arr)s  \\
+                            \multicolumn{4}{|r|}{Total} & %(montant)s & %(rabais)s  \\
                             \hline
                             ''' % dico_prestations
                 contenu_compte_annexe2 += Latex.tableau(contenu_prests_compte, structure_prests_compte,
@@ -609,9 +607,9 @@ class Annexes(object):
                                 '''
                         contenu_prestations_compte += r'''
                             \hline
-                            \multicolumn{1}{|l|}{\scriptsize{
+                            \multicolumn{1}{|l|}{
                             \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
-                            }}} & Quantité & Unité & Rabais \\
+                            }} & Quantité & Unité & Rabais \\
                             \hline
                             '''
                         for no_prestation, sip in sorted(somme[article.code_d].items()):
@@ -753,19 +751,19 @@ class Annexes(object):
                         \hline
                         ''' % dico_cat
 
-                dico_compte = {'mu1_d': Outils.format_2_dec(sco['mu1'] - sco['mu1_arr']),
-                               'mu2_d': Outils.format_2_dec(sco['mu2'] - sco['mu2_arr']),
-                               'mu3_d': Outils.format_2_dec(sco['mu3'] - sco['mu3_arr']),
-                               'mmo_d': Outils.format_2_dec(sco['mmo'] - sco['mmo_arr']),
-                               'mu1_ar': Outils.format_2_dec(sco['mu1_arr']),
-                               'mu2_ar': Outils.format_2_dec(sco['mu2_arr']),
-                               'mu3_ar': Outils.format_2_dec(sco['mu3_arr']),
-                               'mmo_ar': Outils.format_2_dec(sco['mmo_arr'])}
+                dico_compte = {'mu1_d': Outils.format_2_dec(sco['mu1_d']),
+                               'mu2_d': Outils.format_2_dec(sco['mu2_d']),
+                               'mu3_d': Outils.format_2_dec(sco['mu3_d']),
+                               'mmo_d': Outils.format_2_dec(sco['mmo_d']),
+                               'mu1': Outils.format_2_dec(sco['mu1']),
+                               'mu2': Outils.format_2_dec(sco['mu2']),
+                               'mu3': Outils.format_2_dec(sco['mu3']),
+                               'mmo': Outils.format_2_dec(sco['mmo'])}
 
                 contenu_coutmachines_compte += r'''
                     \multicolumn{1}{|r|}{Arrondi} & %(mu1_d)s & %(mu2_d)s & %(mu3_d)s & %(mmo_d)s \\
                     \hline
-                    \multicolumn{1}{|r|}{Total} & %(mu1_ar)s & %(mu2_ar)s & %(mu3_ar)s & %(mmo_ar)s \\
+                    \multicolumn{1}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
                     \hline
                     ''' % dico_compte
 
@@ -866,9 +864,9 @@ class Annexes(object):
 
                         contenu_coutprests_compte += r'''
                             \hline
-                            \multicolumn{1}{|l|}{\scriptsize{
+                            \multicolumn{1}{|l|}{
                             \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
-                            }}} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
+                            }} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
                             & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} & \multicolumn{1}{c|}{Net} \\
                             \hline
                             '''
@@ -884,20 +882,17 @@ class Annexes(object):
                                 & %(rabais)s & %(netx)s \\
                                 \hline
                                 ''' % dico_prestations
-                        montantx_d = sco['sommes_cat_m_x'][article.code_d] - sco['sommes_cat_m_x_arr'][article.code_d]
-                        rabais_d = sco['sommes_cat_r'][article.code_d] - sco['sommes_cat_r_arr'][article.code_d]
-                        netx_d = sco['tot_cat_x'][article.code_d] - sco['tot_cat_x_arr'][article.code_d]
-                        dico_prestations = {'montantx_d': Outils.format_2_dec(montantx_d),
-                                            'rabais_d': Outils.format_2_dec(rabais_d),
-                                            'netx_d': Outils.format_2_dec(netx_d),
-                                            'montantx_ar': Outils.format_2_dec(sco['sommes_cat_m_x_arr'][article.code_d]),
-                                            'rabais_ar': Outils.format_2_dec(sco['sommes_cat_r_arr'][article.code_d]),
-                                            'netx_ar': Outils.format_2_dec(sco['tot_cat_x_arr'][article.code_d])}
+                        dico_prestations = {'montantx_d': Outils.format_2_dec(sco['sommes_cat_m_x_d'][article.code_d]),
+                                            'rabais_d': Outils.format_2_dec(sco['sommes_cat_r_d'][article.code_d]),
+                                            'netx_d': Outils.format_2_dec(sco['tot_cat_x_d'][article.code_d]),
+                                            'montantx': Outils.format_2_dec(sco['sommes_cat_m_x'][article.code_d]),
+                                            'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                            'netx': Outils.format_2_dec(sco['tot_cat_x'][article.code_d])}
 
                         contenu_coutprests_compte += r'''
                             \multicolumn{4}{|r|}{Arrondi} & %(montantx_d)s & %(rabais_d)s & %(netx_d)s \\
                             \hline
-                            \multicolumn{4}{|r|}{Total} & %(montantx_ar)s & %(rabais_ar)s & %(netx_ar)s \\
+                            \multicolumn{4}{|r|}{Total} & %(montantx)s & %(rabais)s & %(netx)s \\
                             \hline
                             ''' % dico_prestations
             if contenu_coutprests_compte != "":

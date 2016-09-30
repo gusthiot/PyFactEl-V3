@@ -8,10 +8,9 @@ class Sommes(object):
     Classe contenant les méthodes pour le calcul des sommes par compte, catégorie et client
     """
 
-    cles_somme_compte = ['somme_j_mai', 'somme_j_mai_arr', 'somme_j_moi', 'somme_j_moi_arr', 'somme_j_dsi',
-                         'somme_j_dsi_arr', 'somme_j_dhi', 'somme_j_dhi_arr', 'somme_j_mm', 'somme_j_mr',
-                         'somme_j_mb', 'mj', 'si_facture', 'res', 'mu1', 'mu2', 'mu3', 'mmo', 'mu1_arr', 'mu2_arr',
-                         'mu3_arr', 'mmo_arr']
+    cles_somme_compte = ['somme_j_mai', 'maij_d', 'somme_j_moi', 'moij_d', 'somme_j_dsi','dsij_d', 'somme_j_dhi',
+                         'dhij_d', 'somme_j_mm', 'somme_j_mr', 'somme_j_mb', 'mj', 'si_facture', 'res', 'mu1', 'mu2',
+                         'mu3', 'mmo', 'mu1_d', 'mu2_d', 'mu3_d', 'mmo_d']
 
     cles_somme_client = ['mat', 'mot', 'dst', 'dht', 'somme_t_mm', 'somme_t_mr', 'somme_t_mb', 'mt', 'somme_eq',
                          'somme_t', 'em', 'er0', 'er', 'e', 'res', 'rm', 'rm_d', 'rr', 'r']
@@ -44,7 +43,7 @@ class Sommes(object):
         self.somme_par_compte(livraisons, acces, prestations, clients)
         self.somme_par_client(clients, reservations, machines, acces)
 
-    def nouveau_somme(self, cles):
+    def nouveau_somme(self, cles, est_compte=False):
         """
         créé un nouveau dictionnaire avec les clés entrées
         :param cles: clés pour le dictionnaire
@@ -54,26 +53,26 @@ class Sommes(object):
         for cle in cles:
             somme[cle] = 0
         somme['sommes_cat_m'] = {}
-        somme['sommes_cat_m_arr'] = {}
-        somme['sommes_cat_m_x'] = {}
-        somme['sommes_cat_m_x_arr'] = {}
         somme['sommes_cat_r'] = {}
-        somme['sommes_cat_r_arr'] = {}
         somme['tot_cat'] = {}
-        somme['tot_cat_arr'] = {}
-        somme['tot_cat_x'] = {}
-        somme['tot_cat_x_arr'] = {}
+        if est_compte:
+            somme['sommes_cat_m_d'] = {}
+            somme['sommes_cat_r_d'] = {}
+            somme['sommes_cat_m_x'] = {}
+            somme['sommes_cat_m_x_d'] = {}
+            somme['tot_cat_x'] = {}
+            somme['tot_cat_x_d'] = {}
         for categorie in self.categories:
             somme['sommes_cat_m'][categorie] = 0
-            somme['sommes_cat_m_arr'][categorie] = 0
-            somme['sommes_cat_m_x'][categorie] = 0
-            somme['sommes_cat_m_x_arr'][categorie] = 0
             somme['sommes_cat_r'][categorie] = 0
-            somme['sommes_cat_r_arr'][categorie] = 0
             somme['tot_cat'][categorie] = 0
-            somme['tot_cat_arr'][categorie] = 0
-            somme['tot_cat_x'][categorie] = 0
-            somme['tot_cat_x_arr'][categorie] = 0
+            if est_compte:
+                somme['sommes_cat_m_d'][categorie] = 0
+                somme['sommes_cat_r_d'][categorie] = 0
+                somme['sommes_cat_m_x'][categorie] = 0
+                somme['sommes_cat_m_x_d'][categorie] = 0
+                somme['tot_cat_x'][categorie] = 0
+                somme['tot_cat_x_d'][categorie] = 0
         return somme
 
     def somme_par_compte(self, livraisons, acces, prestations, clients):
@@ -98,7 +97,7 @@ class Sommes(object):
             spco_cl = spco[code_client]
             for id_compte in acces.sommes[code_client]['comptes']:
                 if id_compte not in spco_cl:
-                    spco_cl[id_compte] = self.nouveau_somme(Sommes.cles_somme_compte)
+                    spco_cl[id_compte] = self.nouveau_somme(Sommes.cles_somme_compte, True)
                 somme = spco_cl[id_compte]
                 ac_som = acces.sommes[code_client]['comptes']
                 if id_compte in ac_som:
@@ -107,14 +106,14 @@ class Sommes(object):
                         somme['mu2'] += som['mu2']
                         somme['mu3'] += som['mu3']
                         somme['mmo'] += som['mmo']
-                        mai = som['mai_hp'] + som['mai_hc']
-                        somme['somme_j_mai'] += mai
-                        moi = som['moi_hp'] + som['moi_hc']
-                        somme['somme_j_moi'] += moi
-                        dsi = som['dsi_hp'] + som['dsi_hc']
-                        somme['somme_j_dsi'] += dsi
+                #        mai = som['mai_hp'] + som['mai_hc']
+                        somme['somme_j_mai'] += som['mai_hp'] + som['mai_hc']
+                #        moi = som['moi_hp'] + som['moi_hc']
+                        somme['somme_j_moi'] += som['moi_hp'] + som['moi_hc']
+                #        dsi = som['dsi_hp'] + som['dsi_hc']
+                        somme['somme_j_dsi'] += som['dsi_hp'] + som['dsi_hc']
                         somme['somme_j_dhi'] += som['dhi']
-                        somme['somme_j_mm'] += mai + moi
+                #        somme['somme_j_mm'] += mai + moi
                 #         client = clients.donnees[code_client]
                 #         somme['somme_j_mr'] += client['rs'] * dsi + client['rh'] * som['dhi']
                 #         somme['somme_j_mb'] += client['bs'] * dsi + client['bh'] * som['dhi']
@@ -127,7 +126,7 @@ class Sommes(object):
                 spco[code_client] = {}
             spco_cl = spco[code_client]
             if id_compte not in spco_cl:
-                spco_cl[id_compte] = self.nouveau_somme(Sommes.cles_somme_compte)
+                spco_cl[id_compte] = self.nouveau_somme(Sommes.cles_somme_compte, True)
             somme = spco_cl[id_compte]
 
             id_prestation = livraison['id_prestation']
@@ -136,33 +135,68 @@ class Sommes(object):
             somme['sommes_cat_m'][prestation['categorie']] += livraison['montant']
             somme['sommes_cat_m_x'][prestation['categorie']] += livraison['montantx']
             somme['sommes_cat_r'][prestation['categorie']] += livraison['rabais_r']
-            somme['tot_cat'][prestation['categorie']] += livraison['montant'] - livraison['rabais_r']
+            # somme['tot_cat'][prestation['categorie']] += livraison['montant'] - livraison['rabais_r']
             somme['tot_cat_x'][prestation['categorie']] += livraison['montantx'] - livraison['rabais_r']
 
         for code_client in spco:
             for id_compte in spco[code_client]:
                 somme = spco[code_client][id_compte]
+                maij = round(2 * somme['somme_j_mai'], 1) / 2
+                somme['somme_j_mai_d'] = somme['somme_j_mai'] - maij
+                somme['somme_j_mai'] = maij
 
-                somme['somme_j_mai_arr'] = round(2*somme['somme_j_mai'], 1) / 2
-                somme['somme_j_moi_arr'] = round(2*somme['somme_j_moi'], 1) / 2
-                somme['somme_j_dhi_arr'] = round(2*somme['somme_j_dhi'], 1) / 2
-                somme['somme_j_dsi_arr'] = round(2*somme['somme_j_dsi'], 1) / 2
+                moij = round(2 * somme['somme_j_moi'], 1) / 2
+                somme['somme_j_moi_d'] = somme['somme_j_moi'] - moij
+                somme['somme_j_moi'] = moij
+
+                dhij = round(2 * somme['somme_j_dhi'], 1) / 2
+                somme['somme_j_dhi_d'] = somme['somme_j_dhi'] - dhij
+                somme['somme_j_dhi'] = dhij
+
+                dsij = round(2 * somme['somme_j_dsi'], 1) / 2
+                somme['somme_j_dsi_d'] = somme['somme_j_dsi'] - dsij
+                somme['somme_j_dsi'] = dsij
+
                 client = clients.donnees[code_client]
-                somme['somme_j_mr'] = client['rs'] * somme['somme_j_dsi_arr'] + client['rh'] * somme['somme_j_dhi_arr']
-                somme['somme_j_mb'] = client['bs'] * somme['somme_j_dsi_arr'] + client['bh'] * somme['somme_j_dhi_arr']
+                somme['somme_j_mm'] += somme['somme_j_mai'] + somme['somme_j_moi']
+                somme['somme_j_mr'] = client['rs'] * somme['somme_j_dsi'] + client['rh'] * somme['somme_j_dhi']
+                somme['somme_j_mb'] = client['bs'] * somme['somme_j_dsi'] + client['bh'] * somme['somme_j_dhi']
                 somme['mj'] = somme['somme_j_mm'] - somme['somme_j_mr']
 
                 for categorie in self.categories:
-                    somme['sommes_cat_m_arr'][categorie] = round(2*somme['sommes_cat_m'][categorie], 1) / 2
-                    somme['sommes_cat_m_x_arr'][categorie] = round(2*somme['sommes_cat_m_x'][categorie], 1) / 2
-                    somme['sommes_cat_r_arr'][categorie] = round(2*somme['sommes_cat_r'][categorie], 1) / 2
-                    somme['tot_cat_arr'][categorie] = somme['sommes_cat_m_arr'][categorie] - somme['sommes_cat_r_arr'][categorie]
-                    somme['tot_cat_x_arr'][categorie] = somme['sommes_cat_m_x_arr'][categorie] - somme['sommes_cat_r_arr'][categorie]
+                    cat_m = round(2 * somme['sommes_cat_m'][categorie], 1) / 2
+                    somme['sommes_cat_m_d'][categorie] = somme['sommes_cat_m'][categorie] - cat_m
+                    somme['sommes_cat_m'][categorie] = cat_m
 
-                somme['mu1_arr'] = round(2*somme['mu1'], 1) / 2
-                somme['mu2_arr'] = round(2*somme['mu2'], 1) / 2
-                somme['mu3_arr'] = round(2*somme['mu3'], 1) / 2
-                somme['mmo_arr'] = round(2*somme['mmo'], 1) / 2
+                    cat_r = round(2 * somme['sommes_cat_r'][categorie], 1) / 2
+                    somme['sommes_cat_r_d'][categorie] = somme['sommes_cat_r'][categorie] - cat_r
+                    somme['sommes_cat_r'][categorie] = cat_r
+
+                    somme['tot_cat'][categorie] = somme['sommes_cat_m'][categorie] - somme['sommes_cat_r'][categorie]
+
+                    cat_mx = round(2 * somme['sommes_cat_m_x'][categorie], 1) / 2
+                    somme['sommes_cat_m_x_d'][categorie] = somme['sommes_cat_m_x'][categorie] - cat_mx
+                    somme['sommes_cat_m_x'][categorie] = cat_mx
+
+                    tot_mx = round(2 * somme['tot_cat_x'][categorie], 1) / 2
+                    somme['tot_cat_x'][categorie] = somme['sommes_cat_m_x'][categorie] - somme['sommes_cat_r'][categorie]
+                    somme['tot_cat_x_d'][categorie] = somme['tot_cat_x'][categorie] - tot_mx
+
+                mu1 = round(2 * somme['mu1'], 1) / 2
+                somme['mu1_d'] = somme['mu1'] - mu1
+                somme['mu1'] = mu1
+
+                mu2 = round(2 * somme['mu2'], 1) / 2
+                somme['mu2_d'] = somme['mu2'] - mu2
+                somme['mu2'] = mu2
+
+                mu3 = round(2 * somme['mu3'], 1) / 2
+                somme['mu3_d'] = somme['mu3'] - mu3
+                somme['mu3'] = mu3
+
+                mmo = round(2 * somme['mmo'], 1) / 2
+                somme['mmo_d'] = somme['mmo'] - mmo
+                somme['mmo'] = mmo
 
                 tot = somme['somme_j_mm']
                 for categorie in self.categories:
