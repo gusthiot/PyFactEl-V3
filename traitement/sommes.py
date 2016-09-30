@@ -61,7 +61,6 @@ class Sommes(object):
             somme['sommes_cat_m_x'] = {}
             somme['sommes_cat_m_x_d'] = {}
             somme['tot_cat_x'] = {}
-            somme['tot_cat_x_d'] = {}
         for categorie in self.categories:
             somme['sommes_cat_m'][categorie] = 0
             somme['sommes_cat_r'][categorie] = 0
@@ -72,7 +71,6 @@ class Sommes(object):
                 somme['sommes_cat_m_x'][categorie] = 0
                 somme['sommes_cat_m_x_d'][categorie] = 0
                 somme['tot_cat_x'][categorie] = 0
-                somme['tot_cat_x_d'][categorie] = 0
         return somme
 
     def somme_par_compte(self, livraisons, acces, prestations, clients):
@@ -142,19 +140,19 @@ class Sommes(object):
             for id_compte in spco[code_client]:
                 somme = spco[code_client][id_compte]
                 maij = round(2 * somme['somme_j_mai'], 1) / 2
-                somme['somme_j_mai_d'] = somme['somme_j_mai'] - maij
+                somme['somme_j_mai_d'] = maij - somme['somme_j_mai']
                 somme['somme_j_mai'] = maij
 
                 moij = round(2 * somme['somme_j_moi'], 1) / 2
-                somme['somme_j_moi_d'] = somme['somme_j_moi'] - moij
+                somme['somme_j_moi_d'] = moij - somme['somme_j_moi']
                 somme['somme_j_moi'] = moij
 
                 dhij = round(2 * somme['somme_j_dhi'], 1) / 2
-                somme['somme_j_dhi_d'] = somme['somme_j_dhi'] - dhij
+                somme['somme_j_dhi_d'] = dhij - somme['somme_j_dhi']
                 somme['somme_j_dhi'] = dhij
 
                 dsij = round(2 * somme['somme_j_dsi'], 1) / 2
-                somme['somme_j_dsi_d'] = somme['somme_j_dsi'] - dsij
+                somme['somme_j_dsi_d'] = dsij - somme['somme_j_dsi']
                 somme['somme_j_dsi'] = dsij
 
                 client = clients.donnees[code_client]
@@ -165,22 +163,21 @@ class Sommes(object):
 
                 for categorie in self.categories:
                     cat_m = round(2 * somme['sommes_cat_m'][categorie], 1) / 2
-                    somme['sommes_cat_m_d'][categorie] = somme['sommes_cat_m'][categorie] - cat_m
+                    somme['sommes_cat_m_d'][categorie] = cat_m - somme['sommes_cat_m'][categorie]
                     somme['sommes_cat_m'][categorie] = cat_m
 
                     cat_r = round(2 * somme['sommes_cat_r'][categorie], 1) / 2
-                    somme['sommes_cat_r_d'][categorie] = somme['sommes_cat_r'][categorie] - cat_r
+                    somme['sommes_cat_r_d'][categorie] = cat_r - somme['sommes_cat_r'][categorie]
                     somme['sommes_cat_r'][categorie] = cat_r
 
                     somme['tot_cat'][categorie] = somme['sommes_cat_m'][categorie] - somme['sommes_cat_r'][categorie]
 
                     cat_mx = round(2 * somme['sommes_cat_m_x'][categorie], 1) / 2
-                    somme['sommes_cat_m_x_d'][categorie] = somme['sommes_cat_m_x'][categorie] - cat_mx
+                    somme['sommes_cat_m_x_d'][categorie] = cat_mx - somme['sommes_cat_m_x'][categorie]
                     somme['sommes_cat_m_x'][categorie] = cat_mx
 
                     tot_mx = round(2 * somme['tot_cat_x'][categorie], 1) / 2
                     somme['tot_cat_x'][categorie] = somme['sommes_cat_m_x'][categorie] - somme['sommes_cat_r'][categorie]
-                    somme['tot_cat_x_d'][categorie] = somme['tot_cat_x'][categorie] - tot_mx
 
                 mu1 = round(2 * somme['mu1'], 1) / 2
                 somme['mu1_d'] = somme['mu1'] - mu1
@@ -310,7 +307,7 @@ class Sommes(object):
                         somme['rm'] += somme['res'][id_machine]['mont_hp'] + somme['res'][id_machine]['mont_hc']
 
                 rm = math.floor(somme['rm'])
-                somme['rm_d'] = somme['rm'] - rm
+                somme['rm_d'] = rm - somme['rm']
                 somme['rm'] = rm
                 somme['rr'] = Rabais.rabais_reservation_petit_montant(somme['rm'], self.min_fact_rese)
                 somme['r'] = somme['rm'] - somme['rr']
@@ -318,7 +315,7 @@ class Sommes(object):
             for code_client, somme in spcl.items():
                 client = clients.donnees[code_client]
                 somme['somme_eq'], somme['somme_t'], somme['em'], somme['er0'], somme['er'] = \
-                    Rabais.rabais_emolument(somme['r'], somme['mt'], somme['mot'], somme['tot_cat'],
+                    Rabais.rabais_emolument(somme['r'], somme['mt'], somme['mat'], somme['tot_cat'],
                                             client['emol_base_mens'], client['emol_fixe'], client['coef'],
                                             client['emol_sans_activite'])
                 somme['e'] = somme['em'] - somme['er']

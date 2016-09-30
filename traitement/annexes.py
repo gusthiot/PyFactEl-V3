@@ -884,13 +884,12 @@ class Annexes(object):
                                 ''' % dico_prestations
                         dico_prestations = {'montantx_d': Outils.format_2_dec(sco['sommes_cat_m_x_d'][article.code_d]),
                                             'rabais_d': Outils.format_2_dec(sco['sommes_cat_r_d'][article.code_d]),
-                                            'netx_d': Outils.format_2_dec(sco['tot_cat_x_d'][article.code_d]),
                                             'montantx': Outils.format_2_dec(sco['sommes_cat_m_x'][article.code_d]),
                                             'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
                                             'netx': Outils.format_2_dec(sco['tot_cat_x'][article.code_d])}
 
                         contenu_coutprests_compte += r'''
-                            \multicolumn{4}{|r|}{Arrondi} & %(montantx_d)s & %(rabais_d)s & %(netx_d)s \\
+                            \multicolumn{4}{|r|}{Arrondi} & %(montantx_d)s & %(rabais_d)s & \\
                             \hline
                             \multicolumn{4}{|r|}{Total} & %(montantx)s & %(rabais)s & %(netx)s \\
                             \hline

@@ -24,12 +24,12 @@ class Rabais(object):
             return fhp, fhc
 
     @staticmethod
-    def rabais_emolument(rt, mt, mot, cat_t, emb, fix, coef_a, regle):
+    def rabais_emolument(rt, mt, mat, cat_t, emb, fix, coef_a, regle):
         """
         calcule le rabais sur émolument
         :param rt: rt
         :param mt: mt
-        :param mot: mot
+        :param mat: mat
         :param cat_t: dico des totaux des catégories de prestations
         :param emb: émolument de base mensuel
         :param fix: émolument fixe
@@ -37,7 +37,7 @@ class Rabais(object):
         :param regle: émolument sans activité
         :return: somme EQ, somme SB, somme T, em, er0, er
         """
-        somme_eq = rt + mt - mot
+        somme_eq = rt + mat
         somme_sb = rt + mt
         somme_t = rt + mt
         for cat, tt in cat_t.items():
