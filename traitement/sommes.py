@@ -104,18 +104,10 @@ class Sommes(object):
                         somme['mu2'] += som['mu2']
                         somme['mu3'] += som['mu3']
                         somme['mmo'] += som['mmo']
-                #        mai = som['mai_hp'] + som['mai_hc']
                         somme['somme_j_mai'] += som['mai_hp'] + som['mai_hc']
-                #        moi = som['moi_hp'] + som['moi_hc']
                         somme['somme_j_moi'] += som['moi_hp'] + som['moi_hc']
-                #        dsi = som['dsi_hp'] + som['dsi_hc']
                         somme['somme_j_dsi'] += som['dsi_hp'] + som['dsi_hc']
                         somme['somme_j_dhi'] += som['dhi']
-                #        somme['somme_j_mm'] += mai + moi
-                #         client = clients.donnees[code_client]
-                #         somme['somme_j_mr'] += client['rs'] * dsi + client['rh'] * som['dhi']
-                #         somme['somme_j_mb'] += client['bs'] * dsi + client['bh'] * som['dhi']
-                # somme['mj'] = somme['somme_j_mm'] - somme['somme_j_mr']
 
         for livraison in livraisons.donnees:
             id_compte = livraison['id_compte']
@@ -133,7 +125,6 @@ class Sommes(object):
             somme['sommes_cat_m'][prestation['categorie']] += livraison['montant']
             somme['sommes_cat_m_x'][prestation['categorie']] += livraison['montantx']
             somme['sommes_cat_r'][prestation['categorie']] += livraison['rabais_r']
-            # somme['tot_cat'][prestation['categorie']] += livraison['montant'] - livraison['rabais_r']
             somme['tot_cat_x'][prestation['categorie']] += livraison['montantx'] - livraison['rabais_r']
 
         for code_client in spco:
@@ -246,7 +237,6 @@ class Sommes(object):
                     somme['dht'] += som_co['somme_j_dhi']
                     somme['somme_t_mm'] += som_co['somme_j_mm']
                     somme['somme_t_mr'] += som_co['somme_j_mr']
-                    somme['somme_t_mb'] += som_co['somme_j_mb']
                     somme['mt'] += som_co['mj']
 
                     for categorie in self.categories:
@@ -314,6 +304,7 @@ class Sommes(object):
 
             for code_client, somme in spcl.items():
                 client = clients.donnees[code_client]
+                somme['somme_t_mb'] += math.ceil(client['bs'] * somme['dst']) + math.ceil(client['bh'] * somme['dht'])
                 somme['somme_eq'], somme['somme_t'], somme['em'], somme['er0'], somme['er'] = \
                     Rabais.rabais_emolument(somme['r'], somme['mt'], somme['mat'], somme['tot_cat'],
                                             client['emol_base_mens'], client['emol_fixe'], client['coef'],

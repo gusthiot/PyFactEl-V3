@@ -143,9 +143,11 @@ class Facture(object):
                                                          edition)
     
                 inc = 1
-                sco_cl = sommes.sommes_comptes[code_client]
-                for id_compte in sorted(sco_cl.keys()):
-                    sco = sco_cl[id_compte]
+
+                comptes_utilises = Outils.comptes_in_somme(sommes.sommes_comptes[code_client], comptes)
+
+                for num_compte, id_compte in sorted(comptes_utilises.items()):
+                    sco = sommes.sommes_comptes[code_client][id_compte]
                     compte = comptes.donnees[id_compte]
                     if sco['si_facture'] > 0:
                         poste = inc*10

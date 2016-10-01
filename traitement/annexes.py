@@ -187,7 +187,7 @@ class Annexes(object):
         for article in generaux.articles_d3:
             contenu_prestations_client_tab[article.code_d] = ""
 
-        comptes_utilises = Annexes.comptes_in_somme(sommes.sommes_comptes[code_client], comptes)
+        comptes_utilises = Outils.comptes_in_somme(sommes.sommes_comptes[code_client], comptes)
 
         titre_5 = "Justificatif des coûts d'utilisation par compte"
         nombre_5 = "V"
@@ -379,7 +379,7 @@ class Annexes(object):
 
                 somme = acces.sommes[code_client]['comptes'][id_compte]
 
-                machines_utilisees = Annexes.machines_in_somme(somme, machines)
+                machines_utilisees = Outils.machines_in_somme(somme, machines)
 
                 for id_cout, mics in sorted(machines_utilisees.items()):
                     for nom, id_machine in sorted(mics.items()):
@@ -513,7 +513,7 @@ class Annexes(object):
 
                 somme = acces.sommes[code_client]['comptes'][id_compte]
 
-                machines_utilisees = Annexes.machines_in_somme(somme, machines)
+                machines_utilisees = Outils.machines_in_somme(somme, machines)
 
                 for id_cout, mics in sorted(machines_utilisees.items()):
                     for nom_machine, id_machine in sorted(mics.items()):
@@ -529,7 +529,7 @@ class Annexes(object):
                             \hline
                             ''' % dico_machine
 
-                        utilisateurs = Annexes.utilisateurs_in_somme(somme[id_machine]['users'], users)
+                        utilisateurs = Outils.utilisateurs_in_somme(somme[id_machine]['users'], users)
 
                         for nom, upi in sorted(utilisateurs.items()):
                             for prenom, ids in sorted(upi.items()):
@@ -621,7 +621,7 @@ class Annexes(object):
                                 \hline
                                 ''' % dico_prestations
 
-                            utilisateurs = Annexes.utilisateurs_in_somme(sip['users'], users)
+                            utilisateurs = Outils.utilisateurs_in_somme(sip['users'], users)
 
                             for nom, upi in sorted(utilisateurs.items()):
                                 for prenom, ids in sorted(upi.items()):
@@ -784,7 +784,7 @@ class Annexes(object):
 
                 somme = acces.sommes[code_client]['comptes'][id_compte]
                 som_cat = acces.sommes[code_client]['categories'][id_compte]
-                machines_utilisees = Annexes.machines_in_somme(somme, machines)
+                machines_utilisees = Outils.machines_in_somme(somme, machines)
 
                 for id_cout, mics in sorted(machines_utilisees.items()):
 
@@ -1025,7 +1025,7 @@ class Annexes(object):
                 \hline
                 '''
 
-            machines_utilisees = Annexes.machines_in_somme(scl['res'], machines)
+            machines_utilisees = Outils.machines_in_somme(scl['res'], machines)
 
             for id_cout, mics in sorted(machines_utilisees.items()):
                 for nom_machine, id_machine in sorted(mics.items()):
@@ -1188,7 +1188,7 @@ class Annexes(object):
                 bst = client['bs'] * scl['dst']
                 bht = client['bh'] * scl['dht']
                 dico_bonus = {'bst': math.ceil(bst), 'bht': math.ceil(bht),
-                              'mbt': math.ceil(scl['somme_t_mb'])}
+                              'mbt': scl['somme_t_mb']}
                 contenu_bonus += r'''Total & \multicolumn{1}{c|}{%(bst)s} & \multicolumn{1}{c|}{%(bht)s} & \multicolumn{1}{c|}{%(mbt)s} \\
                     \hline
                     ''' % dico_bonus
@@ -1210,7 +1210,7 @@ class Annexes(object):
         contenu_machuts = ""
         if code_client in acces.sommes:
             somme = acces.sommes[code_client]['machines']
-            machines_utilisees = Annexes.machines_in_somme(somme, machines)
+            machines_utilisees = Outils.machines_in_somme(somme, machines)
 
             for id_cout, mics in sorted(machines_utilisees.items()):
                 for nom_machine, id_machine in sorted(mics.items()):
@@ -1228,7 +1228,7 @@ class Annexes(object):
                                 \hline
                                 ''' % dico_machine
 
-                            utilisateurs = Annexes.utilisateurs_in_somme(somme[id_machine]['users'], users)
+                            utilisateurs = Outils.utilisateurs_in_somme(somme[id_machine]['users'], users)
 
                             for nom, upi in sorted(utilisateurs.items()):
                                 for prenom, ids in sorted(upi.items()):
@@ -1242,7 +1242,7 @@ class Annexes(object):
                                             \hline
                                             ''' % dico_user
 
-                                        comptes_utilises = Annexes.comptes_in_somme(smu['comptes'], comptes)
+                                        comptes_utilises = Outils.comptes_in_somme(smu['comptes'], comptes)
 
                                         for num_compte, id_compte in sorted(comptes_utilises.items()):
                                             smuc = smu['comptes'][id_compte]
@@ -1281,7 +1281,7 @@ class Annexes(object):
                 if code_client in acces.sommes:
                     ac_somme = acces.sommes[code_client]['machines']
 
-                machines_utilisees = Annexes.machines_in_somme(scl['res'], machines)
+                machines_utilisees = Outils.machines_in_somme(scl['res'], machines)
 
                 for id_cout, mics in sorted(machines_utilisees.items()):
                     for nom_machine, id_machine in sorted(mics.items()):
@@ -1305,7 +1305,7 @@ class Annexes(object):
                                         'tot_hp': Outils.format_heure(tot_hp), 'tot_hc': Outils.format_heure(tot_hc)}
 
                         sclu = scl['res'][id_machine]['users']
-                        utilisateurs = Annexes.utilisateurs_in_somme(sclu, users)
+                        utilisateurs = Outils.utilisateurs_in_somme(sclu, users)
 
                         if re_hp > 0:
                             contenu_stats_client += r'''
@@ -1395,7 +1395,7 @@ class Annexes(object):
 
                 somme = reservations.sommes[code_client]
 
-                machines_reservees = Annexes.machines_in_somme(somme, machines)
+                machines_reservees = Outils.machines_in_somme(somme, machines)
 
                 for id_cout, mics in sorted(machines_reservees.items()):
                     for nom_machine, id_machine in sorted(mics.items()):
@@ -1409,7 +1409,7 @@ class Annexes(object):
                                     \hline
                                     ''' % dico_machine
 
-                        utilisateurs = Annexes.utilisateurs_in_somme(somme[id_machine]['users'], users)
+                        utilisateurs = Outils.utilisateurs_in_somme(somme[id_machine]['users'], users)
 
                         for nom, upi in sorted(utilisateurs.items()):
                             for prenom, ids in sorted(upi.items()):
@@ -1523,66 +1523,3 @@ class Annexes(object):
             ''' % dic_section
 
         return section
-
-    @staticmethod
-    def utilisateurs_in_somme(somme, users):
-        """
-        création de la liste des utilisateurs présents dans une somme
-        :param somme: somme concernée
-        :param users: données users
-        :return: liste d'utilisateurs triée par nom, puis par prénom
-        """
-        utilisateurs = {}
-        for key in somme:
-            prenom = users.donnees[key]['prenom']
-            nom = users.donnees[key]['nom']
-            if nom not in utilisateurs:
-                utilisateurs[nom] = {}
-            if prenom not in utilisateurs[nom]:
-                utilisateurs[nom][prenom] = []
-            utilisateurs[nom][prenom].append(key)
-
-        return utilisateurs
-
-    @staticmethod
-    def machines_in_somme(somme, machines):
-        """
-        création de la liste des machines présentes dans une somme
-        :param somme: somme concernée
-        :param machines: données machines
-        :return: liste de machines triée par id_cout, puis par nom
-        """
-        machines_utilisees = {}
-        for key in somme:
-            id_cout = machines.donnees[key]['id_cout']
-            nom = machines.donnees[key]['nom']
-            if id_cout not in machines_utilisees:
-                machines_utilisees[id_cout] = {}
-            machines_utilisees[id_cout][nom] = key
-
-        return machines_utilisees
-
-    @staticmethod
-    def comptes_in_somme(somme, comptes):
-        """
-        création de la liste des comptes présents dans une somme
-        :param somme: somme concernée
-        :param comptes: données comptes
-        :return: liste de comptes, triée par numéro
-        """
-        comptes_utilises = {}
-        max_size = 0
-        for key in somme:
-            numero = comptes.donnees[key]['numero']
-            if len(numero) > max_size:
-                max_size = len(numero)
-
-        for key in somme:
-            numero = comptes.donnees[key]['numero']
-            num = numero
-            for dif in range(len(numero),max_size):
-                num = '0' + num
-            if num not in comptes_utilises:
-                comptes_utilises[num] = key
-
-        return comptes_utilises

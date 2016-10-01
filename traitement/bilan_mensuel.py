@@ -1,5 +1,5 @@
 from outils import Outils
-
+import math
 
 class BilanMensuel(object):
     """
@@ -61,8 +61,8 @@ class BilanMensuel(object):
                          Outils.format_2_dec(scl['mt'])]
                 for categorie in generaux.codes_d3():
                     ligne.append(Outils.format_2_dec(scl['tot_cat'][categorie]))
-                ligne += [Outils.format_2_dec(total), Outils.format_2_dec(bst), Outils.format_2_dec(bht),
-                          Outils.format_2_dec(scl['somme_t_mb'])]
+                ligne += [Outils.format_2_dec(total), math.ceil(bst), math.ceil(bht),
+                          scl['somme_t_mb']]
                 fichier_writer.writerow(ligne)
 
     @staticmethod

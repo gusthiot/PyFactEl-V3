@@ -250,3 +250,66 @@ class Outils(object):
             return "%.2f" % round(nombre, 2)
         except ValueError:
             return "pas un nombre"
+
+    @staticmethod
+    def utilisateurs_in_somme(somme, users):
+        """
+        création de la liste des utilisateurs présents dans une somme
+        :param somme: somme concernée
+        :param users: données users
+        :return: liste d'utilisateurs triée par nom, puis par prénom
+        """
+        utilisateurs = {}
+        for key in somme:
+            prenom = users.donnees[key]['prenom']
+            nom = users.donnees[key]['nom']
+            if nom not in utilisateurs:
+                utilisateurs[nom] = {}
+            if prenom not in utilisateurs[nom]:
+                utilisateurs[nom][prenom] = []
+            utilisateurs[nom][prenom].append(key)
+
+        return utilisateurs
+
+    @staticmethod
+    def machines_in_somme(somme, machines):
+        """
+        création de la liste des machines présentes dans une somme
+        :param somme: somme concernée
+        :param machines: données machines
+        :return: liste de machines triée par id_cout, puis par nom
+        """
+        machines_utilisees = {}
+        for key in somme:
+            id_cout = machines.donnees[key]['id_cout']
+            nom = machines.donnees[key]['nom']
+            if id_cout not in machines_utilisees:
+                machines_utilisees[id_cout] = {}
+            machines_utilisees[id_cout][nom] = key
+
+        return machines_utilisees
+
+    @staticmethod
+    def comptes_in_somme(somme, comptes):
+        """
+        création de la liste des comptes présents dans une somme
+        :param somme: somme concernée
+        :param comptes: données comptes
+        :return: liste de comptes, triée par numéro
+        """
+        comptes_utilises = {}
+        max_size = 0
+        for key in somme:
+            numero = comptes.donnees[key]['numero']
+            if len(numero) > max_size:
+                max_size = len(numero)
+
+        for key in somme:
+            numero = comptes.donnees[key]['numero']
+            num = numero
+            for dif in range(len(numero), max_size):
+                num = '0' + num
+            if num not in comptes_utilises:
+                comptes_utilises[num] = key
+
+        return comptes_utilises
