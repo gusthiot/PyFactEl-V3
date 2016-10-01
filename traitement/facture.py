@@ -154,7 +154,8 @@ class Facture(object):
                         if sco['somme_j_mm'] > 0:
                             fichier_writer.writerow(self.ligne_facture(generaux, generaux.articles[2], poste,
                                                                        sco['somme_j_mm'], sco['somme_j_mr'], op_centre,
-                                                                       compte['intitule'], edition))
+                                                                       compte['numero'] + " - " + compte['intitule'],
+                                                                       edition))
                             contenu_client += self.ligne_tableau(generaux.articles[2], poste, sco['somme_j_mm'],
                                                                  sco['somme_j_mr'],
                                                                  compte['numero'] + " - " + compte['intitule'], edition)
@@ -166,6 +167,7 @@ class Facture(object):
                                 fichier_writer.writerow(self.ligne_facture(generaux, article, poste,
                                                                            sco['sommes_cat_m'][categorie],
                                                                            sco['sommes_cat_r'][categorie], op_centre,
+                                                                           compte['numero'] + " - " +
                                                                            compte['intitule'], edition))
                                 contenu_client += self.ligne_tableau(article, poste, sco['sommes_cat_m'][categorie],
                                                                      sco['sommes_cat_r'][categorie],
@@ -242,7 +244,7 @@ class Facture(object):
                 article.unite, article.type_prix, net,
                 article.type_rabais, rabais, date_livraison, generaux.centre_financier, "",
                 generaux.fonds, "", "", code_op, "", "", "", article.texte_sap,
-                consommateur]
+                Latex.echappe_caracteres(consommateur)]
 
     def creer_html(self, contenu, destination, combo_list):
         if self.prod2qual:
