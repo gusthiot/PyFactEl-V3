@@ -42,10 +42,10 @@ plateforme = sys.platform
 if arguments["--sansgraphiques"]:
     Outils.interface_graphique(False)
 
-if arguments["--entrees"] :
-  dossier_data = arguments["--entrees"]
+if arguments["--entrees"]:
+    dossier_data = arguments["--entrees"]
 else:
-  dossier_data = Outils.choisir_dossier(plateforme)
+    dossier_data = Outils.choisir_dossier(plateforme)
 dossier_source = DossierSource(dossier_data)
 
 edition = Edition(dossier_source)
@@ -124,8 +124,9 @@ if Latex.possibles():
 BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces, livraisons)
 
 for fichier in [acces.nom_fichier, clients.nom_fichier, coefmachines.nom_fichier, coefprests.nom_fichier,
-                  comptes.nom_fichier, livraisons.nom_fichier, machines.nom_fichier, prestations.nom_fichier,
-                  reservations.nom_fichier, couts.nom_fichier, generaux.nom_fichier, edition.nom_fichier]:
+                comptes.nom_fichier, livraisons.nom_fichier, machines.nom_fichier, prestations.nom_fichier,
+                reservations.nom_fichier, couts.nom_fichier, users.nom_fichier, generaux.nom_fichier,
+                edition.nom_fichier]:
     dossier_destination.ecrire(fichier, dossier_source.lire(fichier))
 
 Outils.affiche_message("OK !!!")

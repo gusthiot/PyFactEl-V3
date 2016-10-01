@@ -156,7 +156,8 @@ class Facture(object):
                                                                        sco['somme_j_mm'], sco['somme_j_mr'], op_centre,
                                                                        compte['intitule'], edition))
                             contenu_client += self.ligne_tableau(generaux.articles[2], poste, sco['somme_j_mm'],
-                                                                 sco['somme_j_mr'], compte['intitule'], edition)
+                                                                 sco['somme_j_mr'],
+                                                                 compte['numero'] + " - " + compte['intitule'], edition)
                             poste += 1
 
                         for article in generaux.articles_d3:
@@ -167,7 +168,8 @@ class Facture(object):
                                                                            sco['sommes_cat_r'][categorie], op_centre,
                                                                            compte['intitule'], edition))
                                 contenu_client += self.ligne_tableau(article, poste, sco['sommes_cat_m'][categorie],
-                                                                     sco['sommes_cat_r'][categorie], compte['intitule'],
+                                                                     sco['sommes_cat_r'][categorie],
+                                                                     compte['numero'] + " - " + compte['intitule'],
                                                                      edition)
                                 poste += 1
                         inc += 1
