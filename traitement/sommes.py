@@ -125,7 +125,6 @@ class Sommes(object):
             somme['sommes_cat_m'][prestation['categorie']] += livraison['montant']
             somme['sommes_cat_m_x'][prestation['categorie']] += livraison['montantx']
             somme['sommes_cat_r'][prestation['categorie']] += livraison['rabais_r']
-            somme['tot_cat_x'][prestation['categorie']] += livraison['montantx'] - livraison['rabais_r']
 
         for code_client in spco:
             for id_compte in spco[code_client]:
@@ -167,23 +166,22 @@ class Sommes(object):
                     somme['sommes_cat_m_x_d'][categorie] = cat_mx - somme['sommes_cat_m_x'][categorie]
                     somme['sommes_cat_m_x'][categorie] = cat_mx
 
-                    tot_mx = round(2 * somme['tot_cat_x'][categorie], 1) / 2
                     somme['tot_cat_x'][categorie] = somme['sommes_cat_m_x'][categorie] - somme['sommes_cat_r'][categorie]
 
                 mu1 = round(2 * somme['mu1'], 1) / 2
-                somme['mu1_d'] = somme['mu1'] - mu1
+                somme['mu1_d'] = mu1 - somme['mu1']
                 somme['mu1'] = mu1
 
                 mu2 = round(2 * somme['mu2'], 1) / 2
-                somme['mu2_d'] = somme['mu2'] - mu2
+                somme['mu2_d'] = mu2 - somme['mu2']
                 somme['mu2'] = mu2
 
                 mu3 = round(2 * somme['mu3'], 1) / 2
-                somme['mu3_d'] = somme['mu3'] - mu3
+                somme['mu3_d'] = mu3 - somme['mu3']
                 somme['mu3'] = mu3
 
                 mmo = round(2 * somme['mmo'], 1) / 2
-                somme['mmo_d'] = somme['mmo'] - mmo
+                somme['mmo_d'] = mmo - somme['mmo']
                 somme['mmo'] = mmo
 
                 tot = somme['somme_j_mm']
