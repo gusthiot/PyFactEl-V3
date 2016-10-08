@@ -332,11 +332,11 @@ class Annexes(object):
                 \multicolumn{1}{r|}{} & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais}
                 & \multicolumn{1}{c|}{Net} \\
                 \hline
-                Machine & %(maij)s & %(mr)s  & %(nmij)s \\
-                \hline
-                Main d'oeuvre & %(moij)s & & %(moij)s  \\
-                \hline
                 %(int_proc)s & %(mm)s & %(mr)s & %(mj)s \\
+                \hline
+                \hspace{5mm} \textit{Machine} & \textit{%(maij)s} \hspace{5mm} & \textit{%(mr)s} \hspace{5mm} & \textit{%(nmij)s} \hspace{5mm} \\
+                \hline
+                \hspace{5mm} \textit{Main d'oeuvre opérateur} & \textit{%(moij)s} \hspace{5mm} & & \textit{%(moij)s} \hspace{5mm} \\
                 \hline
                 ''' % dico_recap_poste
 
