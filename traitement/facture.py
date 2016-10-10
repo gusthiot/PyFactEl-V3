@@ -65,10 +65,8 @@ class Facture(object):
                 scl = sommes.sommes_clients[code_client]
                 client = clients.donnees[code_client]
 
-                tot = scl['somme_t_mm']
-                for categorie in generaux.codes_d3():
-                    tot += scl['sommes_cat_m'][categorie]
-                if tot == 0 and scl['e'] == 0:
+                tot = scl['somme_t'] + scl['e']
+                if tot == 0:
                     continue
     
                 code_sap = client['code_sap']

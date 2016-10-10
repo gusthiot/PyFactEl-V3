@@ -86,6 +86,12 @@ class Annexes(object):
             return
 
         for code_client in sommes.sommes_clients.keys():
+
+            scl = sommes.sommes_clients[code_client]
+            tot = scl['somme_t'] + scl['e']
+            if tot == 0:
+                continue
+
             contenu = Latex.entete(plateforme)
             contenu += r'''
                 \usepackage[margin=10mm, includehead]{geometry}
@@ -187,8 +193,6 @@ class Annexes(object):
         for article in generaux.articles_d3:
             contenu_prestations_client_tab[article.code_d] = ""
 
-        comptes_utilises = Outils.comptes_in_somme(sommes.sommes_comptes[code_client], comptes)
-
         titre_5 = "Justificatif des coûts d'utilisation par compte"
         nombre_5 = "V"
         titre_4 = "Annexe détaillée par compte"
@@ -199,712 +203,716 @@ class Annexes(object):
         contenu_compte_annexe4 = ""
         contenu_compte_annexe5 = ""
 
-        for num_compte, id_compte in sorted(comptes_utilises.items()):
+        if code_client in sommes.sommes_comptes:
+            comptes_utilises = Outils.comptes_in_somme(sommes.sommes_comptes[code_client], comptes)
 
-            # ## COMPTE
 
-            sco = sommes.sommes_comptes[code_client][id_compte]
-            compte = comptes.donnees[id_compte]
-            intitule_compte = compte['numero'] + " - " + Latex.echappe_caracteres(compte['intitule'])
+            for num_compte, id_compte in sorted(comptes_utilises.items()):
 
-            titre2 = "Récapitulatif du compte : " + intitule_compte
-            contenu_compte_annexe2 += Annexes.section(code_client, client, edition, reference, titre2, nombre_2)
+                # ## COMPTE
 
-            titre4 = "Annexe détaillée du compte : " + intitule_compte
-            contenu_compte_annexe4 += Annexes.section(code_client, client, edition, reference, titre4, nombre_4)
+                sco = sommes.sommes_comptes[code_client][id_compte]
+                compte = comptes.donnees[id_compte]
+                intitule_compte = compte['numero'] + " - " + Latex.echappe_caracteres(compte['intitule'])
 
-            titre5 = "Justificatif des coûts d'utilisation du compte : " + intitule_compte
-            contenu_compte_annexe5 += Annexes.section(code_client, client, edition, reference, titre5, nombre_5)
+                titre2 = "Récapitulatif du compte : " + intitule_compte
+                contenu_compte_annexe2 += Annexes.section(code_client, client, edition, reference, titre2, nombre_2)
 
-            # ## ligne 1.1
+                titre4 = "Annexe détaillée du compte : " + intitule_compte
+                contenu_compte_annexe4 += Annexes.section(code_client, client, edition, reference, titre4, nombre_4)
 
-            if sco['si_facture'] > 0:
-                poste = inc_fact * 10
-                intitule = intitule_compte + " - " + generaux.articles[2].intitule_long
-                dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
-                                    'mm': Outils.format_2_dec(sco['somme_j_mm']),
-                                    'mr': Outils.format_2_dec(sco['somme_j_mr']), 'mj': Outils.format_2_dec(sco['mj'])}
-                contenu_fact_compte += r'''
-                    %(poste)s & %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
-                    \hline
-                    ''' % dico_fact_compte
-                poste += 1
+                titre5 = "Justificatif des coûts d'utilisation du compte : " + intitule_compte
+                contenu_compte_annexe5 += Annexes.section(code_client, client, edition, reference, titre5, nombre_5)
 
-                for article in generaux.articles_d3:
-                    categorie = article.code_d
-                    if sco['sommes_cat_m'][categorie] > 0:
-                        intitule = intitule_compte + " - " + Latex.echappe_caracteres(article.intitule_long)
-                        dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
-                                            'mm': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
-                                            'mr': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
-                                            'mj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
-                        contenu_fact_compte += r'''
-                            %(poste)s & %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
-                            \hline
-                            ''' % dico_fact_compte
-                        poste += 1
+                # ## ligne 1.1
 
-                inc_fact += 1
-
-            # ## ligne 1.5
-
-            total = sco['mj']
-            dico_recap_compte = {'compte': intitule_compte, 'procede': Outils.format_2_dec(sco['mj'])}
-
-            ligne = r'''%(compte)s & %(procede)s ''' % dico_recap_compte
-
-            for categorie in generaux.codes_d3():
-                total += sco['tot_cat'][categorie]
-                ligne += r''' & ''' + Outils.format_2_dec(sco['tot_cat'][categorie])
-
-            if total > 0:
-                dico_recap_compte['total'] = Outils.format_2_dec(total)
-                ligne += r'''& %(total)s \\
-                    \hline
-                    ''' % dico_recap_compte
-                contenu_recap_compte += ligne
-
-            # ## 1.6
-
-            rsj = client['rs'] * sco['somme_j_dsi']
-            rhj = client['rh'] * sco['somme_j_dhi']
-            dico_procedes_compte = {'intitule': intitule_compte, 'maij': Outils.format_2_dec(sco['somme_j_mai']),
-                                    'mm': Outils.format_2_dec(sco['somme_j_mm']),
-                                    'mr': Outils.format_2_dec(sco['somme_j_mr']),
-                                    'rsj': Outils.format_2_dec(rsj), 'rhj': Outils.format_2_dec(rhj),
-                                    'moij': Outils.format_2_dec(sco['somme_j_moi']),
-                                    'mj': Outils.format_2_dec(sco['mj'])}
-            contenu_procedes_compte += r'''
-                %(intitule)s & %(maij)s & %(moij)s & %(rsj)s & %(rhj)s & %(mm)s & %(mr)s & %(mj)s \\
-                \hline
-                ''' % dico_procedes_compte
-
-            # ## ligne 1.7
-
-            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
-                for article in generaux.articles_d3:
-                    if article.code_d in livraisons.sommes[code_client][id_compte]:
-                        if contenu_prestations_client_tab[article.code_d] == "":
-                            contenu_prestations_client_tab[article.code_d] = r'''
-                                \cline{2-4}
-                                \multicolumn{1}{c}{} & \multicolumn{3}{|c|}{''' + article.intitule_long + r'''} \\
-                                \hline
-                                Compte & Montant & Rabais & Montant net \\
-                                \hline
-                                '''
-                        dico_prestations_client = {'intitule': intitule_compte,
-                                                   'cmj': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
-                                                   'crj': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
-                                                   'cj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
-                        contenu_prestations_client_tab[article.code_d] += r'''
-                        %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
+                if sco['si_facture'] > 0:
+                    poste = inc_fact * 10
+                    intitule = intitule_compte + " - " + generaux.articles[2].intitule_long
+                    dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
+                                        'mm': Outils.format_2_dec(sco['somme_j_mm']),
+                                        'mr': Outils.format_2_dec(sco['somme_j_mr']), 'mj': Outils.format_2_dec(sco['mj'])}
+                    contenu_fact_compte += r'''
+                        %(poste)s & %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
                         \hline
-                        ''' % dico_prestations_client
+                        ''' % dico_fact_compte
+                    poste += 1
 
-            # ## ligne 1.8
+                    for article in generaux.articles_d3:
+                        categorie = article.code_d
+                        if sco['sommes_cat_m'][categorie] > 0:
+                            intitule = intitule_compte + " - " + Latex.echappe_caracteres(article.intitule_long)
+                            dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
+                                                'mm': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                                'mr': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                                'mj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
+                            contenu_fact_compte += r'''
+                                %(poste)s & %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
+                                \hline
+                                ''' % dico_fact_compte
+                            poste += 1
 
-            if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
-                bsj = client['bs'] * sco['somme_j_dsi']
-                bhj = client['bh'] * sco['somme_j_dhi']
-                dico_bonus_compte = {'compte': intitule_compte, 'bsj': Outils.format_2_dec(bsj),
-                                     'bhj': Outils.format_2_dec(bhj), 'tot': Outils.format_2_dec(sco['somme_j_mb'])}
-                contenu_bonus_compte += r'''
-                    %(compte)s & %(bsj)s & %(bhj)s & %(tot)s \\
+                    inc_fact += 1
+
+                # ## ligne 1.5
+
+                total = sco['mj']
+                dico_recap_compte = {'compte': intitule_compte, 'procede': Outils.format_2_dec(sco['mj'])}
+
+                ligne = r'''%(compte)s & %(procede)s ''' % dico_recap_compte
+
+                for categorie in generaux.codes_d3():
+                    total += sco['tot_cat'][categorie]
+                    ligne += r''' & ''' + Outils.format_2_dec(sco['tot_cat'][categorie])
+
+                if total > 0:
+                    dico_recap_compte['total'] = Outils.format_2_dec(total)
+                    ligne += r'''& %(total)s \\
+                        \hline
+                        ''' % dico_recap_compte
+                    contenu_recap_compte += ligne
+
+                # ## 1.6
+
+                rsj = client['rs'] * sco['somme_j_dsi']
+                rhj = client['rh'] * sco['somme_j_dhi']
+                dico_procedes_compte = {'intitule': intitule_compte, 'maij': Outils.format_2_dec(sco['somme_j_mai']),
+                                        'mm': Outils.format_2_dec(sco['somme_j_mm']),
+                                        'mr': Outils.format_2_dec(sco['somme_j_mr']),
+                                        'rsj': Outils.format_2_dec(rsj), 'rhj': Outils.format_2_dec(rhj),
+                                        'moij': Outils.format_2_dec(sco['somme_j_moi']),
+                                        'mj': Outils.format_2_dec(sco['mj'])}
+                contenu_procedes_compte += r'''
+                    %(intitule)s & %(maij)s & %(moij)s & %(rsj)s & %(rhj)s & %(mm)s & %(mr)s & %(mj)s \\
                     \hline
-                    ''' % dico_bonus_compte
+                    ''' % dico_procedes_compte
 
-            # ## 2.1
+                # ## ligne 1.7
 
-            structure_recap_poste = r'''{|l|r|r|r|}'''
-            legende_recap_poste = r'''Table II.1 - Récapitulatif du compte'''
+                if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                    for article in generaux.articles_d3:
+                        if article.code_d in livraisons.sommes[code_client][id_compte]:
+                            if contenu_prestations_client_tab[article.code_d] == "":
+                                contenu_prestations_client_tab[article.code_d] = r'''
+                                    \cline{2-4}
+                                    \multicolumn{1}{c}{} & \multicolumn{3}{|c|}{''' + article.intitule_long + r'''} \\
+                                    \hline
+                                    Compte & Montant & Rabais & Montant net \\
+                                    \hline
+                                    '''
+                            dico_prestations_client = {'intitule': intitule_compte,
+                                                       'cmj': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                                       'crj': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                                       'cj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
+                            contenu_prestations_client_tab[article.code_d] += r'''
+                            %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
+                            \hline
+                            ''' % dico_prestations_client
 
-            dico_recap_poste = {'mm': Outils.format_2_dec(sco['somme_j_mm']),
-                                'mr': Outils.format_2_dec(sco['somme_j_mr']),
+                # ## ligne 1.8
+
+                if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
+                    bsj = client['bs'] * sco['somme_j_dsi']
+                    bhj = client['bh'] * sco['somme_j_dhi']
+                    dico_bonus_compte = {'compte': intitule_compte, 'bsj': Outils.format_2_dec(bsj),
+                                         'bhj': Outils.format_2_dec(bhj), 'tot': Outils.format_2_dec(sco['somme_j_mb'])}
+                    contenu_bonus_compte += r'''
+                        %(compte)s & %(bsj)s & %(bhj)s & %(tot)s \\
+                        \hline
+                        ''' % dico_bonus_compte
+
+                # ## 2.1
+
+                structure_recap_poste = r'''{|l|r|r|r|}'''
+                legende_recap_poste = r'''Table II.1 - Récapitulatif du compte'''
+
+                dico_recap_poste = {'mm': Outils.format_2_dec(sco['somme_j_mm']),
+                                    'mr': Outils.format_2_dec(sco['somme_j_mr']),
+                                    'maij': Outils.format_2_dec(sco['somme_j_mai']),
+                                    'dsij': Outils.format_2_dec(sco['somme_j_dsi']),
+                                    'dhij': Outils.format_2_dec(sco['somme_j_dhi']), 'mj': Outils.format_2_dec(sco['mj']),
+                                    'nmij': Outils.format_2_dec((sco['somme_j_mai']-sco['somme_j_mr'])),
+                                    'moij': Outils.format_2_dec(sco['somme_j_moi']),
+                                    'int_proc': generaux.articles[2].intitule_long}
+
+                contenu_recap_poste = r'''
+                    \cline{2-4}
+                    \multicolumn{1}{r|}{} & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais}
+                    & \multicolumn{1}{c|}{Net} \\
+                    \hline
+                    %(int_proc)s & %(mm)s & %(mr)s & %(mj)s \\
+                    \hline
+                    \hspace{5mm} \textit{Machine} & \textit{%(maij)s} \hspace{5mm} & \textit{%(mr)s} \hspace{5mm} & \textit{%(nmij)s} \hspace{5mm} \\
+                    \hline
+                    \hspace{5mm} \textit{Main d'oeuvre opérateur} & \textit{%(moij)s} \hspace{5mm} & & \textit{%(moij)s} \hspace{5mm} \\
+                    \hline
+                    ''' % dico_recap_poste
+
+                total = sco['mj']
+                for article in generaux.articles_d3:
+                    total += sco['tot_cat'][article.code_d]
+                    dico_recap_poste = {'intitule': Latex.echappe_caracteres(article.intitule_long),
+                                        'cmj': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                        'crj': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                        'cj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
+                    contenu_recap_poste += r'''
+                    %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
+                    \hline
+                    ''' % dico_recap_poste
+
+                contenu_recap_poste += r'''\multicolumn{3}{|r|}{Total} & ''' + Outils.format_2_dec(total) + r'''\\
+                    \hline
+                    '''
+
+                contenu_compte_annexe2 += Latex.tableau(contenu_recap_poste, structure_recap_poste, legende_recap_poste)
+
+                # ## 2.2
+
+                if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
+                    structure_utilise_compte = r'''{|l|c|c|c|r|r|r|r|r|r|}'''
+                    legende_utilise_compte = r'''Table II.2 - Procédés (machine + main d'oeuvre)'''
+
+                    contenu_utilise_compte = r'''
+                        \cline{3-10}
+                        \multicolumn{2}{c}{} & \multicolumn{2}{|c|}{Machine} & \multicolumn{2}{c|}{PU [CHF/h]}
+                        & \multicolumn{2}{c|}{Montant [CHF]} & \multicolumn{1}{c|}{Déduc. Sp.}
+                        & \multicolumn{1}{c|}{Déduc. HC} \\
+                        \hline
+                        \multicolumn{2}{|l|}{\textbf{''' + intitule_compte + r'''}} & Mach. & Oper.
+                        & \multicolumn{1}{c|}{Mach.} & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{Mach.}
+                        & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{''' + av_ds + r'''}
+                        & \multicolumn{1}{c|}{''' + av_hc + r'''} \\
+                        \hline
+                        '''
+
+                    somme = acces.sommes[code_client]['comptes'][id_compte]
+
+                    machines_utilisees = Outils.machines_in_somme(somme, machines)
+
+                    for id_cout, mics in sorted(machines_utilisees.items()):
+                        for nom, id_machine in sorted(mics.items()):
+                            dico_machine = {'machine': Latex.echappe_caracteres(nom),
+                                            'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
+                                            'hc': Outils.format_heure(somme[id_machine]['duree_hc']),
+                                            'mo_hp': Outils.format_heure(somme[id_machine]['mo_hp']),
+                                            'mo_hc': Outils.format_heure(somme[id_machine]['mo_hc']),
+                                            'pu_m': Outils.format_2_dec(somme[id_machine]['pum']),
+                                            'puo_hp': Outils.format_2_dec(somme[id_machine]['puo_hp']),
+                                            'puo_hc': Outils.format_2_dec(somme[id_machine]['puo_hc']),
+                                            'mai_hp': Outils.format_2_dec(somme[id_machine]['mai_hp']),
+                                            'mai_hc': Outils.format_2_dec(somme[id_machine]['mai_hc']),
+                                            'moi_hp': Outils.format_2_dec(somme[id_machine]['moi_hp']),
+                                            'moi_hc': Outils.format_2_dec(somme[id_machine]['moi_hc']),
+                                            'dsi_hp': Outils.format_2_dec(somme[id_machine]['dsi_hp']),
+                                            'dsi_hc': Outils.format_2_dec(somme[id_machine]['dsi_hc']),
+                                            'dhi': Outils.format_2_dec(somme[id_machine]['dhi'])}
+
+                            if somme[id_machine]['duree_hp'] > 0 or somme[id_machine]['mo_hp'] > 0:
+                                contenu_utilise_compte += r'''
+                                    %(machine)s & HP & %(hp)s & %(mo_hp)s & %(pu_m)s & %(puo_hp)s & %(mai_hp)s
+                                    & %(moi_hp)s & %(dsi_hp)s & \\
+                                    \hline
+                                    ''' % dico_machine
+
+                            if somme[id_machine]['duree_hc'] > 0 or somme[id_machine]['mo_hc'] > 0:
+                                contenu_utilise_compte += r'''
+                                    %(machine)s & HC & %(hc)s & %(mo_hc)s & %(pu_m)s & %(puo_hc)s & %(mai_hc)s
+                                    & %(moi_hc)s & %(dsi_hc)s & %(dhi)s \\
+                                    \hline
+                                    ''' % dico_machine
+
+                    dico_tot = {'maij_d': Outils.format_2_dec(sco['somme_j_mai_d']),
+                                'moij_d': Outils.format_2_dec(sco['somme_j_moi_d']),
+                                'dsij_d': Outils.format_2_dec(sco['somme_j_dsi_d']),
+                                'dhij_d': Outils.format_2_dec(sco['somme_j_dhi_d']),
                                 'maij': Outils.format_2_dec(sco['somme_j_mai']),
-                                'dsij': Outils.format_2_dec(sco['somme_j_dsi']),
-                                'dhij': Outils.format_2_dec(sco['somme_j_dhi']), 'mj': Outils.format_2_dec(sco['mj']),
-                                'nmij': Outils.format_2_dec((sco['somme_j_mai']-sco['somme_j_mr'])),
                                 'moij': Outils.format_2_dec(sco['somme_j_moi']),
-                                'int_proc': generaux.articles[2].intitule_long}
+                                'dsij': Outils.format_2_dec(sco['somme_j_dsi']),
+                                'dhij': Outils.format_2_dec(sco['somme_j_dhi']),
+                                'rabais': Outils.format_2_dec(sco['somme_j_mr']),
+                                'bonus': Outils.format_2_dec(sco['somme_j_mb'])}
+                    contenu_utilise_compte += r'''
+                        \multicolumn{6}{|r|}{Arrondi} & %(maij_d)s & %(moij_d)s & %(dsij_d)s & %(dhij_d)s \\
+                        \hline
+                        \multicolumn{6}{|r|}{Total} & %(maij)s & %(moij)s & %(dsij)s & %(dhij)s \\
+                        \hline
+                        ''' % dico_tot
+                    if av_ds == "RABAIS" or av_hc == "RABAIS":
+                        contenu_utilise_compte += r'''
+                            \multicolumn{6}{r}{} & \multicolumn{2}{|r|}{Rabais total} & \multicolumn{2}{r|}{%(rabais)s} \\
+                            \cline{7-10}
+                            ''' % dico_tot
+                    if av_ds == "BONUS" or av_hc == "BONUS":
+                        contenu_utilise_compte += r'''
+                            \multicolumn{6}{r}{} & \multicolumn{2}{|r|}{Bonus total} & \multicolumn{2}{r|}{%(bonus)s} \\
+                            \cline{7-10}
+                            ''' % dico_tot
 
-            contenu_recap_poste = r'''
-                \cline{2-4}
-                \multicolumn{1}{r|}{} & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais}
-                & \multicolumn{1}{c|}{Net} \\
-                \hline
-                %(int_proc)s & %(mm)s & %(mr)s & %(mj)s \\
-                \hline
-                \hspace{5mm} \textit{Machine} & \textit{%(maij)s} \hspace{5mm} & \textit{%(mr)s} \hspace{5mm} & \textit{%(nmij)s} \hspace{5mm} \\
-                \hline
-                \hspace{5mm} \textit{Main d'oeuvre opérateur} & \textit{%(moij)s} \hspace{5mm} & & \textit{%(moij)s} \hspace{5mm} \\
-                \hline
-                ''' % dico_recap_poste
+                    contenu_compte_annexe2 += Latex.tableau(contenu_utilise_compte, structure_utilise_compte,
+                                                            legende_utilise_compte)
+                else:
+                    contenu_compte_annexe2 += Latex.tableau_vide(r'''Table II.2 - Procédés (machine + main d'oeuvre) :
+                        table vide (pas d’utilisation machines)''')
 
-            total = sco['mj']
-            for article in generaux.articles_d3:
-                total += sco['tot_cat'][article.code_d]
-                dico_recap_poste = {'intitule': Latex.echappe_caracteres(article.intitule_long),
-                                    'cmj': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
-                                    'crj': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
-                                    'cj': Outils.format_2_dec(sco['tot_cat'][article.code_d])}
-                contenu_recap_poste += r'''
-                %(intitule)s & %(cmj)s & %(crj)s & %(cj)s \\
-                \hline
-                ''' % dico_recap_poste
+                # ## 2.3
 
-            contenu_recap_poste += r'''\multicolumn{3}{|r|}{Total} & ''' + Outils.format_2_dec(total) + r'''\\
-                \hline
-                '''
+                if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                    somme = livraisons.sommes[code_client][id_compte]
+                    structure_prests_compte = r'''{|l|r|c|r|r|r|}'''
+                    legende_prests_compte = r'''Table II.3 - Prestations livrées'''
+                    contenu_prests_compte = ""
+                    for article in generaux.articles_d3:
+                        if article.code_d in somme:
+                            if contenu_prests_compte != "":
+                                contenu_prests_compte += r'''
+                                    \multicolumn{6}{c}{} \\
+                                    '''
 
-            contenu_compte_annexe2 += Latex.tableau(contenu_recap_poste, structure_recap_poste, legende_recap_poste)
+                            contenu_prests_compte += r'''
+                                \hline
+                                \multicolumn{1}{|l|}{
+                                \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                                }} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
+                                & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} \\
+                                \hline
+                                '''
+                            for no_prestation, sip in sorted(somme[article.code_d].items()):
+                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
+                                                    'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
+                                                    'pu': Outils.format_2_dec(sip['pu']),
+                                                    'montant': Outils.format_2_dec(sip['montant']),
+                                                    'rabais': Outils.format_2_dec(sip['rabais'])}
+                                contenu_prests_compte += r'''
+                                    %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(pu)s & %(montant)s
+                                    & %(rabais)s  \\
+                                    \hline
+                                    ''' % dico_prestations
+                            dico_prestations = {'montant_d': Outils.format_2_dec(sco['sommes_cat_m_d'][article.code_d]),
+                                                'rabais_d': Outils.format_2_dec(sco['sommes_cat_r_d'][article.code_d]),
+                                                'montant': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
+                                                'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d])}
+                            contenu_prests_compte += r'''
+                                \multicolumn{4}{|r|}{Arrondi} & %(montant_d)s & %(rabais_d)s  \\
+                                \hline
+                                \multicolumn{4}{|r|}{Total} & %(montant)s & %(rabais)s  \\
+                                \hline
+                                ''' % dico_prestations
+                    contenu_compte_annexe2 += Latex.tableau(contenu_prests_compte, structure_prests_compte,
+                                                            legende_prests_compte)
+                else:
+                    contenu_compte_annexe2 += Latex.tableau_vide(r'''Table II.3 - Prestations livrées :
+                        table vide (pas de prestations livrées)''')
 
-            # ## 2.2
+                # ## 4.1
 
-            if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
-                structure_utilise_compte = r'''{|l|c|c|c|r|r|r|r|r|r|}'''
-                legende_utilise_compte = r'''Table II.2 - Procédés (machine + main d'oeuvre)'''
+                if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
 
-                contenu_utilise_compte = r'''
-                    \cline{3-10}
-                    \multicolumn{2}{c}{} & \multicolumn{2}{|c|}{Machine} & \multicolumn{2}{c|}{PU [CHF/h]}
-                    & \multicolumn{2}{c|}{Montant [CHF]} & \multicolumn{1}{c|}{Déduc. Sp.}
-                    & \multicolumn{1}{c|}{Déduc. HC} \\
-                    \hline
-                    \multicolumn{2}{|l|}{\textbf{''' + intitule_compte + r'''}} & Mach. & Oper.
-                    & \multicolumn{1}{c|}{Mach.} & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{Mach.}
-                    & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{''' + av_ds + r'''}
-                    & \multicolumn{1}{c|}{''' + av_hc + r'''} \\
-                    \hline
-                    '''
+                    structure_machuts_compte = r'''{|l|l|l|c|c|c|c|}'''
+                    legende_machuts_compte = r'''Table IV.1 - Détails des utilisations machines'''
 
-                somme = acces.sommes[code_client]['comptes'][id_compte]
+                    contenu_machuts_compte = r'''
+                        \hline
+                        \multicolumn{3}{|l|}{\multirow{2}{*}{\scriptsize{\textbf{''' + intitule_compte + r'''}}}}
+                        & \multicolumn{2}{c|}{Machine} & \multicolumn{2}{c|}{Main d'oeuvre} \\
+                        \cline{4-7}
+                        \multicolumn{3}{|l|}{} & HP & HC & HP & HC \\
+                        \hline
+                        '''
 
-                machines_utilisees = Outils.machines_in_somme(somme, machines)
+                    somme = acces.sommes[code_client]['comptes'][id_compte]
 
-                for id_cout, mics in sorted(machines_utilisees.items()):
-                    for nom, id_machine in sorted(mics.items()):
-                        dico_machine = {'machine': Latex.echappe_caracteres(nom),
-                                        'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
-                                        'hc': Outils.format_heure(somme[id_machine]['duree_hc']),
-                                        'mo_hp': Outils.format_heure(somme[id_machine]['mo_hp']),
-                                        'mo_hc': Outils.format_heure(somme[id_machine]['mo_hc']),
-                                        'pu_m': Outils.format_2_dec(somme[id_machine]['pum']),
-                                        'puo_hp': Outils.format_2_dec(somme[id_machine]['puo_hp']),
-                                        'puo_hc': Outils.format_2_dec(somme[id_machine]['puo_hc']),
-                                        'mai_hp': Outils.format_2_dec(somme[id_machine]['mai_hp']),
-                                        'mai_hc': Outils.format_2_dec(somme[id_machine]['mai_hc']),
-                                        'moi_hp': Outils.format_2_dec(somme[id_machine]['moi_hp']),
-                                        'moi_hc': Outils.format_2_dec(somme[id_machine]['moi_hc']),
-                                        'dsi_hp': Outils.format_2_dec(somme[id_machine]['dsi_hp']),
-                                        'dsi_hc': Outils.format_2_dec(somme[id_machine]['dsi_hc']),
-                                        'dhi': Outils.format_2_dec(somme[id_machine]['dhi'])}
+                    machines_utilisees = Outils.machines_in_somme(somme, machines)
 
-                        if somme[id_machine]['duree_hp'] > 0 or somme[id_machine]['mo_hp'] > 0:
-                            contenu_utilise_compte += r'''
-                                %(machine)s & HP & %(hp)s & %(mo_hp)s & %(pu_m)s & %(puo_hp)s & %(mai_hp)s
-                                & %(moi_hp)s & %(dsi_hp)s & \\
+                    for id_cout, mics in sorted(machines_utilisees.items()):
+                        for nom_machine, id_machine in sorted(mics.items()):
+
+                            dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
+                                            'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
+                                            'hc': Outils.format_heure(somme[id_machine]['duree_hc']),
+                                            'mo_hp': Outils.format_heure(somme[id_machine]['mo_hp']),
+                                            'mo_hc': Outils.format_heure(somme[id_machine]['mo_hc'])}
+                            contenu_machuts_compte += r'''
+                                \multicolumn{3}{|l|}{\textbf{%(machine)s}} & \hspace{5mm} %(hp)s & \hspace{5mm} %(hc)s &
+                                 \hspace{5mm} %(mo_hp)s & \hspace{5mm} %(mo_hc)s \\
                                 \hline
                                 ''' % dico_machine
 
-                        if somme[id_machine]['duree_hc'] > 0 or somme[id_machine]['mo_hc'] > 0:
-                            contenu_utilise_compte += r'''
-                                %(machine)s & HC & %(hc)s & %(mo_hc)s & %(pu_m)s & %(puo_hc)s & %(mai_hc)s
-                                & %(moi_hc)s & %(dsi_hc)s & %(dhi)s \\
-                                \hline
-                                ''' % dico_machine
-
-                dico_tot = {'maij_d': Outils.format_2_dec(sco['somme_j_mai_d']),
-                            'moij_d': Outils.format_2_dec(sco['somme_j_moi_d']),
-                            'dsij_d': Outils.format_2_dec(sco['somme_j_dsi_d']),
-                            'dhij_d': Outils.format_2_dec(sco['somme_j_dhi_d']),
-                            'maij': Outils.format_2_dec(sco['somme_j_mai']),
-                            'moij': Outils.format_2_dec(sco['somme_j_moi']),
-                            'dsij': Outils.format_2_dec(sco['somme_j_dsi']),
-                            'dhij': Outils.format_2_dec(sco['somme_j_dhi']),
-                            'rabais': Outils.format_2_dec(sco['somme_j_mr']),
-                            'bonus': Outils.format_2_dec(sco['somme_j_mb'])}
-                contenu_utilise_compte += r'''
-                    \multicolumn{6}{|r|}{Arrondi} & %(maij_d)s & %(moij_d)s & %(dsij_d)s & %(dhij_d)s \\
-                    \hline
-                    \multicolumn{6}{|r|}{Total} & %(maij)s & %(moij)s & %(dsij)s & %(dhij)s \\
-                    \hline
-                    ''' % dico_tot
-                if av_ds == "RABAIS" or av_hc == "RABAIS":
-                    contenu_utilise_compte += r'''
-                        \multicolumn{6}{r}{} & \multicolumn{2}{|r|}{Rabais total} & \multicolumn{2}{r|}{%(rabais)s} \\
-                        \cline{7-10}
-                        ''' % dico_tot
-                if av_ds == "BONUS" or av_hc == "BONUS":
-                    contenu_utilise_compte += r'''
-                        \multicolumn{6}{r}{} & \multicolumn{2}{|r|}{Bonus total} & \multicolumn{2}{r|}{%(bonus)s} \\
-                        \cline{7-10}
-                        ''' % dico_tot
-
-                contenu_compte_annexe2 += Latex.tableau(contenu_utilise_compte, structure_utilise_compte,
-                                                        legende_utilise_compte)
-            else:
-                contenu_compte_annexe2 += Latex.tableau_vide(r'''Table II.2 - Procédés (machine + main d'oeuvre) :
-                    table vide (pas d’utilisation machines)''')
-
-            # ## 2.3
-
-            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
-                somme = livraisons.sommes[code_client][id_compte]
-                structure_prests_compte = r'''{|l|r|c|r|r|r|}'''
-                legende_prests_compte = r'''Table II.3 - Prestations livrées'''
-                contenu_prests_compte = ""
-                for article in generaux.articles_d3:
-                    if article.code_d in somme:
-                        if contenu_prests_compte != "":
-                            contenu_prests_compte += r'''
-                                \multicolumn{6}{c}{} \\
-                                '''
-
-                        contenu_prests_compte += r'''
-                            \hline
-                            \multicolumn{1}{|l|}{
-                            \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
-                            }} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
-                            & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} \\
-                            \hline
-                            '''
-                        for no_prestation, sip in sorted(somme[article.code_d].items()):
-                            dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
-                                                'pu': Outils.format_2_dec(sip['pu']),
-                                                'montant': Outils.format_2_dec(sip['montant']),
-                                                'rabais': Outils.format_2_dec(sip['rabais'])}
-                            contenu_prests_compte += r'''
-                                %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(pu)s & %(montant)s
-                                & %(rabais)s  \\
-                                \hline
-                                ''' % dico_prestations
-                        dico_prestations = {'montant_d': Outils.format_2_dec(sco['sommes_cat_m_d'][article.code_d]),
-                                            'rabais_d': Outils.format_2_dec(sco['sommes_cat_r_d'][article.code_d]),
-                                            'montant': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
-                                            'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d])}
-                        contenu_prests_compte += r'''
-                            \multicolumn{4}{|r|}{Arrondi} & %(montant_d)s & %(rabais_d)s  \\
-                            \hline
-                            \multicolumn{4}{|r|}{Total} & %(montant)s & %(rabais)s  \\
-                            \hline
-                            ''' % dico_prestations
-                contenu_compte_annexe2 += Latex.tableau(contenu_prests_compte, structure_prests_compte,
-                                                        legende_prests_compte)
-            else:
-                contenu_compte_annexe2 += Latex.tableau_vide(r'''Table II.3 - Prestations livrées :
-                    table vide (pas de prestations livrées)''')
-
-            # ## 4.1
-
-            if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
-
-                structure_machuts_compte = r'''{|l|l|l|c|c|c|c|}'''
-                legende_machuts_compte = r'''Table IV.1 - Détails des utilisations machines'''
-
-                contenu_machuts_compte = r'''
-                    \hline
-                    \multicolumn{3}{|l|}{\multirow{2}{*}{\scriptsize{\textbf{''' + intitule_compte + r'''}}}}
-                    & \multicolumn{2}{c|}{Machine} & \multicolumn{2}{c|}{Main d'oeuvre} \\
-                    \cline{4-7}
-                    \multicolumn{3}{|l|}{} & HP & HC & HP & HC \\
-                    \hline
-                    '''
-
-                somme = acces.sommes[code_client]['comptes'][id_compte]
-
-                machines_utilisees = Outils.machines_in_somme(somme, machines)
-
-                for id_cout, mics in sorted(machines_utilisees.items()):
-                    for nom_machine, id_machine in sorted(mics.items()):
-
-                        dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
-                                        'hp': Outils.format_heure(somme[id_machine]['duree_hp']),
-                                        'hc': Outils.format_heure(somme[id_machine]['duree_hc']),
-                                        'mo_hp': Outils.format_heure(somme[id_machine]['mo_hp']),
-                                        'mo_hc': Outils.format_heure(somme[id_machine]['mo_hc'])}
-                        contenu_machuts_compte += r'''
-                            \multicolumn{3}{|l|}{\textbf{%(machine)s}} & \hspace{5mm} %(hp)s & \hspace{5mm} %(hc)s &
-                             \hspace{5mm} %(mo_hp)s & \hspace{5mm} %(mo_hc)s \\
-                            \hline
-                            ''' % dico_machine
-
-                        utilisateurs = Outils.utilisateurs_in_somme(somme[id_machine]['users'], users)
-
-                        for nom, upi in sorted(utilisateurs.items()):
-                            for prenom, ids in sorted(upi.items()):
-                                for id_user in sorted(ids):
-                                    smu = somme[id_machine]['users'][id_user]
-                                    dico_user = {'user': nom + " " + prenom,
-                                                 'hp': Outils.format_heure(smu['duree_hp']),
-                                                 'hc': Outils.format_heure(smu['duree_hc']),
-                                                 'mo_hp': Outils.format_heure(smu['mo_hp']),
-                                                 'mo_hc': Outils.format_heure(smu['mo_hc'])}
-                                    contenu_machuts_compte += r'''
-                                        \multicolumn{3}{|l|}{\hspace{5mm} %(user)s} & %(hp)s & %(hc)s & %(mo_hp)s
-                                        & %(mo_hc)s \\
-                                        \hline
-                                    ''' % dico_user
-                                    for p1 in smu['data']:
-                                        cae = acces.donnees[p1]
-                                        login = Latex.echappe_caracteres(cae['date_login']).split()
-                                        temps = login[0].split('-')
-                                        date = temps[0]
-                                        for p2 in range(1, len(temps)):
-                                            date = temps[p2] + '.' + date
-                                        if len(login) > 1:
-                                            heure = login[1]
-                                        else:
-                                            heure = ""
-
-                                        rem = ""
-                                        if id_user != cae['id_op']:
-                                            rem += "op : " + cae['nom_op']
-                                        if cae['remarque_op'] != "":
-                                            if rem != "":
-                                                rem += "; "
-                                            rem += "rem op : " + Latex.echappe_caracteres(cae['remarque_op'])
-                                        if cae['remarque_staff'] != "":
-                                            if rem != "":
-                                                rem += "; "
-                                            rem += "rem CMi : " + Latex.echappe_caracteres(cae['remarque_staff'])
-
-                                        dico_pos = {'date': date, 'heure': heure, 'rem': rem,
-                                                    'hp': Outils.format_heure(cae['duree_machine_hp']),
-                                                    'hc': Outils.format_heure(cae['duree_machine_hc']),
-                                                    'mo_hp': Outils.format_heure(cae['duree_operateur_hp']),
-                                                    'mo_hc': Outils.format_heure(cae['duree_operateur_hc'])}
-                                        contenu_machuts_compte += r'''
-                                            \hspace{10mm} %(date)s & %(heure)s & %(rem)s & %(hp)s \hspace{5mm} &
-                                             %(hc)s \hspace{5mm} & %(mo_hp)s \hspace{5mm} & %(mo_hc)s \hspace{5mm} \\
-                                            \hline
-                                        ''' % dico_pos
-
-                contenu_compte_annexe4 += Latex.long_tableau(contenu_machuts_compte, structure_machuts_compte,
-                                                             legende_machuts_compte)
-            else:
-                contenu_compte_annexe4 += Latex.tableau_vide(r'''Table IV.1 - Détails des utilisations machines :
-                    table vide (pas d’utilisation machines)''')
-
-            # ## 4.2
-
-            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
-                somme = livraisons.sommes[code_client][id_compte]
-
-                structure_prestations_compte = r'''{|l|c|c|c|}'''
-                legende_prestations_compte = r'''Table IV.2 - Détails des prestations livrées'''
-
-                contenu_prestations_compte = r'''
-                    '''
-
-                i = 0
-                for article in generaux.articles_d3:
-                    if article.code_d in somme:
-                        if i == 0:
-                            i += 1
-                        else:
-                            contenu_prestations_compte += r'''\multicolumn{4}{c}{} \\
-                                '''
-                        contenu_prestations_compte += r'''
-                            \hline
-                            \multicolumn{1}{|l|}{
-                            \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
-                            }} & Quantité & Unité & Rabais \\
-                            \hline
-                            '''
-                        for no_prestation, sip in sorted(somme[article.code_d].items()):
-                            dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
-                                                'rabais': Outils.format_2_dec(sip['rabais'])}
-                            contenu_prestations_compte += r'''
-                                %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & \hspace{5mm} %(rabais)s  \\
-                                \hline
-                                ''' % dico_prestations
-
-                            utilisateurs = Outils.utilisateurs_in_somme(sip['users'], users)
+                            utilisateurs = Outils.utilisateurs_in_somme(somme[id_machine]['users'], users)
 
                             for nom, upi in sorted(utilisateurs.items()):
                                 for prenom, ids in sorted(upi.items()):
                                     for id_user in sorted(ids):
-                                        spu = sip['users'][id_user]
-                                        dico_user = {'user': nom + " " + prenom, 'quantite': "%.1f" % spu['quantite'],
-                                                     'unite': sip['unite'],
-                                                     'rabais': Outils.format_2_dec(spu['rabais'])}
-                                        contenu_prestations_compte += r'''
-                                            \hspace{5mm} %(user)s & %(quantite)s & %(unite)s & %(rabais)s \\
+                                        smu = somme[id_machine]['users'][id_user]
+                                        dico_user = {'user': nom + " " + prenom,
+                                                     'hp': Outils.format_heure(smu['duree_hp']),
+                                                     'hc': Outils.format_heure(smu['duree_hc']),
+                                                     'mo_hp': Outils.format_heure(smu['mo_hp']),
+                                                     'mo_hc': Outils.format_heure(smu['mo_hc'])}
+                                        contenu_machuts_compte += r'''
+                                            \multicolumn{3}{|l|}{\hspace{5mm} %(user)s} & %(hp)s & %(hc)s & %(mo_hp)s
+                                            & %(mo_hc)s \\
                                             \hline
                                         ''' % dico_user
+                                        for p1 in smu['data']:
+                                            cae = acces.donnees[p1]
+                                            login = Latex.echappe_caracteres(cae['date_login']).split()
+                                            temps = login[0].split('-')
+                                            date = temps[0]
+                                            for p2 in range(1, len(temps)):
+                                                date = temps[p2] + '.' + date
+                                            if len(login) > 1:
+                                                heure = login[1]
+                                            else:
+                                                heure = ""
 
-                                        for pos in spu['data']:
-                                            liv = livraisons.donnees[pos]
                                             rem = ""
-                                            dl = ""
-                                            if liv['remarque'] != "":
-                                                rem = "; Remarque : " + liv['remarque']
-                                            if liv['date_livraison'] != "":
-                                                dl = "Dt livraison: " + \
-                                                     Latex.echappe_caracteres(liv['date_livraison']) + ";"
-                                            dico_pos = {'date_liv': dl, 'quantite': "%.1f" % liv['quantite'],
-                                                        'rabais': Outils.format_2_dec(liv['rabais_r']),
-                                                        'id': liv['id_livraison'], 'unite': liv['unite'],
-                                                        'responsable': Latex.echappe_caracteres(liv['responsable']),
-                                                        'commande': Latex.echappe_caracteres(liv['date_commande']),
-                                                        'remarque': Latex.echappe_caracteres(rem)}
-                                            contenu_prestations_compte += r'''
-                                                \hspace{10mm} %(date_liv)s N. livraison: %(id)s
-                                                & %(quantite)s \hspace{5mm} & %(unite)s & %(rabais)s \hspace{5mm} \\
+                                            if id_user != cae['id_op']:
+                                                rem += "op : " + cae['nom_op']
+                                            if cae['remarque_op'] != "":
+                                                if rem != "":
+                                                    rem += "; "
+                                                rem += "rem op : " + Latex.echappe_caracteres(cae['remarque_op'])
+                                            if cae['remarque_staff'] != "":
+                                                if rem != "":
+                                                    rem += "; "
+                                                rem += "rem CMi : " + Latex.echappe_caracteres(cae['remarque_staff'])
 
-                                                \hspace{10mm} \scalebox{.8}{Commande: %(commande)s;
-                                                Resp: %(responsable)s%(remarque)s} & & & \\
+                                            dico_pos = {'date': date, 'heure': heure, 'rem': rem,
+                                                        'hp': Outils.format_heure(cae['duree_machine_hp']),
+                                                        'hc': Outils.format_heure(cae['duree_machine_hc']),
+                                                        'mo_hp': Outils.format_heure(cae['duree_operateur_hp']),
+                                                        'mo_hc': Outils.format_heure(cae['duree_operateur_hc'])}
+                                            contenu_machuts_compte += r'''
+                                                \hspace{10mm} %(date)s & %(heure)s & %(rem)s & %(hp)s \hspace{5mm} &
+                                                 %(hc)s \hspace{5mm} & %(mo_hp)s \hspace{5mm} & %(mo_hc)s \hspace{5mm} \\
                                                 \hline
                                             ''' % dico_pos
 
-                contenu_compte_annexe4 += Latex.long_tableau(contenu_prestations_compte, structure_prestations_compte,
-                                                             legende_prestations_compte)
+                    contenu_compte_annexe4 += Latex.long_tableau(contenu_machuts_compte, structure_machuts_compte,
+                                                                 legende_machuts_compte)
+                else:
+                    contenu_compte_annexe4 += Latex.tableau_vide(r'''Table IV.1 - Détails des utilisations machines :
+                        table vide (pas d’utilisation machines)''')
 
-            # ## 5.1
+                # ## 4.2
 
-            structure_eligibles_compte = r'''{|l|r|r|r|}'''
-            legende_eligibles_compte = r'''Table V.1 - Coûts d'utilisation '''
+                if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                    somme = livraisons.sommes[code_client][id_compte]
 
-            dico_eligibles = {'mu1': Outils.format_2_dec(sco['mu1']),
-                              'mu2': Outils.format_2_dec(sco['mu2']),
-                              'mu3': Outils.format_2_dec(sco['mu3']),
-                              'mmo': Outils.format_2_dec(sco['mmo'])}
-            tot1 = sco['mu1'] + sco['mmo']
-            tot2 = sco['mu2'] + sco['mmo']
-            tot3 = sco['mu3'] + sco['mmo']
+                    structure_prestations_compte = r'''{|l|c|c|c|}'''
+                    legende_prestations_compte = r'''Table IV.2 - Détails des prestations livrées'''
 
-            contenu_eligibles_compte = r'''
-                \cline{2-4}
-                \multicolumn{1}{l|}{} & \multicolumn{1}{c|}{1} & \multicolumn{1}{c|}{2} & \multicolumn{1}{c|}{3} \\
-                \hline
-                Coûts d'utilisation machine & %(mu1)s & %(mu2)s & %(mu3)s \\
-                \hline
-                Coûts main d'oeuvre opérateur & %(mmo)s & %(mmo)s & %(mmo)s \\
-                \hline
-                ''' % dico_eligibles
-
-            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
-                somme = livraisons.sommes[code_client][id_compte]
-                for article in generaux.articles_d3:
-                    if article.code_d in somme:
-                        elu1 = article.eligible_U1
-                        elu2 = article.eligible_U2
-                        elu3 = article.eligible_U3
-                        if elu1 == "NON" and elu2 == "NON" and elu3 == "NON":
-                            continue
-                        netx = sco['tot_cat_x'][article.code_d]
-                        u1 = 0
-                        u2 = 0
-                        u3 = 0
-                        if elu1 == "OUI":
-                            u1 = netx
-                        if elu2 == "OUI":
-                            u2 = netx
-                        if elu3 == "OUI":
-                            u3 = netx
-                        tot1 += u1
-                        tot2 += u2
-                        tot3 += u3
-                        dico_article = {'intitule': article.intitule_long, 'u1': Outils.format_2_dec(u1),
-                                        'u2': Outils.format_2_dec(u2), 'u3': Outils.format_2_dec(u3)}
-                        contenu_eligibles_compte += r'''
-                            %(intitule)s & %(u1)s & %(u2)s & %(u3)s \\
-                            \hline
-                            ''' % dico_article
-
-            dico_tot = {'tot1': Outils.format_2_dec(tot1), 'tot2': Outils.format_2_dec(tot2),
-                        'tot3': Outils.format_2_dec(tot3)}
-            contenu_eligibles_compte += r'''
-                \multicolumn{1}{|r|}{Total} & %(tot1)s & %(tot2)s & %(tot3)s \\
-                \hline
-                ''' % dico_tot
-
-            contenu_compte_annexe5 += Latex.tableau(contenu_eligibles_compte, structure_eligibles_compte,
-                                                    legende_eligibles_compte)
-
-            # ## 5.2
-
-            if code_client in acces.sommes and id_compte in acces.sommes[code_client]['categories']:
-                structure_coutmachines_compte = r'''{|l|r|r|r|r|}'''
-                legende_coutmachines_compte = r'''Table V.2 - Coûts d'utilisation des machines et main d'oeuvre'''
-                contenu_coutmachines_compte = r'''
-                        \hline
-                        \multirow{2}{*}{\textbf{''' + intitule_compte + r'''}} & \multicolumn{4}{c|}{Montant [CHF]} \\
-                        \cline{2-5}
-                         & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3}
-                         & \multicolumn{1}{c|}{M.O. Oper.} \\
-                        \hline
+                    contenu_prestations_compte = r'''
                         '''
 
-                som_cats = acces.sommes[code_client]['categories'][id_compte]
+                    i = 0
+                    for article in generaux.articles_d3:
+                        if article.code_d in somme:
+                            if i == 0:
+                                i += 1
+                            else:
+                                contenu_prestations_compte += r'''\multicolumn{4}{c}{} \\
+                                    '''
+                            contenu_prestations_compte += r'''
+                                \hline
+                                \multicolumn{1}{|l|}{
+                                \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                                }} & Quantité & Unité & Rabais \\
+                                \hline
+                                '''
+                            for no_prestation, sip in sorted(somme[article.code_d].items()):
+                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
+                                                    'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
+                                                    'rabais': Outils.format_2_dec(sip['rabais'])}
+                                contenu_prestations_compte += r'''
+                                    %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & \hspace{5mm} %(rabais)s  \\
+                                    \hline
+                                    ''' % dico_prestations
 
-                for id_cout, som_cat in sorted(som_cats.items()):
+                                utilisateurs = Outils.utilisateurs_in_somme(sip['users'], users)
 
-                    dico_cat = {'intitule': couts.donnees[id_cout]['intitule'],
-                                'mu1': Outils.format_2_dec(som_cat['mu1']), 'mu2': Outils.format_2_dec(som_cat['mu2']),
-                                'mu3': Outils.format_2_dec(som_cat['mu3']), 'mmo': Outils.format_2_dec(som_cat['mmo'])}
+                                for nom, upi in sorted(utilisateurs.items()):
+                                    for prenom, ids in sorted(upi.items()):
+                                        for id_user in sorted(ids):
+                                            spu = sip['users'][id_user]
+                                            dico_user = {'user': nom + " " + prenom, 'quantite': "%.1f" % spu['quantite'],
+                                                         'unite': sip['unite'],
+                                                         'rabais': Outils.format_2_dec(spu['rabais'])}
+                                            contenu_prestations_compte += r'''
+                                                \hspace{5mm} %(user)s & %(quantite)s & %(unite)s & %(rabais)s \\
+                                                \hline
+                                            ''' % dico_user
 
-                    contenu_coutmachines_compte += r'''
-                        %(intitule)s & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
-                        \hline
-                        ''' % dico_cat
+                                            for pos in spu['data']:
+                                                liv = livraisons.donnees[pos]
+                                                rem = ""
+                                                dl = ""
+                                                if liv['remarque'] != "":
+                                                    rem = "; Remarque : " + liv['remarque']
+                                                if liv['date_livraison'] != "":
+                                                    dl = "Dt livraison: " + \
+                                                         Latex.echappe_caracteres(liv['date_livraison']) + ";"
+                                                dico_pos = {'date_liv': dl, 'quantite': "%.1f" % liv['quantite'],
+                                                            'rabais': Outils.format_2_dec(liv['rabais_r']),
+                                                            'id': liv['id_livraison'], 'unite': liv['unite'],
+                                                            'responsable': Latex.echappe_caracteres(liv['responsable']),
+                                                            'commande': Latex.echappe_caracteres(liv['date_commande']),
+                                                            'remarque': Latex.echappe_caracteres(rem)}
+                                                contenu_prestations_compte += r'''
+                                                    \hspace{10mm} %(date_liv)s N. livraison: %(id)s
+                                                    & %(quantite)s \hspace{5mm} & %(unite)s & %(rabais)s \hspace{5mm} \\
 
-                dico_compte = {'mu1_d': Outils.format_2_dec(sco['mu1_d']),
-                               'mu2_d': Outils.format_2_dec(sco['mu2_d']),
-                               'mu3_d': Outils.format_2_dec(sco['mu3_d']),
-                               'mmo_d': Outils.format_2_dec(sco['mmo_d']),
-                               'mu1': Outils.format_2_dec(sco['mu1']),
-                               'mu2': Outils.format_2_dec(sco['mu2']),
-                               'mu3': Outils.format_2_dec(sco['mu3']),
-                               'mmo': Outils.format_2_dec(sco['mmo'])}
+                                                    \hspace{10mm} \scalebox{.8}{Commande: %(commande)s;
+                                                    Resp: %(responsable)s%(remarque)s} & & & \\
+                                                    \hline
+                                                ''' % dico_pos
 
-                contenu_coutmachines_compte += r'''
-                    \multicolumn{1}{|r|}{Arrondi} & %(mu1_d)s & %(mu2_d)s & %(mu3_d)s & %(mmo_d)s \\
+                    contenu_compte_annexe4 += Latex.long_tableau(contenu_prestations_compte, structure_prestations_compte,
+                                                                 legende_prestations_compte)
+
+                # ## 5.1
+
+                structure_eligibles_compte = r'''{|l|r|r|r|}'''
+                legende_eligibles_compte = r'''Table V.1 - Coûts d'utilisation '''
+
+                dico_eligibles = {'mu1': Outils.format_2_dec(sco['mu1']),
+                                  'mu2': Outils.format_2_dec(sco['mu2']),
+                                  'mu3': Outils.format_2_dec(sco['mu3']),
+                                  'mmo': Outils.format_2_dec(sco['mmo'])}
+                tot1 = sco['mu1'] + sco['mmo']
+                tot2 = sco['mu2'] + sco['mmo']
+                tot3 = sco['mu3'] + sco['mmo']
+
+                contenu_eligibles_compte = r'''
+                    \cline{2-4}
+                    \multicolumn{1}{l|}{} & \multicolumn{1}{c|}{1} & \multicolumn{1}{c|}{2} & \multicolumn{1}{c|}{3} \\
                     \hline
-                    \multicolumn{1}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
+                    Coûts d'utilisation machine & %(mu1)s & %(mu2)s & %(mu3)s \\
                     \hline
-                    ''' % dico_compte
+                    Coûts main d'oeuvre opérateur & %(mmo)s & %(mmo)s & %(mmo)s \\
+                    \hline
+                    ''' % dico_eligibles
 
-                contenu_compte_annexe5 += Latex.tableau(contenu_coutmachines_compte, structure_coutmachines_compte,
-                                                        legende_coutmachines_compte)
+                if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                    somme = livraisons.sommes[code_client][id_compte]
+                    for article in generaux.articles_d3:
+                        if article.code_d in somme:
+                            elu1 = article.eligible_U1
+                            elu2 = article.eligible_U2
+                            elu3 = article.eligible_U3
+                            if elu1 == "NON" and elu2 == "NON" and elu3 == "NON":
+                                continue
+                            netx = sco['tot_cat_x'][article.code_d]
+                            u1 = 0
+                            u2 = 0
+                            u3 = 0
+                            if elu1 == "OUI":
+                                u1 = netx
+                            if elu2 == "OUI":
+                                u2 = netx
+                            if elu3 == "OUI":
+                                u3 = netx
+                            tot1 += u1
+                            tot2 += u2
+                            tot3 += u3
+                            dico_article = {'intitule': article.intitule_long, 'u1': Outils.format_2_dec(u1),
+                                            'u2': Outils.format_2_dec(u2), 'u3': Outils.format_2_dec(u3)}
+                            contenu_eligibles_compte += r'''
+                                %(intitule)s & %(u1)s & %(u2)s & %(u3)s \\
+                                \hline
+                                ''' % dico_article
 
-            else:
-                contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.2 - Coûts d'utilisation des machines et main
-                    d'oeuvre : table vide (pas d’utilisation machines)''')
+                dico_tot = {'tot1': Outils.format_2_dec(tot1), 'tot2': Outils.format_2_dec(tot2),
+                            'tot3': Outils.format_2_dec(tot3)}
+                contenu_eligibles_compte += r'''
+                    \multicolumn{1}{|r|}{Total} & %(tot1)s & %(tot2)s & %(tot3)s \\
+                    \hline
+                    ''' % dico_tot
 
-            # ## 5.3
+                contenu_compte_annexe5 += Latex.tableau(contenu_eligibles_compte, structure_eligibles_compte,
+                                                        legende_eligibles_compte)
 
-            if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
-                structure_coutcats_compte = r'''{|l|c|c|r|r|r|r|r|r|r|r|}'''
-                legende_coutcats_compte = r'''Table V.3 - Coûts d'utilisation des machines et main d'oeuvre par
-                    catégorie'''
-                contenu_coutcats_compte = ""
+                # ## 5.2
 
-                somme = acces.sommes[code_client]['comptes'][id_compte]
-                som_cat = acces.sommes[code_client]['categories'][id_compte]
-                machines_utilisees = Outils.machines_in_somme(somme, machines)
-
-                for id_cout, mics in sorted(machines_utilisees.items()):
-
-                    if contenu_coutcats_compte != "":
-                        contenu_coutcats_compte += r'''
-                            \multicolumn{7}{c}{} \\
+                if code_client in acces.sommes and id_compte in acces.sommes[code_client]['categories']:
+                    structure_coutmachines_compte = r'''{|l|r|r|r|r|}'''
+                    legende_coutmachines_compte = r'''Table V.2 - Coûts d'utilisation des machines et main d'oeuvre'''
+                    contenu_coutmachines_compte = r'''
+                            \hline
+                            \multirow{2}{*}{\textbf{''' + intitule_compte + r'''}} & \multicolumn{4}{c|}{Montant [CHF]} \\
+                            \cline{2-5}
+                             & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3}
+                             & \multicolumn{1}{c|}{M.O. Oper.} \\
+                            \hline
                             '''
 
-                    contenu_coutcats_compte += r'''
-                        \hline
-                        \textbf{''' + intitule_compte + r'''} & \multicolumn{2}{c|}{Durée}
-                        & \multicolumn{4}{c|}{PU [CHF/h]} & \multicolumn{4}{c|}{Montant [CHF]} \\
-                        \hline
-                        \textbf{''' + couts.donnees[id_cout]['intitule'] + r'''} & Mach. & Oper.
-                        & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2}
-                        & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{U1}
-                        & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{Oper.} \\
-                        \hline
-                        '''
+                    som_cats = acces.sommes[code_client]['categories'][id_compte]
 
-                    for nom_machine, id_machine in sorted(mics.items()):
-                        duree = somme[id_machine]['duree_hp'] + somme[id_machine]['duree_hc']
-                        mo = somme[id_machine]['mo_hp'] + somme[id_machine]['mo_hc']
+                    for id_cout, som_cat in sorted(som_cats.items()):
 
-                        dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
-                                        'duree': Outils.format_heure(duree), 'mo': Outils.format_heure(mo),
-                                        'cu1': Outils.format_2_dec(couts.donnees[id_cout]['u1']),
-                                        'cu2': Outils.format_2_dec(couts.donnees[id_cout]['u2']),
-                                        'cu3': Outils.format_2_dec(couts.donnees[id_cout]['u3']),
-                                        'cmo': Outils.format_2_dec(couts.donnees[id_cout]['mo']),
-                                        'mu1': Outils.format_2_dec(somme[id_machine]['mu1']),
-                                        'mu2': Outils.format_2_dec(somme[id_machine]['mu2']),
-                                        'mu3': Outils.format_2_dec(somme[id_machine]['mu3']),
-                                        'mmo': Outils.format_2_dec(somme[id_machine]['mmo'])}
-                        contenu_coutcats_compte += r'''
-                            %(machine)s & %(duree)s & %(mo)s & %(cu1)s & %(cu2)s & %(cu3)s & %(cmo)s & %(mu1)s
-                            & %(mu2)s & %(mu3)s & %(mmo)s \\
+                        dico_cat = {'intitule': couts.donnees[id_cout]['intitule'],
+                                    'mu1': Outils.format_2_dec(som_cat['mu1']), 'mu2': Outils.format_2_dec(som_cat['mu2']),
+                                    'mu3': Outils.format_2_dec(som_cat['mu3']), 'mmo': Outils.format_2_dec(som_cat['mmo'])}
+
+                        contenu_coutmachines_compte += r'''
+                            %(intitule)s & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
                             \hline
-                            ''' % dico_machine
+                            ''' % dico_cat
 
-                    dico_cat = {'mu1': Outils.format_2_dec(som_cat[id_cout]['mu1']),
-                                'mu2': Outils.format_2_dec(som_cat[id_cout]['mu2']),
-                                'mu3': Outils.format_2_dec(som_cat[id_cout]['mu3']),
-                                'mmo': Outils.format_2_dec(som_cat[id_cout]['mmo'])}
+                    dico_compte = {'mu1_d': Outils.format_2_dec(sco['mu1_d']),
+                                   'mu2_d': Outils.format_2_dec(sco['mu2_d']),
+                                   'mu3_d': Outils.format_2_dec(sco['mu3_d']),
+                                   'mmo_d': Outils.format_2_dec(sco['mmo_d']),
+                                   'mu1': Outils.format_2_dec(sco['mu1']),
+                                   'mu2': Outils.format_2_dec(sco['mu2']),
+                                   'mu3': Outils.format_2_dec(sco['mu3']),
+                                   'mmo': Outils.format_2_dec(sco['mmo'])}
 
-                    contenu_coutcats_compte += r'''
-                        \multicolumn{7}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
+                    contenu_coutmachines_compte += r'''
+                        \multicolumn{1}{|r|}{Arrondi} & %(mu1_d)s & %(mu2_d)s & %(mu3_d)s & %(mmo_d)s \\
                         \hline
-                        ''' % dico_cat
+                        \multicolumn{1}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
+                        \hline
+                        ''' % dico_compte
 
-                contenu_compte_annexe5 += Latex.long_tableau(contenu_coutcats_compte, structure_coutcats_compte,
-                                                             legende_coutcats_compte)
+                    contenu_compte_annexe5 += Latex.tableau(contenu_coutmachines_compte, structure_coutmachines_compte,
+                                                            legende_coutmachines_compte)
 
-            else:
-                contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.3 - Coûts d'utilisation des machines et main
-                    d'oeuvre par catégorie : table vide (pas d’utilisation machines)''')
+                else:
+                    contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.2 - Coûts d'utilisation des machines et main
+                        d'oeuvre : table vide (pas d’utilisation machines)''')
 
-            # ## 5.4
+                # ## 5.3
 
-            contenu_coutprests_compte = ""
-            structure_coutprests_compte = r'''{|l|r|c|r|r|r|r|}'''
-            legende_coutprests_compte = r'''Table V.4 - Coûts des prestations livrées'''
-            if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
-                somme = livraisons.sommes[code_client][id_compte]
-                for article in generaux.articles_d3:
-                    if article.code_d in somme:
-                        elu1 = article.eligible_U1
-                        elu2 = article.eligible_U2
-                        elu3 = article.eligible_U3
-                        if elu1 == "NON" and elu2 == "NON" and elu3 == "NON":
-                            continue
+                if code_client in acces.sommes and id_compte in acces.sommes[code_client]['comptes']:
+                    structure_coutcats_compte = r'''{|l|c|c|r|r|r|r|r|r|r|r|}'''
+                    legende_coutcats_compte = r'''Table V.3 - Coûts d'utilisation des machines et main d'oeuvre par
+                        catégorie'''
+                    contenu_coutcats_compte = ""
 
-                        if contenu_coutprests_compte != "":
-                            contenu_coutprests_compte += r'''
+                    somme = acces.sommes[code_client]['comptes'][id_compte]
+                    som_cat = acces.sommes[code_client]['categories'][id_compte]
+                    machines_utilisees = Outils.machines_in_somme(somme, machines)
+
+                    for id_cout, mics in sorted(machines_utilisees.items()):
+
+                        if contenu_coutcats_compte != "":
+                            contenu_coutcats_compte += r'''
                                 \multicolumn{7}{c}{} \\
                                 '''
 
-                        contenu_coutprests_compte += r'''
+                        contenu_coutcats_compte += r'''
                             \hline
-                            \multicolumn{1}{|l|}{
-                            \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
-                            }} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
-                            & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} & \multicolumn{1}{c|}{Net} \\
+                            \textbf{''' + intitule_compte + r'''} & \multicolumn{2}{c|}{Durée}
+                            & \multicolumn{4}{c|}{PU [CHF/h]} & \multicolumn{4}{c|}{Montant [CHF]} \\
+                            \hline
+                            \textbf{''' + couts.donnees[id_cout]['intitule'] + r'''} & Mach. & Oper.
+                            & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2}
+                            & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{U1}
+                            & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{Oper.} \\
                             \hline
                             '''
-                        for no_prestation, sip in sorted(somme[article.code_d].items()):
-                            dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
-                                                'pux': Outils.format_2_dec(sip['pux']),
-                                                'montantx': Outils.format_2_dec(sip['montantx']),
-                                                'rabais': Outils.format_2_dec(sip['rabais']),
-                                                'netx': Outils.format_2_dec((sip['montantx'] - sip['rabais']))}
+
+                        for nom_machine, id_machine in sorted(mics.items()):
+                            duree = somme[id_machine]['duree_hp'] + somme[id_machine]['duree_hc']
+                            mo = somme[id_machine]['mo_hp'] + somme[id_machine]['mo_hc']
+
+                            dico_machine = {'machine': Latex.echappe_caracteres(nom_machine),
+                                            'duree': Outils.format_heure(duree), 'mo': Outils.format_heure(mo),
+                                            'cu1': Outils.format_2_dec(couts.donnees[id_cout]['u1']),
+                                            'cu2': Outils.format_2_dec(couts.donnees[id_cout]['u2']),
+                                            'cu3': Outils.format_2_dec(couts.donnees[id_cout]['u3']),
+                                            'cmo': Outils.format_2_dec(couts.donnees[id_cout]['mo']),
+                                            'mu1': Outils.format_2_dec(somme[id_machine]['mu1']),
+                                            'mu2': Outils.format_2_dec(somme[id_machine]['mu2']),
+                                            'mu3': Outils.format_2_dec(somme[id_machine]['mu3']),
+                                            'mmo': Outils.format_2_dec(somme[id_machine]['mmo'])}
+                            contenu_coutcats_compte += r'''
+                                %(machine)s & %(duree)s & %(mo)s & %(cu1)s & %(cu2)s & %(cu3)s & %(cmo)s & %(mu1)s
+                                & %(mu2)s & %(mu3)s & %(mmo)s \\
+                                \hline
+                                ''' % dico_machine
+
+                        dico_cat = {'mu1': Outils.format_2_dec(som_cat[id_cout]['mu1']),
+                                    'mu2': Outils.format_2_dec(som_cat[id_cout]['mu2']),
+                                    'mu3': Outils.format_2_dec(som_cat[id_cout]['mu3']),
+                                    'mmo': Outils.format_2_dec(som_cat[id_cout]['mmo'])}
+
+                        contenu_coutcats_compte += r'''
+                            \multicolumn{7}{|r|}{Total} & %(mu1)s & %(mu2)s & %(mu3)s & %(mmo)s \\
+                            \hline
+                            ''' % dico_cat
+
+                    contenu_compte_annexe5 += Latex.long_tableau(contenu_coutcats_compte, structure_coutcats_compte,
+                                                                 legende_coutcats_compte)
+
+                else:
+                    contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.3 - Coûts d'utilisation des machines et main
+                        d'oeuvre par catégorie : table vide (pas d’utilisation machines)''')
+
+                # ## 5.4
+
+                contenu_coutprests_compte = ""
+                structure_coutprests_compte = r'''{|l|r|c|r|r|r|r|}'''
+                legende_coutprests_compte = r'''Table V.4 - Coûts des prestations livrées'''
+                if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
+                    somme = livraisons.sommes[code_client][id_compte]
+                    for article in generaux.articles_d3:
+                        if article.code_d in somme:
+                            elu1 = article.eligible_U1
+                            elu2 = article.eligible_U2
+                            elu3 = article.eligible_U3
+                            if elu1 == "NON" and elu2 == "NON" and elu3 == "NON":
+                                continue
+
+                            if contenu_coutprests_compte != "":
+                                contenu_coutprests_compte += r'''
+                                    \multicolumn{7}{c}{} \\
+                                    '''
+
                             contenu_coutprests_compte += r'''
-                                %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(pux)s & %(montantx)s
-                                & %(rabais)s & %(netx)s \\
+                                \hline
+                                \multicolumn{1}{|l|}{
+                                \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                                }} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
+                                & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} & \multicolumn{1}{c|}{Net} \\
+                                \hline
+                                '''
+                            for no_prestation, sip in sorted(somme[article.code_d].items()):
+                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
+                                                    'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
+                                                    'pux': Outils.format_2_dec(sip['pux']),
+                                                    'montantx': Outils.format_2_dec(sip['montantx']),
+                                                    'rabais': Outils.format_2_dec(sip['rabais']),
+                                                    'netx': Outils.format_2_dec((sip['montantx'] - sip['rabais']))}
+                                contenu_coutprests_compte += r'''
+                                    %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & %(pux)s & %(montantx)s
+                                    & %(rabais)s & %(netx)s \\
+                                    \hline
+                                    ''' % dico_prestations
+                            dico_prestations = {'montantx_d': Outils.format_2_dec(sco['sommes_cat_m_x_d'][article.code_d]),
+                                                'rabais_d': Outils.format_2_dec(sco['sommes_cat_r_d'][article.code_d]),
+                                                'montantx': Outils.format_2_dec(sco['sommes_cat_m_x'][article.code_d]),
+                                                'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
+                                                'netx': Outils.format_2_dec(sco['tot_cat_x'][article.code_d])}
+
+                            contenu_coutprests_compte += r'''
+                                \multicolumn{4}{|r|}{Arrondi} & %(montantx_d)s & %(rabais_d)s & \\
+                                \hline
+                                \multicolumn{4}{|r|}{Total} & %(montantx)s & %(rabais)s & %(netx)s \\
                                 \hline
                                 ''' % dico_prestations
-                        dico_prestations = {'montantx_d': Outils.format_2_dec(sco['sommes_cat_m_x_d'][article.code_d]),
-                                            'rabais_d': Outils.format_2_dec(sco['sommes_cat_r_d'][article.code_d]),
-                                            'montantx': Outils.format_2_dec(sco['sommes_cat_m_x'][article.code_d]),
-                                            'rabais': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
-                                            'netx': Outils.format_2_dec(sco['tot_cat_x'][article.code_d])}
+                if contenu_coutprests_compte != "":
+                    contenu_compte_annexe5 += Latex.tableau(contenu_coutprests_compte, structure_coutprests_compte,
+                                                            legende_coutprests_compte)
+                else:
+                    contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.4 - Coûts des prestations livrées :
+                        table vide (pas de prestations livrées)''')
 
-                        contenu_coutprests_compte += r'''
-                            \multicolumn{4}{|r|}{Arrondi} & %(montantx_d)s & %(rabais_d)s & \\
-                            \hline
-                            \multicolumn{4}{|r|}{Total} & %(montantx)s & %(rabais)s & %(netx)s \\
-                            \hline
-                            ''' % dico_prestations
-            if contenu_coutprests_compte != "":
-                contenu_compte_annexe5 += Latex.tableau(contenu_coutprests_compte, structure_coutprests_compte,
-                                                        legende_coutprests_compte)
-            else:
-                contenu_compte_annexe5 += Latex.tableau_vide(r'''Table V.4 - Coûts des prestations livrées :
-                    table vide (pas de prestations livrées)''')
-
-            contenu_compte_annexe2 += r'''\clearpage'''
-            contenu_compte_annexe4 += r'''\clearpage'''
-            contenu_compte_annexe5 += r'''\clearpage'''
-            # ## compte
+                contenu_compte_annexe2 += r'''\clearpage'''
+                contenu_compte_annexe4 += r'''\clearpage'''
+                contenu_compte_annexe5 += r'''\clearpage'''
+                # ## compte
 
         # ## Début des tableaux
 
@@ -1200,8 +1208,9 @@ class Annexes(object):
 
         # ## Annexe 2
 
-        contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_2, nombre_2)
-        contenu += contenu_compte_annexe2
+        if contenu_compte_annexe2 != "":
+            contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_2, nombre_2)
+            contenu += contenu_compte_annexe2
 
         # ## Annexe 3
 
@@ -1458,12 +1467,13 @@ class Annexes(object):
 
         # ## Annexe 4
 
-        contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_4, nombre_4)
-        contenu += contenu_compte_annexe4
+        if contenu_compte_annexe4 != "":
+            contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_4, nombre_4)
+            contenu += contenu_compte_annexe4
 
         # ## Annexe 5
 
-        if an_couts == "OUI":
+        if an_couts == "OUI" and contenu_compte_annexe5 != "":
             contenu += Annexes.titre_annexe(code_client, client, edition, reference, titre_5, nombre_5)
             contenu += contenu_compte_annexe5
 

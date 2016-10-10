@@ -2,6 +2,7 @@ import re
 import os
 import shutil
 import subprocess
+from outils import Outils
 
 
 class Latex(object):
@@ -52,8 +53,11 @@ class Latex(object):
         os.unlink(nom_fichier + '.aux')
 
         if nom_dossier != '':
-            shutil.copy(nom_fichier + ".pdf", nom_dossier)
-            os.unlink(nom_fichier + '.pdf')
+            try:
+                shutil.copy(nom_fichier + ".pdf", nom_dossier)
+                os.unlink(nom_fichier + '.pdf')
+            except IOError:
+                Outils.affiche_message("Le pdf " + nom_fichier + " est resté ouvert et ne sera pas mis à jour")
 
     @staticmethod
     def long_tableau(contenu, structure, legende):
