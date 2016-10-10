@@ -470,7 +470,7 @@ class Annexes(object):
                             '''
                         for no_prestation, sip in sorted(somme[article.code_d].items()):
                             dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                'quantite': sip['quantite'], 'unite': sip['unite'],
+                                                'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
                                                 'pu': Outils.format_2_dec(sip['pu']),
                                                 'montant': Outils.format_2_dec(sip['montant']),
                                                 'rabais': Outils.format_2_dec(sip['rabais'])}
@@ -614,7 +614,7 @@ class Annexes(object):
                             '''
                         for no_prestation, sip in sorted(somme[article.code_d].items()):
                             dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                'quantite': sip['quantite'], 'unite': sip['unite'],
+                                                'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
                                                 'rabais': Outils.format_2_dec(sip['rabais'])}
                             contenu_prestations_compte += r'''
                                 %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s & \hspace{5mm} %(rabais)s  \\
@@ -627,7 +627,7 @@ class Annexes(object):
                                 for prenom, ids in sorted(upi.items()):
                                     for id_user in sorted(ids):
                                         spu = sip['users'][id_user]
-                                        dico_user = {'user': nom + " " + prenom, 'quantite': spu['quantite'],
+                                        dico_user = {'user': nom + " " + prenom, 'quantite': "%.1f" % spu['quantite'],
                                                      'unite': sip['unite'],
                                                      'rabais': Outils.format_2_dec(spu['rabais'])}
                                         contenu_prestations_compte += r'''
@@ -644,7 +644,7 @@ class Annexes(object):
                                             if liv['date_livraison'] != "":
                                                 dl = "Dt livraison: " + \
                                                      Latex.echappe_caracteres(liv['date_livraison']) + ";"
-                                            dico_pos = {'date_liv': dl, 'quantite': liv['quantite'],
+                                            dico_pos = {'date_liv': dl, 'quantite': "%.1f" % liv['quantite'],
                                                         'rabais': Outils.format_2_dec(liv['rabais_r']),
                                                         'id': liv['id_livraison'], 'unite': liv['unite'],
                                                         'responsable': Latex.echappe_caracteres(liv['responsable']),
@@ -872,7 +872,7 @@ class Annexes(object):
                             '''
                         for no_prestation, sip in sorted(somme[article.code_d].items()):
                             dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                'quantite': sip['quantite'], 'unite': sip['unite'],
+                                                'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
                                                 'pux': Outils.format_2_dec(sip['pux']),
                                                 'montantx': Outils.format_2_dec(sip['montantx']),
                                                 'rabais': Outils.format_2_dec(sip['rabais']),
