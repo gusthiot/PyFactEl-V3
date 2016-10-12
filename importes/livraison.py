@@ -121,8 +121,6 @@ class Livraison(Fichier):
             client = clients.donnees[code_client]
             coefprest = coefprests.donnees[client['id_classe_tarif'] + prestation['categorie']]
             prix_unit_client = round(prestation['prix_unit'] * coefprest['coefficient'], 2)
-            donnee['montant'] = round(donnee['quantite'] * prix_unit_client, 2)
-            donnee['montantx'] = round(donnee['quantite'] * prestation['prix_unit'], 2)
             donnee['rabais_r'] = round(donnee['rabais'], 2)
             categorie = prestation['categorie']
 
@@ -135,15 +133,12 @@ class Livraison(Fichier):
                 scl[id_compte][categorie] = {}
             if no_prestation not in scl[id_compte][categorie]:
                 scl[id_compte][categorie][no_prestation] = {'nom': prestation['designation'], 'unite': donnee['unite'],
-                                                            'pu': prix_unit_client, 'montantx': 0,
-                                                            'pux': round(prestation['prix_unit'], 2), 'quantite': 0,
-                                                            'rabais': 0, 'montant': 0, 'users': {}}
+                                                            'rabais': 0, 'quantite': 0, 'pu': prix_unit_client,
+                                                            'pux': round(prestation['prix_unit'], 2), 'users': {}}
 
             scp = scl[id_compte][categorie][no_prestation]
             scp['quantite'] += donnee['quantite']
             scp['rabais'] += donnee['rabais_r']
-            scp['montant'] += donnee['montant']
-            scp['montantx'] += donnee['montantx']
 
             if id_user not in scp['users']:
                 scp['users'][id_user] = {'quantite': 0, 'rabais': 0, 'data': []}
@@ -154,6 +149,16 @@ class Livraison(Fichier):
             donnees_list.append(donnee)
             pos += 1
         self.donnees = donnees_list
+
+        for code_client in self.sommes:
+            for id_compte in self.sommes[code_client]:
+                for categorie in self.sommes[code_client][id_compte]:
+                    scc = self.sommes[code_client][id_compte][categorie]
+                    for prestation in scc:
+                        scc[prestation]['montant'] = round(scc[prestation]['quantite'] * scc[prestation]['pu'], 2)
+                        scc[prestation]['montantx'] = round(scc[prestation]['quantite'] * scc[prestation]['pux'], 2)
+
+
 
     def livraisons_pour_compte_par_categorie(self, id_compte, code_client, prestations):
         """

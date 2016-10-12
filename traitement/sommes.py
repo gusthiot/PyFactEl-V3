@@ -109,22 +109,21 @@ class Sommes(object):
                         somme['somme_j_dsi'] += som['dsi_hp'] + som['dsi_hc']
                         somme['somme_j_dhi'] += som['dhi']
 
-        for livraison in livraisons.donnees:
-            id_compte = livraison['id_compte']
-            code_client = livraison['code_client']
+        for code_client in livraisons.sommes:
             if code_client not in spco:
                 spco[code_client] = {}
             spco_cl = spco[code_client]
-            if id_compte not in spco_cl:
-                spco_cl[id_compte] = self.nouveau_somme(Sommes.cles_somme_compte, True)
-            somme = spco_cl[id_compte]
+            for id_compte in livraisons.sommes[code_client]:
+                if id_compte not in spco_cl:
+                    spco_cl[id_compte] = self.nouveau_somme(Sommes.cles_somme_compte, True)
+                somme = spco_cl[id_compte]
 
-            id_prestation = livraison['id_prestation']
-            prestation = prestations.donnees[id_prestation]
-
-            somme['sommes_cat_m'][prestation['categorie']] += livraison['montant']
-            somme['sommes_cat_m_x'][prestation['categorie']] += livraison['montantx']
-            somme['sommes_cat_r'][prestation['categorie']] += livraison['rabais_r']
+                for categorie in livraisons.sommes[code_client][id_compte]:
+                    scc = livraisons.sommes[code_client][id_compte][categorie]
+                    for prestation in scc:
+                        somme['sommes_cat_m'][categorie] += scc[prestation]['montant']
+                        somme['sommes_cat_m_x'][categorie] += scc[prestation]['montantx']
+                        somme['sommes_cat_r'][categorie] += scc[prestation]['rabais']
 
         for code_client in spco:
             for id_compte in spco[code_client]:
