@@ -9,7 +9,7 @@ class Sommes(object):
     """
 
     cles_somme_compte = ['somme_j_mai', 'maij_d', 'somme_j_moi', 'moij_d', 'somme_j_dsi','dsij_d', 'somme_j_dhi',
-                         'dhij_d', 'somme_j_mm', 'somme_j_mr', 'somme_j_mb', 'mj', 'si_facture', 'res', 'mu1', 'mu2',
+                         'dhij_d', 'somme_j_mm', 'somme_j_mr', 'somme_j_mb', 'mj', 'c1', 'c2', 'res', 'mu1', 'mu2',
                          'mu3', 'mmo', 'mu1_d', 'mu2_d', 'mu3_d', 'mmo_d']
 
     cles_somme_client = ['mat', 'mot', 'dst', 'dht', 'somme_t_mm', 'somme_t_mr', 'somme_t_mb', 'mt', 'somme_eq',
@@ -183,11 +183,11 @@ class Sommes(object):
                 somme['mmo_d'] = mmo - somme['mmo']
                 somme['mmo'] = mmo
 
-                tot = somme['somme_j_mm']
+                somme['c1'] = somme['somme_j_mm']
+                somme['c2'] = somme['mj']
                 for categorie in self.categories:
-                    tot += somme['sommes_cat_m'][categorie]
-                if tot > 0:
-                    somme['si_facture'] = 1
+                    somme['c1'] += somme['sommes_cat_m'][categorie]
+                    somme['c2'] += somme['tot_cat'][categorie]
 
         # print("")
         # print("spco")
@@ -307,6 +307,7 @@ class Sommes(object):
                                             client['emol_base_mens'], client['emol_fixe'], client['coef'],
                                             client['emol_sans_activite'])
                 somme['e'] = somme['em'] - somme['er']
+                somme['somme_t'] += somme['e']
 
             # print("")
             # print("spcl")

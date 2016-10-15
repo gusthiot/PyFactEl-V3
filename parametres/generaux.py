@@ -16,9 +16,10 @@ class Generaux(object):
     libelle = "Paramètres Généraux"
     cles_obligatoires = ['origine', 'code_int', 'code_ext', 'commerciale', 'canal', 'secteur', 'devise', 'financier',
                          'fonds', 'entete', 'poste_emolument', 'poste_reservation',  'lien', 'chemin', 'code_t',
-                         'code_n', 'nature_client', 'avantage_DS', 'avantage_HC', 'annexe_cout', 'code_d', 'code_sap',
-                         'quantite', 'unite', 'type_prix', 'type_rabais', 'texte_sap', 'intitule_long',
-                         'intitule_court', 'eligible_U1', 'eligible_U2', 'eligible_U3', 'modes', 'min_fact_rese']
+                         'code_n', 'nature_client', 'avantage_DS', 'avantage_HC', 'annexe_cout', 'filtrer_article_nul',
+                         'code_d', 'code_sap', 'quantite', 'unite', 'type_prix', 'type_rabais', 'texte_sap',
+                         'intitule_long', 'intitule_court', 'eligible_U1', 'eligible_U2', 'eligible_U3', 'modes',
+                         'min_fact_rese']
     cles_autorisees = cles_obligatoires + ['code_sap_qas']
 
     def __init__(self, dossier_source, prod2qual=None):
@@ -153,6 +154,10 @@ class Generaux(object):
     def annexe_cout_par_code_n(self, annexe_cout):
         return self._donnees['annexe_cout'][
             self._donnees['code_n'].index(annexe_cout)]
+
+    def filtrer_article_nul_par_code_n(self, filtrer_article_nul):
+        return self._donnees['filtrer_article_nul'][
+            self._donnees['code_n'].index(filtrer_article_nul)]
 
 def ajoute_accesseur_pour_valeur_unique(cls, nom, cle_csv=None):
     if cle_csv is None:

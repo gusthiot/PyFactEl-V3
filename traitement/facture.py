@@ -65,8 +65,7 @@ class Facture(object):
                 scl = sommes.sommes_clients[code_client]
                 client = clients.donnees[code_client]
 
-                tot = scl['somme_t'] + scl['e']
-                if tot == 0:
+                if scl['somme_t'] == 0:
                     continue
     
                 code_sap = client['code_sap']
@@ -81,6 +80,8 @@ class Facture(object):
                 reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
                 if edition.version != "0":
                     reference += "-" + edition.version
+
+                filter = generaux.filtrer_article_nul_par_code_n(client['type_labo'])
     
                 nom_annexe = "annexe_" + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + \
                              "_" + str(edition.version) + "_" + code_client + ".pdf"
@@ -127,13 +128,14 @@ class Facture(object):
                                          generaux.entete, lien_annexe, "", lien_annexe_technique, "X"])
     
                 op_centre = client['type_labo'] + str(edition.annee)[2:] + Outils.mois_string(edition.mois)
-                if int(client['emol_base_mens']) > 0:
+
+                if scl['em'] > 0 and not (filter == "OUI" and scl['e'] == 0):
                     poste = generaux.poste_emolument
                     fichier_writer.writerow(self.ligne_facture(generaux, generaux.articles[0], poste, scl['em'],
                                                                scl['er'], op_centre, "", edition))
                     contenu_client += self.ligne_tableau(generaux.articles[0], poste, scl['em'], scl['er'], "", edition)
 
-                if scl['r'] > 0:
+                if scl['rm'] > 0 and not (filter == "OUI" and scl['r'] == 0):
                     poste = generaux.poste_reservation
                     fichier_writer.writerow(self.ligne_facture(generaux, generaux.articles[1], poste, scl['rm'],
                                                                scl['rr'], op_centre, "", edition))
@@ -147,9 +149,9 @@ class Facture(object):
                 for num_compte, id_compte in sorted(comptes_utilises.items()):
                     sco = sommes.sommes_comptes[code_client][id_compte]
                     compte = comptes.donnees[id_compte]
-                    if sco['si_facture'] > 0:
+                    if sco['c1'] > 0 and not (filter == "OUI" and sco['c2'] == 0):
                         poste = inc*10
-                        if sco['somme_j_mm'] > 0:
+                        if sco['somme_j_mm'] > 0 and not (filter == "OUI" and sco['mj'] == 0):
                             fichier_writer.writerow(self.ligne_facture(generaux, generaux.articles[2], poste,
                                                                        sco['somme_j_mm'], sco['somme_j_mr'], op_centre,
                                                                        compte['numero'] + " - " + compte['intitule'],
@@ -161,7 +163,8 @@ class Facture(object):
 
                         for article in generaux.articles_d3:
                             categorie = article.code_d
-                            if sco['sommes_cat_m'][categorie] > 0:
+                            if sco['sommes_cat_m'][categorie] > 0 and not (filter == "OUI"
+                                                                           and sco['tot_cat'][article.code_d] == 0):
                                 fichier_writer.writerow(self.ligne_facture(generaux, article, poste,
                                                                            sco['sommes_cat_m'][categorie],
                                                                            sco['sommes_cat_r'][categorie], op_centre,
@@ -173,10 +176,9 @@ class Facture(object):
                                                                      edition)
                                 poste += 1
                         inc += 1
-                net_amount = scl['somme_t'] + scl['e']
                 contenu_client += r'''
                     <tr><td colspan="8" id="toright">Net amount [CHF] : </td><td id="toright">
-                    ''' + "%.2f" % net_amount + r'''</td></tr>
+                    ''' + "%.2f" % scl['somme_t'] + r'''</td></tr>
                     </table>
                     '''
                 contenu_client += r'''<a href="''' + dossier_annexe + r'''" target="new">''' + nom_annexe + r'''

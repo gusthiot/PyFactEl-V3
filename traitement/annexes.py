@@ -85,11 +85,9 @@ class Annexes(object):
             Outils.affiche_message(info)
             return
 
-        for code_client in sommes.sommes_clients.keys():
+        for code_client, scl in sommes.sommes_clients.items():
 
-            scl = sommes.sommes_clients[code_client]
-            tot = scl['somme_t'] + scl['e']
-            if tot == 0:
+            if scl['somme_t'] == 0 and prefixe == "annexe_":
                 continue
 
             contenu = Latex.entete(plateforme)
@@ -183,6 +181,8 @@ class Annexes(object):
         if edition.version != "0":
             reference += "-" + edition.version
 
+        filter = generaux.filtrer_article_nul_par_code_n(client['type_labo'])
+
         contenu_bonus_compte = ""
         contenu_procedes_compte = ""
         contenu_recap_compte = ""
@@ -226,21 +226,25 @@ class Annexes(object):
 
                 # ## ligne 1.1
 
-                if sco['si_facture'] > 0:
+                if sco['c1'] > 0 and not (filter == "OUI" and sco['c2'] == 0):
                     poste = inc_fact * 10
                     intitule = intitule_compte + " - " + generaux.articles[2].intitule_long
-                    dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
-                                        'mm': Outils.format_2_dec(sco['somme_j_mm']),
-                                        'mr': Outils.format_2_dec(sco['somme_j_mr']), 'mj': Outils.format_2_dec(sco['mj'])}
-                    contenu_fact_compte += r'''
-                        %(poste)s & %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
-                        \hline
-                        ''' % dico_fact_compte
-                    poste += 1
+
+                    if sco['somme_j_mm'] > 0 and not (filter == "OUI" and sco['mj'] == 0):
+                        dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
+                                            'mm': Outils.format_2_dec(sco['somme_j_mm']),
+                                            'mr': Outils.format_2_dec(sco['somme_j_mr']),
+                                            'mj': Outils.format_2_dec(sco['mj'])}
+                        contenu_fact_compte += r'''
+                            %(poste)s & %(intitule)s & %(mm)s  & %(mr)s & %(mj)s \\
+                            \hline
+                            ''' % dico_fact_compte
+                        poste += 1
 
                     for article in generaux.articles_d3:
                         categorie = article.code_d
-                        if sco['sommes_cat_m'][categorie] > 0:
+                        if sco['sommes_cat_m'][categorie] > 0 and not (filter == "OUI"
+                                                                       and sco['tot_cat'][article.code_d] == 0):
                             intitule = intitule_compte + " - " + Latex.echappe_caracteres(article.intitule_long)
                             dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
                                                 'mm': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
@@ -923,34 +927,45 @@ class Annexes(object):
 
         # ## 1.1
 
-        structure_recap_fact = r'''{|c|l|r|r|r|}'''
-        legende_recap_fact = r'''Table I.1 - Récapitulatif des postes de la facture'''
+        brut = scl['rm'] + scl['somme_t_mm'] + scl['em']
+        for cat, tt in scl['sommes_cat_m'].items():
+            brut += tt
+        if scl['somme_t'] > 0 or (filter == "NON" and brut > 0):
+            structure_recap_fact = r'''{|c|l|r|r|r|}'''
+            legende_recap_fact = r'''Table I.1 - Récapitulatif des postes de la facture'''
 
-        dico_recap_fact = {'emom': Outils.format_2_dec(scl['em']), 'emor': Outils.format_2_dec(scl['er']),
-                           'emo': Outils.format_2_dec(scl['e']), 'resm': Outils.format_2_dec(scl['rm']),
-                           'resr': Outils.format_2_dec(scl['rr']), 'res': Outils.format_2_dec(scl['r']),
-                           'int_emo': generaux.articles[0].intitule_long,
-                           'int_res': generaux.articles[1].intitule_long,
-                           'p_emo': generaux.poste_emolument, 'p_res': generaux.poste_reservation}
+            dico_recap_fact = {'emom': Outils.format_2_dec(scl['em']), 'emor': Outils.format_2_dec(scl['er']),
+                               'emo': Outils.format_2_dec(scl['e']), 'resm': Outils.format_2_dec(scl['rm']),
+                               'resr': Outils.format_2_dec(scl['rr']), 'res': Outils.format_2_dec(scl['r']),
+                               'int_emo': generaux.articles[0].intitule_long,
+                               'int_res': generaux.articles[1].intitule_long,
+                               'p_emo': generaux.poste_emolument, 'p_res': generaux.poste_reservation}
 
-        contenu_recap_fact = r'''
-            \hline
-            N. Poste & Poste & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais}
-            & \multicolumn{1}{c|}{Total} \\
-            \hline
-            %(p_emo)s & %(int_emo)s & %(emom)s & %(emor)s & %(emo)s \\
-            \hline
-            %(p_res)s & %(int_res)s & %(resm)s & %(resr)s & %(res)s \\
-            \hline
-            ''' % dico_recap_fact
+            contenu_recap_fact = r'''
+                \hline
+                N. Poste & Poste & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais}
+                & \multicolumn{1}{c|}{Total} \\
+                \hline'''
+            if scl['em'] > 0 and not (filter == "OUI" and scl['e'] == 0):
+                contenu_recap_fact += r'''
+                    %(p_emo)s & %(int_emo)s & %(emom)s & %(emor)s & %(emo)s \\
+                    \hline''' % dico_recap_fact
+            if scl['rm'] > 0 and not (filter == "OUI" and scl['r'] == 0):
+                contenu_recap_fact += r'''
+                    %(p_res)s & %(int_res)s & %(resm)s & %(resr)s & %(res)s \\
+                    \hline
+                    ''' % dico_recap_fact
 
-        contenu_recap_fact += contenu_fact_compte
+            contenu_recap_fact += contenu_fact_compte
 
-        contenu_recap_fact += r'''\multicolumn{4}{|r|}{Total}
-            & ''' + Outils.format_2_dec((scl['somme_t'] + scl['e'])) + r'''\\
-            \hline
-            '''
-        contenu += Latex.tableau(contenu_recap_fact, structure_recap_fact, legende_recap_fact)
+            contenu_recap_fact += r'''\multicolumn{4}{|r|}{Total}
+                & ''' + Outils.format_2_dec(scl['somme_t']) + r'''\\
+                \hline
+                '''
+            contenu += Latex.tableau(contenu_recap_fact, structure_recap_fact, legende_recap_fact)
+        else:
+            contenu += Latex.tableau_vide(r'''Table I.1 - Récapitulatif des postes de la facture :
+                table vide (aucun article facturable)''')
 
         # ## 1.2
 
@@ -990,7 +1005,7 @@ class Annexes(object):
                 ''' % dico_recap_poste_cl
 
         contenu_recap_poste_cl += r'''\multicolumn{3}{|r|}{Total}
-            & ''' + Outils.format_2_dec((scl['somme_t'] + scl['e'])) + r'''\\
+            & ''' + Outils.format_2_dec(scl['somme_t']) + r'''\\
             \hline
             '''
 
@@ -1098,7 +1113,7 @@ class Annexes(object):
         contenu_recap += contenu_recap_compte
 
         dico_recap = {'procedes': Outils.format_2_dec(scl['mt']),
-                      'total': Outils.format_2_dec((scl['somme_t']-scl['r']))}
+                      'total': Outils.format_2_dec((scl['somme_t']-scl['r']-scl['e']))}
 
         contenu_recap += r'''Total article & %(procedes)s''' % dico_recap
 

@@ -114,10 +114,6 @@ class Reservation(Fichier):
             donnee['duree_fact_hp'] = duree_fact_hp
             donnee['duree_fact_hc'] = duree_fact_hc
 
-            if code_client not in self.sommes:
-                self.sommes[code_client] = {}
-            scl = self.sommes[code_client]
-
             tx_hp = machine['tx_occ_eff_hp']
             tx_hc = machine['tx_occ_eff_hc']
             pu_hp = round(coefmachine['coef_r'] * machine['t_h_reservation_hp'], 2)
@@ -130,6 +126,10 @@ class Reservation(Fichier):
                 ok_hc = True
 
             if ok_hp or ok_hc:
+                if code_client not in self.sommes:
+                    self.sommes[code_client] = {}
+                scl = self.sommes[code_client]
+
                 if id_machine not in scl:
                     scl[id_machine] = {'res_hp': 0, 'res_hc': 0, 'pu_hp': pu_hp, 'pu_hc': pu_hc, 'users': {}}
 
