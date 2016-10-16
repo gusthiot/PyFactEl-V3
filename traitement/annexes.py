@@ -100,6 +100,19 @@ class Annexes(object):
                 \usepackage{changepage}
                 \usepackage[scriptsize]{caption}
                 \usepackage{fancyhdr}
+                '''
+
+            if edition.filigrane != "":
+                contenu += r'''
+                    \usepackage{draftwatermark}
+                    \SetWatermarkLightness{0.8}
+                    \SetWatermarkAngle{45}
+                    \SetWatermarkScale{2}
+                    \SetWatermarkFontSize{2cm}
+                    \SetWatermarkText{''' + edition.filigrane[:15] + r'''}
+                    '''
+
+            contenu += r'''
                 \pagestyle{fancy}
 
                 \fancyhead{}

@@ -23,7 +23,7 @@ class Edition(object):
         except IOError as e:
             Outils.fatal(e, "impossible d'ouvrir le fichier : "+Edition.nom_fichier)
 
-        num = 3
+        num = 4
         if len(donnees_csv) != num:
             Outils.fatal(ErreurConsistance(),
                          Edition.libelle + ": nombre de lignes incorrect : " +
@@ -37,6 +37,7 @@ class Edition(object):
 
         self.version = donnees_csv[2][1]
         self.client_unique = ""
+        self.filigrane = donnees_csv[3][1]
 
         jours = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
         if self.mois != 2:
