@@ -600,7 +600,7 @@ class Annexes(object):
                                                         'mo_hp': Outils.format_heure(cae['duree_operateur_hp']),
                                                         'mo_hc': Outils.format_heure(cae['duree_operateur_hc'])}
                                             contenu_machuts_compte += r'''
-                                                \hspace{10mm} %(date)s & %(heure)s & %(rem)s & %(hp)s \hspace{5mm} &
+                                                \hspace{10mm} %(date)s & %(heure)s & \parbox{5cm}{%(rem)s} & %(hp)s \hspace{5mm} &
                                                  %(hc)s \hspace{5mm} & %(mo_hp)s \hspace{5mm} & %(mo_hc)s \hspace{5mm} \\
                                                 \hline
                                             ''' % dico_pos
