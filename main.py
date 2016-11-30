@@ -30,8 +30,14 @@ from importes import (Client,
                       DossierSource,
                       DossierDestination)
 from outils import Outils
-from parametres import Edition, Generaux
-from traitement import Annexes, BilanMensuel, Facture, Sommes, Verification
+from parametres import (Edition,
+                        Generaux)
+from traitement import (Annexes,
+                        BilanMensuel,
+                        Facture,
+                        Sommes,
+                        Verification,
+                        Detail)
 from prod2qual import Prod2Qual
 from latex import Latex
 
@@ -83,12 +89,7 @@ reservations.calcul_montants(machines, coefmachines, clients, verification)
 acces.calcul_montants(machines, coefmachines, clients, verification, couts)
 
 sommes = Sommes(verification, generaux)
-sommes.calculer_toutes(livraisons, reservations, acces, prestations, clients, machines)
-
-
-# Outils.affiche_message("Import, vérification et sommes OK !!!")
-# sys.exit()
-
+sommes.calculer_toutes(livraisons, reservations, acces, clients, machines)
 
 if edition.version == '0':
     dossier_csv = Outils.chemin_dossier([dossier_enregistrement, "csv_0"], plateforme, generaux)
@@ -122,6 +123,7 @@ if Latex.possibles():
                     plateforme, generaux, users, couts)
 
 BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces, livraisons)
+Detail.detail(dossier_destination, edition, sommes, clients, generaux, acces, livraisons, comptes, couts)
 
 for fichier in [acces.nom_fichier, clients.nom_fichier, coefmachines.nom_fichier, coefprests.nom_fichier,
                 comptes.nom_fichier, livraisons.nom_fichier, machines.nom_fichier, prestations.nom_fichier,

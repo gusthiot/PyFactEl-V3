@@ -1,6 +1,7 @@
 from outils import Outils
 import math
 
+
 class BilanMensuel(object):
     """
     Classe pour la création du bilan mensuel

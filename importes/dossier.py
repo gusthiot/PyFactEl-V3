@@ -12,6 +12,7 @@ utilisateur n'a a connaître que des chemins relatifs), mais aussi les
 paramètres plateforme-spécifiques d'encodage, séparateurs CSV etc.
 """
 
+
 class _DossierBase(object):
     def __init__(self, chemin_dossier, encodage="cp1252", delimiteur=";"):
         """
@@ -50,9 +51,8 @@ class DossierSource(_DossierBase):
         return csv.reader(self._open(chemin_relatif, "r"), delimiter=self.delimiteur,
                           quotechar=self.quotechar)
 
-    def DictReader(self, chemin_relatif):
-        return csv.DictReader(self._open(chemin_relatif, "r"), delimiter=self.delimiteur,
-                          quotechar=self.quotechar)
+    def dict_reader(self, chemin_relatif):
+        return csv.DictReader(self._open(chemin_relatif, "r"), delimiter=self.delimiteur, quotechar=self.quotechar)
 
     def lire(self, chemin_relatif):
         """Renvoie le contenu d'un fichier, en binaire."""

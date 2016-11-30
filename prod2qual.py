@@ -9,7 +9,7 @@ class Prod2Qual(object):
         if not self.actif:
             return
         self._client_conv = dict((kv["PRD"], kv["QAS"])
-                                 for kv in list(dossier_source.DictReader(self.nom_fichier)))
+                                 for kv in list(dossier_source.dict_reader(self.nom_fichier)))
                          
     def traduire_code_client(self, code_client_prod):
         assert self.actif

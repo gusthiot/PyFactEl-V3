@@ -98,7 +98,7 @@ class Livraison(Fichier):
 
     def calcul_montants(self, prestations, coefprests, clients, verification):
         """
-        calcule le 'montant' et le 'rabais_r' et les ajoute aux données
+        calcule les sous-totaux nécessaires
         :param prestations: prestations importées et vérifiées
         :param coefprests: coefficients prestations importés et vérifiés
         :param clients: clients importés et vérifiés
@@ -157,8 +157,6 @@ class Livraison(Fichier):
                     for prestation in scc:
                         scc[prestation]['montant'] = round(scc[prestation]['quantite'] * scc[prestation]['pu'], 2)
                         scc[prestation]['montantx'] = round(scc[prestation]['quantite'] * scc[prestation]['pux'], 2)
-
-
 
     def livraisons_pour_compte_par_categorie(self, id_compte, code_client, prestations):
         """

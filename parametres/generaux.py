@@ -159,13 +159,14 @@ class Generaux(object):
         return self._donnees['filtrer_article_nul'][
             self._donnees['code_n'].index(filtrer_article_nul)]
 
+
 def ajoute_accesseur_pour_valeur_unique(cls, nom, cle_csv=None):
     if cle_csv is None:
         cle_csv = nom
 
     def accesseur(self):
         return self._donnees[cle_csv][1]
-    setattr(Generaux, nom, property(accesseur))
+    setattr(cls, nom, property(accesseur))
 
 ajoute_accesseur_pour_valeur_unique(Generaux, "centre_financier", "financier")
 

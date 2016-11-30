@@ -85,7 +85,7 @@ class Reservation(Fichier):
 
     def calcul_montants(self, machines, coefmachines, clients, verification):
         """
-        calcule les montants 'pv' et 'qv' et les ajoute aux données
+        calcule les sous-totaux nécessaires
         :param machines: machines importées et vérifiées
         :param coefmachines: coefficients machines importés et vérifiés
         :param clients: clients importés et vérifiés

@@ -16,6 +16,12 @@ class Outils(object):
 
     @staticmethod
     def copier_dossier(source, dossier, destination):
+        """
+        copier un dossier
+        :param source: chemin du dossier à copier
+        :param dossier: dossier à copier
+        :param destination: chemin de destination de copie
+        """
         chemin = destination + "/" + dossier
         if not os.path.exists(chemin):
             try:
@@ -31,6 +37,11 @@ class Outils(object):
 
     @classmethod
     def interface_graphique(cls, opt_nouvelle_valeur=None):
+        """
+        enregistre que l'on veut l'interface graphique ou non
+        :param opt_nouvelle_valeur: True ou False pour interface graphique
+        :return: valeur enregistrée
+        """
         if opt_nouvelle_valeur is not None:
             cls._interface_graphique = opt_nouvelle_valeur
         return cls._interface_graphique
@@ -55,6 +66,11 @@ class Outils(object):
 
     @classmethod
     def fatal(cls, exn, message):
+        """
+        affiche erreur fatal
+        :param exn: erreur
+        :param message: message à afficher
+        """
         Outils.affiche_message(message + "\n" + str(exn))
         if isinstance(exn, ErreurConsistance) or isinstance(exn, ValueError):
             sys.exit(1)

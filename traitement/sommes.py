@@ -8,7 +8,7 @@ class Sommes(object):
     Classe contenant les méthodes pour le calcul des sommes par compte, catégorie et client
     """
 
-    cles_somme_compte = ['somme_j_mai', 'maij_d', 'somme_j_moi', 'moij_d', 'somme_j_dsi','dsij_d', 'somme_j_dhi',
+    cles_somme_compte = ['somme_j_mai', 'maij_d', 'somme_j_moi', 'moij_d', 'somme_j_dsi', 'dsij_d', 'somme_j_dhi',
                          'dhij_d', 'somme_j_mm', 'somme_j_mr', 'somme_j_mb', 'mj', 'c1', 'c2', 'res', 'mu1', 'mu2',
                          'mu3', 'mmo', 'mu1_d', 'mu2_d', 'mu3_d', 'mmo_d']
 
@@ -30,23 +30,23 @@ class Sommes(object):
         self.categories = generaux.codes_d3()
         self.min_fact_rese = generaux.min_fact_rese
 
-    def calculer_toutes(self, livraisons, reservations, acces, prestations, clients, machines):
+    def calculer_toutes(self, livraisons, reservations, acces, clients, machines):
         """
         calculer toutes les sommes, par compte et par client
         :param livraisons: livraisons importées et vérifiées
         :param reservations: réservations importées et vérifiées
         :param acces: accès machines importés et vérifiés
-        :param prestations: prestations importées et vérifiées
         :param clients: clients importés et vérifiés
         :param machines: machines importées et vérifiées
         """
-        self.somme_par_compte(livraisons, acces, prestations, clients)
+        self.somme_par_compte(livraisons, acces, clients)
         self.somme_par_client(clients, reservations, machines, acces)
 
     def nouveau_somme(self, cles, est_compte=False):
         """
         créé un nouveau dictionnaire avec les clés entrées
         :param cles: clés pour le dictionnaire
+        :param est_compte: True s'il s'agit d'une somme par compte
         :return: dictionnaire indexé par les clés données, avec valeurs à zéro
         """
         somme = {}
@@ -73,12 +73,11 @@ class Sommes(object):
                 somme['tot_cat_x'][categorie] = 0
         return somme
 
-    def somme_par_compte(self, livraisons, acces, prestations, clients):
+    def somme_par_compte(self, livraisons, acces, clients):
         """
         calcule les sommes par comptes sous forme de dictionnaire : client->compte->clés_sommes
         :param livraisons: livraisons importées et vérifiées
         :param acces: accès machines importés et vérifiés
-        :param prestations: prestations importées et vérifiées
         :param clients: clients importés et vérifiés
         """
 
@@ -165,7 +164,8 @@ class Sommes(object):
                     somme['sommes_cat_m_x_d'][categorie] = cat_mx - somme['sommes_cat_m_x'][categorie]
                     somme['sommes_cat_m_x'][categorie] = cat_mx
 
-                    somme['tot_cat_x'][categorie] = somme['sommes_cat_m_x'][categorie] - somme['sommes_cat_r'][categorie]
+                    somme['tot_cat_x'][categorie] = somme['sommes_cat_m_x'][categorie]
+                    somme['tot_cat_x'][categorie] -= somme['sommes_cat_r'][categorie]
 
                 mu1 = round(2 * somme['mu1'], 1) / 2
                 somme['mu1_d'] = mu1 - somme['mu1']

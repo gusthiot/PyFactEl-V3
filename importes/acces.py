@@ -107,7 +107,7 @@ class Acces(Fichier):
 
     def calcul_montants(self, machines, coefmachines, clients, verification, couts):
         """
-        calcule les montants 'pu', 'qu' et 'mo' et les ajoute aux données
+        calcule les sous-totaux nécessaires
         :param machines: machines importées
         :param coefmachines: coefficients machines importés et vérifiés
         :param clients: clients importés et vérifiés
@@ -140,7 +140,8 @@ class Acces(Fichier):
             sco = scl[id_compte]
 
             if id_machine not in sco:
-                pum = coefmachine['coef_a'] * machine['t_h_machine_a'] + coefmachine['coef_b'] * machine['t_h_machine_b'] +\
+                pum = coefmachine['coef_a'] * machine['t_h_machine_a'] + \
+                      coefmachine['coef_b'] * machine['t_h_machine_b'] + \
                       coefmachine['coef_c'] * machine['t_h_machine_c']
                 puo_hp = coefmachine['coef_mo'] * machine['t_h_operateur_hp_mo']
                 puo_hc = coefmachine['coef_mo'] * machine['t_h_operateur_hc_mo']
@@ -206,7 +207,7 @@ class Acces(Fichier):
                     sco[id_machine]['mai_hp'] = round(sco[id_machine]['duree_hp'] / 60 * sco[id_machine]['pum'], 2)
                     sco[id_machine]['mai_hc'] = round(sco[id_machine]['duree_hc'] / 60 * sco[id_machine]['pum'], 2)
                     sco[id_machine]['moi_hp'] = round(sco[id_machine]['mo_hp'] / 60 * sco[id_machine]['puo_hp'], 2)
-                    sco[id_machine]['moi_hc']  = round(sco[id_machine]['mo_hp'] / 60 * sco[id_machine]['puo_hc'], 2)
+                    sco[id_machine]['moi_hc'] = round(sco[id_machine]['mo_hp'] / 60 * sco[id_machine]['puo_hc'], 2)
                     sco[id_machine]['dsi_hp'] = round(sco[id_machine]['duree_hp'] / 60 * sco[id_machine]['coef_d'], 2)
                     sco[id_machine]['dsi_hc'] = round(sco[id_machine]['duree_hc'] / 60 * sco[id_machine]['coef_d'], 2)
                     sco[id_machine]['dhi'] = round(sco[id_machine]['duree_hc'] / 60 * sco[id_machine]['coef_e'], 2)
