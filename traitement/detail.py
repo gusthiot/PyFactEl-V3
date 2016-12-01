@@ -1,5 +1,4 @@
 from outils import Outils
-import math
 
 
 class Detail(object):
@@ -19,6 +18,8 @@ class Detail(object):
         :param generaux: paramètres généraux
         :param acces: accès importés
         :param livraisons: livraisons importées
+        :param comptes: comptes importés
+        :param couts: catégories coûts importées
         """
 
         if sommes.calculees == 0:
@@ -32,9 +33,9 @@ class Detail(object):
 
         with dossier_destination.writer(nom) as fichier_writer:
 
-            ligne = ["année", "mois", "code client", "code client sap", "abrév. labo", "id compte", "numéro",
-                     "intitulé", "id catégorie", "catégorie", "machine U1", "machine U2", "machine U3",
-                     "main d'oeuvre MO", "prestation", "montant prestation"]
+            ligne = ["Année", "Mois", "Code Client CMi", "Code Client SAP", "Abrev. Labo", "type client",
+                     "nature client", "Id-Compte", "Numéro de compte", "Intitulé compte", "code_d", "Id-categ-cout",
+                     "Intitulé catégorie coût", "U1", "U2", "U3", "MO", "intitule_court", "Montant"]
             fichier_writer.writerow(ligne)
 
             for code_client in sorted(sommes.sommes_clients.keys()):
@@ -43,19 +44,29 @@ class Detail(object):
                 if code_client in sommes.sommes_comptes:
                     sclo = sommes.sommes_comptes[code_client]
                     comptes_utilises = Outils.comptes_in_somme(sclo, comptes)
+                    base_client = [edition.annee, edition.mois, code_client, client['code_sap'], client['abrev_labo'],
+                                   'U', client['type_labo']]
 
                     for num_compte, id_compte in sorted(comptes_utilises.items()):
                         compte = comptes.donnees[id_compte]
+                        base_compte = base_client + [id_compte, num_compte, compte['intitule']]
 
                         if code_client in acces.sommes and id_compte in acces.sommes[code_client]['categories']:
                             som_cats = acces.sommes[code_client]['categories'][id_compte]
                             for id_cout, som_cat in sorted(som_cats.items()):
-                                ligne = [edition.annee, edition.mois, code_client, client['code_sap'],
-                                         client['abrev_labo'], id_compte, num_compte, compte['intitule'], id_cout,
-                                         couts.donnees[id_cout]['intitule'], Outils.format_2_dec(som_cat['mu1']),
-                                         Outils.format_2_dec(som_cat['mu2']), Outils.format_2_dec(som_cat['mu3']),
-                                         Outils.format_2_dec(som_cat['mmo']), "", ""]
+                                ligne = base_compte + ['M', id_cout, couts.donnees[id_cout]['intitule'],
+                                                       Outils.format_2_dec(som_cat['mu1']),
+                                                       Outils.format_2_dec(som_cat['mu2']),
+                                                       Outils.format_2_dec(som_cat['mu3']),
+                                                       Outils.format_2_dec(som_cat['mmo']), "", ""]
                                 fichier_writer.writerow(ligne)
+
+                            ligne = base_compte + ['M', 'Arrondi', "",
+                                                   Outils.format_2_dec(sclo[id_compte]['mu1_d']),
+                                                   Outils.format_2_dec(sclo[id_compte]['mu2_d']),
+                                                   Outils.format_2_dec(sclo[id_compte]['mu3_d']),
+                                                   Outils.format_2_dec(sclo[id_compte]['mmo_d']), "", ""]
+                            fichier_writer.writerow(ligne)
 
                         if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
                             somme = livraisons.sommes[code_client][id_compte]
@@ -67,8 +78,8 @@ class Detail(object):
                                     elu3 = article.eligible_U3
                                     if elu1 == "NON" and elu2 == "NON" and elu3 == "NON":
                                         continue
-                                    ligne = [edition.annee, edition.mois, code_client, client['code_sap'],
-                                             client['abrev_labo'], id_compte, num_compte, compte['intitule'], "", "",
-                                             "", "", "", "", article.code_d,
-                                             Outils.format_2_dec(sclo[id_compte]['tot_cat_x'][article.code_d])]
+                                    ligne = base_compte + [article.code_d, "", "", "", "", "", "",
+                                                           article.intitule_court,
+                                                           Outils.format_2_dec(
+                                                               sclo[id_compte]['tot_cat_x'][article.code_d])]
                                     fichier_writer.writerow(ligne)
