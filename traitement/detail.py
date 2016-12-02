@@ -35,7 +35,8 @@ class Detail(object):
 
             ligne = ["Année", "Mois", "Code Client CMi", "Code Client SAP", "Abrev. Labo", "type client",
                      "nature client", "Id-Compte", "Numéro de compte", "Intitulé compte", "code_d", "Id-categ-cout",
-                     "Intitulé catégorie coût", "U1", "U2", "U3", "MO", "intitule_court", "Montant"]
+                     "Intitulé catégorie coût", "U1", "U2", "U3", "MO", "intitule_court", "N. prestation", "Intitulé",
+                     "Montant", "Rabais"]
             fichier_writer.writerow(ligne)
 
             for code_client in sorted(sommes.sommes_clients.keys()):
@@ -58,14 +59,14 @@ class Detail(object):
                                                        Outils.format_2_dec(som_cat['mu1']),
                                                        Outils.format_2_dec(som_cat['mu2']),
                                                        Outils.format_2_dec(som_cat['mu3']),
-                                                       Outils.format_2_dec(som_cat['mmo']), "", ""]
+                                                       Outils.format_2_dec(som_cat['mmo']), "", "", "", "", ""]
                                 fichier_writer.writerow(ligne)
 
                             ligne = base_compte + ['M', 'Arrondi', "",
                                                    Outils.format_2_dec(sclo[id_compte]['mu1_d']),
                                                    Outils.format_2_dec(sclo[id_compte]['mu2_d']),
                                                    Outils.format_2_dec(sclo[id_compte]['mu3_d']),
-                                                   Outils.format_2_dec(sclo[id_compte]['mmo_d']), "", ""]
+                                                   Outils.format_2_dec(sclo[id_compte]['mmo_d']), "", "", "", "", ""]
                             fichier_writer.writerow(ligne)
 
                         if code_client in livraisons.sommes and id_compte in livraisons.sommes[code_client]:
@@ -78,8 +79,18 @@ class Detail(object):
                                     elu3 = article.eligible_U3
                                     if elu1 == "NON" and elu2 == "NON" and elu3 == "NON":
                                         continue
+
+                                    for no_prestation, sip in sorted(somme[article.code_d].items()):
+                                        ligne = base_compte + [article.code_d, "", "", "", "", "", "",
+                                                               article.intitule_court, no_prestation, sip['nom'],
+                                                               Outils.format_2_dec(sip['montantx']),
+                                                               Outils.format_2_dec(sip['rabais'])]
+                                        fichier_writer.writerow(ligne)
+
                                     ligne = base_compte + [article.code_d, "", "", "", "", "", "",
-                                                           article.intitule_court,
+                                                           'Arrondi', "", "",
                                                            Outils.format_2_dec(
-                                                               sclo[id_compte]['tot_cat_x'][article.code_d])]
+                                                               sclo[id_compte]['sommes_cat_m_x_d'][article.code_d]),
+                                                           Outils.format_2_dec(
+                                                               sclo[id_compte]['sommes_cat_r_d'][article.code_d])]
                                     fichier_writer.writerow(ligne)
