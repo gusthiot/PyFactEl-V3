@@ -7,16 +7,14 @@ class Acces(Fichier):
     Classe pour l'importation des données de Contrôle Accès Equipement
     """
 
-    cles = ['annee', 'mois', 'id_compte', 'intitule_compte', 'code_client', 'abrev_labo', 'id_user', 'nom_user',
-            'prenom_user', 'id_machine', 'nom_machine', 'date_login',
-            'duree_machine_hp', 'duree_machine_hc', 'duree_operateur_hp', 'duree_operateur_hc', 'id_op', 'nom_op',
-            'remarque_op', 'remarque_staff']
+    cles = ['annee', 'mois', 'id_compte', 'id_user', 'id_machine', 'date_login', 'duree_machine_hp', 'duree_machine_hc',
+            'duree_operateur_hp', 'duree_operateur_hc', 'id_op', 'nom_op', 'remarque_op', 'remarque_staff']
     nom_fichier = "cae.csv"
     libelle = "Contrôle Accès Equipement"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.comptes = {}
+        self.comptes = []
         self.sommes = {}
 
     def obtenir_comptes(self):
@@ -59,10 +57,8 @@ class Acces(Fichier):
                 msg += "le compte id de la ligne " + str(ligne) + " ne peut être vide\n"
             elif comptes.contient_id(donnee['id_compte']) == 0:
                 msg += "le compte id '" + donnee['id_compte'] + "' de la ligne " + str(ligne) + " n'est pas référencé\n"
-            elif donnee['code_client'] not in self.comptes:
-                self.comptes[donnee['code_client']] = [donnee['id_compte']]
-            elif donnee['id_compte'] not in self.comptes[donnee['code_client']]:
-                self.comptes[donnee['code_client']].append(donnee['id_compte'])
+            elif donnee['id_compte'] not in self.comptes:
+                self.comptes.append(donnee['id_compte'])
 
             if donnee['id_machine'] == "":
                 msg += "le machine id de la ligne " + str(ligne) + " ne peut être vide\n"
@@ -105,7 +101,7 @@ class Acces(Fichier):
             return 1
         return 0
 
-    def calcul_montants(self, machines, coefmachines, clients, verification, couts):
+    def calcul_montants(self, machines, coefmachines, clients, verification, couts, comptes):
         """
         calcule les sous-totaux nécessaires
         :param machines: machines importées
@@ -113,6 +109,7 @@ class Acces(Fichier):
         :param clients: clients importés et vérifiés
         :param verification: pour vérifier si les dates et les cohérences sont correctes
         :param couts: catégories coûts importées
+        :param comptes: comptes importés
 
         """
         if verification.a_verifier != 0:
@@ -126,8 +123,8 @@ class Acces(Fichier):
         for donnee in self.donnees:
             id_compte = donnee['id_compte']
             id_user = donnee['id_user']
-            code_client = donnee['code_client']
             id_machine = donnee['id_machine']
+            code_client = comptes.donnees[id_compte]['code_client']
             machine = machines.donnees[id_machine]
             client = clients.donnees[code_client]
             coefmachine = coefmachines.donnees[client['id_classe_tarif'] + machine['categorie']]

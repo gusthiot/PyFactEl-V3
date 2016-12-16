@@ -37,7 +37,8 @@ from traitement import (Annexes,
                         Facture,
                         Sommes,
                         Verification,
-                        Detail)
+                        Detail,
+                        Recapitulatifs)
 from prod2qual import Prod2Qual
 from latex import Latex
 
@@ -84,9 +85,9 @@ dossier_enregistrement = Outils.chemin_dossier([generaux.chemin, edition.annee,
                                                 Outils.mois_string(edition.mois)], plateforme, generaux)
 dossier_lien = Outils.lien_dossier([generaux.lien, edition.annee, Outils.mois_string(edition.mois)],
                                    plateforme, generaux)
-livraisons.calcul_montants(prestations, coefprests, clients, verification)
+livraisons.calcul_montants(prestations, coefprests, clients, verification, comptes)
 reservations.calcul_montants(machines, coefmachines, clients, verification)
-acces.calcul_montants(machines, coefmachines, clients, verification, couts)
+acces.calcul_montants(machines, coefmachines, clients, verification, couts, comptes)
 
 sommes = Sommes(verification, generaux)
 sommes.calculer_toutes(livraisons, reservations, acces, clients, machines)
@@ -122,8 +123,12 @@ if Latex.possibles():
     Annexes.annexes(sommes, clients, edition, livraisons, acces, machines, reservations, comptes, dossier_annexes,
                     plateforme, generaux, users, couts)
 
-BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces, livraisons)
+BilanMensuel.bilan(dossier_destination, edition, sommes, clients, generaux, acces, livraisons, comptes, reservations)
 Detail.detail(dossier_destination, edition, sommes, clients, generaux, acces, livraisons, comptes, couts)
+
+Recapitulatifs.cae(dossier_destination, edition, acces, comptes, clients, users, machines)
+Recapitulatifs.lvr(dossier_destination, edition, livraisons, comptes, clients, users, prestations)
+Recapitulatifs.res(dossier_destination, edition, reservations, clients, users, machines)
 
 for fichier in [acces.nom_fichier, clients.nom_fichier, coefmachines.nom_fichier, coefprests.nom_fichier,
                 comptes.nom_fichier, livraisons.nom_fichier, machines.nom_fichier, prestations.nom_fichier,

@@ -677,7 +677,7 @@ class Annexes(object):
                                                          Latex.echappe_caracteres(liv['date_livraison']) + ";"
                                                 dico_pos = {'date_liv': dl, 'quantite': "%.1f" % liv['quantite'],
                                                             'rabais': Outils.format_2_dec(liv['rabais_r']),
-                                                            'id': liv['id_livraison'], 'unite': liv['unite'],
+                                                            'id': liv['id_livraison'], 'unite': sip['unite'],
                                                             'responsable': Latex.echappe_caracteres(liv['responsable']),
                                                             'commande': Latex.echappe_caracteres(liv['date_commande']),
                                                             'remarque': Latex.echappe_caracteres(rem)}

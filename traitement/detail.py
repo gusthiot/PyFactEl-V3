@@ -28,8 +28,10 @@ class Detail(object):
             Outils.affiche_message(info)
             return
 
-        nom = "detail_" + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + "_" + \
-              str(edition.version) + ".csv"
+        nom = "detail_" + str(edition.annee) + "_" + Outils.mois_string(edition.mois) + "_" + str(edition.version)
+        if edition.version != '0':
+            nom += "_" + str(edition.client_unique)
+        nom += ".csv"
 
         with dossier_destination.writer(nom) as fichier_writer:
 

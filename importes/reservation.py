@@ -8,9 +8,8 @@ class Reservation(Fichier):
     Classe pour l'importation des données de Réservations
     """
 
-    cles = ['annee', 'mois', 'code_client', 'abrev_labo', 'id_user', 'nom_user',
-            'prenom_user', 'id_machine', 'nom_machine', 'date_debut', 'duree_hp', 'duree_hc', 'si_supprime',
-            'duree_ouvree', 'date_reservation', 'date_suppression']
+    cles = ['annee', 'mois', 'code_client', 'id_user', 'id_machine', 'date_debut', 'duree_hp', 'duree_hc',
+            'si_supprime', 'duree_ouvree', 'date_reservation', 'date_suppression']
     nom_fichier = "res.csv"
     libelle = "Réservation Equipement"
 

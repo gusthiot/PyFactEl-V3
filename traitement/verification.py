@@ -77,39 +77,50 @@ class Verification(object):
         verif += clients.est_coherent(coefmachines, coefprests, generaux)
         verif += reservations.est_coherent(clients, machines, users)
 
-        comptes_actifs, clients_actifs = Verification.obtenir_comptes_clients_actifs(acces, livraisons)
+        comptes_actifs = Verification.obtenir_comptes_actifs(acces, livraisons)
+
+        verif += comptes.est_coherent(comptes_actifs)
+
+        clients_actifs = Verification.obtenir_clients_actifs(comptes_actifs, comptes)
 
         if (edition.version != '0') and (len(clients_actifs) > 1):
             Outils.affiche_message("Si version différente de 0, un seul client autorisé")
             sys.exit("Trop de clients pour version > 0")
 
-        verif += comptes.est_coherent(comptes_actifs)
         self.a_verifier = 0
         if len(clients_actifs) == 1:
             edition.client_unique = clients_actifs[0]
         return verif
 
     @staticmethod
-    def obtenir_comptes_clients_actifs(acces, livraisons):
+    def obtenir_comptes_actifs(acces, livraisons):
         """
-        retourne la liste des comptes utilisés, par clients, pour les accès et les livraisons
+        retourne la liste des comptes utilisés, pour les accès et les livraisons
         :param acces: accès importés
         :param livraisons: livraisons importées
         :return: comptes utilisés mappés par clients
         """
         comptes_actifs = []
-        clients_actifs = []
-        for client, comptes in livraisons.obtenir_comptes().items():
-            if client not in clients_actifs:
-                clients_actifs.append(client)
-            for compte in comptes:
-                if compte not in comptes_actifs:
-                    comptes_actifs.append(compte)
-        for client, comptes in acces.obtenir_comptes().items():
-            if client not in clients_actifs:
-                clients_actifs.append(client)
-            for compte in comptes:
-                if compte not in comptes_actifs:
-                    comptes_actifs.append(compte)
+        for id_compte in livraisons.obtenir_comptes():
+            if id_compte not in comptes_actifs:
+                comptes_actifs.append(id_compte)
+        for id_compte in acces.obtenir_comptes():
+            if id_compte not in comptes_actifs:
+                comptes_actifs.append(id_compte)
 
-        return comptes_actifs, clients_actifs
+        return comptes_actifs
+
+    @staticmethod
+    def obtenir_clients_actifs(comptes_actifs, comptes):
+        """
+        retourne la liste des clients des comptes actifs
+        :param comptes_actifs: comptes actifs
+        :param comptes: comptes importés
+        :return: comptes utilisés mappés par clients
+        """
+        clients_actifs = []
+        for id_compte in comptes_actifs:
+            code_client = comptes.donnees[id_compte]['code_client']
+            if code_client not in clients_actifs:
+                clients_actifs.append(code_client)
+        return clients_actifs

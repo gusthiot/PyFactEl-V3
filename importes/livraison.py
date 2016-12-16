@@ -7,15 +7,14 @@ class Livraison(Fichier):
     Classe pour l'importation des données de Livraisons
     """
 
-    cles = ['annee', 'mois', 'id_compte', 'intitule_compte', 'code_client', 'abrev_labo', 'id_user', 'nom_user',
-            'prenom_user', 'id_prestation', 'designation', 'date_livraison',
-            'quantite', 'unite', 'rabais', 'responsable', 'id_livraison', 'date_commande', 'date_prise', 'remarque']
+    cles = ['annee', 'mois', 'id_compte', 'id_user', 'id_prestation', 'date_livraison', 'quantite', 'rabais',
+            'responsable', 'id_livraison', 'date_commande', 'date_prise', 'remarque']
     nom_fichier = "lvr.csv"
     libelle = "Livraison Prestations"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.comptes = {}
+        self.comptes = []
         self.sommes = {}
 
     def obtenir_comptes(self):
@@ -58,10 +57,8 @@ class Livraison(Fichier):
                 msg += "le compte id de la ligne " + str(ligne) + " ne peut être vide\n"
             elif comptes.contient_id(donnee['id_compte']) == 0:
                 msg += "le compte id '" + donnee['id_compte'] + "' de la ligne " + str(ligne) + " n'est pas référencé\n"
-            elif donnee['code_client'] not in self.comptes:
-                self.comptes[donnee['code_client']] = [donnee['id_compte']]
-            elif donnee['id_compte'] not in self.comptes[donnee['code_client']]:
-                self.comptes[donnee['code_client']].append(donnee['id_compte'])
+            elif donnee['id_compte'] not in self.comptes:
+                self.comptes.append(donnee['id_compte'])
 
             if donnee['id_prestation'] == "":
                 msg += "le prestation id de la ligne " + str(ligne) + " ne peut être vide\n"
@@ -96,13 +93,14 @@ class Livraison(Fichier):
             return 1
         return 0
 
-    def calcul_montants(self, prestations, coefprests, clients, verification):
+    def calcul_montants(self, prestations, coefprests, clients, verification, comptes):
         """
         calcule les sous-totaux nécessaires
         :param prestations: prestations importées et vérifiées
         :param coefprests: coefficients prestations importés et vérifiés
         :param clients: clients importés et vérifiés
         :param verification: pour vérifier si les dates et les cohérences sont correctes
+        :param comptes: comptes importés
         """
         if verification.a_verifier != 0:
             info = self.libelle + ". vous devez faire les vérifications avant de calculer les montants"
@@ -115,7 +113,7 @@ class Livraison(Fichier):
         for donnee in self.donnees:
             id_compte = donnee['id_compte']
             id_user = donnee['id_user']
-            code_client = donnee['code_client']
+            code_client = comptes.donnees[id_compte]['code_client']
             prestation = prestations.donnees[donnee['id_prestation']]
             no_prestation = prestation['no_prestation']
             client = clients.donnees[code_client]
@@ -132,8 +130,9 @@ class Livraison(Fichier):
             if categorie not in scl[id_compte]:
                 scl[id_compte][categorie] = {}
             if no_prestation not in scl[id_compte][categorie]:
-                scl[id_compte][categorie][no_prestation] = {'nom': prestation['designation'], 'unite': donnee['unite'],
-                                                            'rabais': 0, 'quantite': 0, 'pu': prix_unit_client,
+                scl[id_compte][categorie][no_prestation] = {'nom': prestation['designation'],
+                                                            'unite': prestation['unite_prest'], 'rabais': 0,
+                                                            'quantite': 0, 'pu': prix_unit_client,
                                                             'pux': round(prestation['prix_unit'], 2), 'users': {}}
 
             scp = scl[id_compte][categorie][no_prestation]
