@@ -563,7 +563,7 @@ class Annexes(object):
                                 for prenom, ids in sorted(upi.items()):
                                     for id_user in sorted(ids):
                                         smu = somme[id_machine]['users'][id_user]
-                                        dico_user = {'user': nom + " " + prenom,
+                                        dico_user = {'user': Latex.echappe_caracteres(nom + " " + prenom),
                                                      'hp': Outils.format_heure(smu['duree_hp']),
                                                      'hc': Outils.format_heure(smu['duree_hc']),
                                                      'mo_hp': Outils.format_heure(smu['mo_hp']),
@@ -657,7 +657,7 @@ class Annexes(object):
                                     for prenom, ids in sorted(upi.items()):
                                         for id_user in sorted(ids):
                                             spu = sip['users'][id_user]
-                                            dico_user = {'user': nom + " " + prenom,
+                                            dico_user = {'user': Latex.echappe_caracteres(nom + " " + prenom),
                                                          'quantite': "%.1f" % spu['quantite'],
                                                          'unite': sip['unite'],
                                                          'rabais': Outils.format_2_dec(spu['rabais'])}
@@ -1283,7 +1283,7 @@ class Annexes(object):
                                 for prenom, ids in sorted(upi.items()):
                                     for id_user in sorted(ids):
                                         smu = somme[id_machine]['users'][id_user]
-                                        dico_user = {'user': nom + " " + prenom,
+                                        dico_user = {'user': Latex.echappe_caracteres(nom + " " + prenom),
                                                      'hp': Outils.format_heure(smu['duree_hp']),
                                                      'hc': Outils.format_heure(smu['duree_hc'])}
                                         contenu_machuts += r'''
@@ -1371,7 +1371,8 @@ class Annexes(object):
                                         mini = sclu[id_user]['mini_hp']
                                         tot = sclu[id_user]['tot_hp']
                                         if ac > 0 or re > 0:
-                                            dico_user = {'user': nom + " " + prenom, 'ac': Outils.format_heure(ac),
+                                            dico_user = {'user': Latex.echappe_caracteres(nom + " " + prenom),
+                                                         'ac': Outils.format_heure(ac),
                                                          're': Outils.format_heure(re), 'tx': tx_hp,
                                                          'mini': Outils.format_heure(mini),
                                                          'tot': Outils.format_heure(tot)}
@@ -1396,7 +1397,8 @@ class Annexes(object):
                                         mini = sclu[id_user]['mini_hc']
                                         tot = sclu[id_user]['tot_hc']
                                         if ac > 0 or re > 0:
-                                            dico_user = {'user': nom + " " + prenom, 'ac': Outils.format_heure(ac),
+                                            dico_user = {'user': Latex.echappe_caracteres(nom + " " + prenom),
+                                                         'ac': Outils.format_heure(ac),
                                                          're': Outils.format_heure(re), 'tx': tx_hc,
                                                          'mini': Outils.format_heure(mini),
                                                          'tot': Outils.format_heure(tot)}
@@ -1464,7 +1466,7 @@ class Annexes(object):
                             for prenom, ids in sorted(upi.items()):
                                 for id_user in sorted(ids):
                                     smu = somme[id_machine]['users'][id_user]
-                                    dico_user = {'user': nom + " " + prenom,
+                                    dico_user = {'user': Latex.echappe_caracteres(nom + " " + prenom),
                                                  'hp': Outils.format_heure(smu['res_hp']),
                                                  'hc': Outils.format_heure(smu['res_hc'])}
                                     contenu_reserve_client += r'''
