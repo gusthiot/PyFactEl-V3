@@ -86,6 +86,7 @@ class Annexes(object):
             return
 
         for code_client, scl in sommes.sommes_clients.items():
+            code_client = Latex.echappe_caracteres(code_client)
 
             if scl['somme_t'] == 0 and prefixe == "annexe_":
                 continue
@@ -145,7 +146,7 @@ class Annexes(object):
                 \Large\textsc{''' + reference + r'''}\newline\newline\newline
                 '''
 
-            dic_entete = {'code': code_client, 'code_sap': client['code_sap'],
+            dic_entete = {'code': code_client, 'code_sap': Latex.echappe_caracteres(client['code_sap']),
                           'nom': Latex.echappe_caracteres(client['abrev_labo']),
                           'date': edition.mois_txt + " " + str(edition.annee)}
 
@@ -186,10 +187,10 @@ class Annexes(object):
 
         scl = sommes.sommes_clients[code_client]
         client = clients.donnees[code_client]
-        nature = generaux.nature_client_par_code_n(client['type_labo'])
-        av_ds = generaux.avantage_ds_par_code_n(client['type_labo'])
-        av_hc = generaux.avantage_hc_par_code_n(client['type_labo'])
-        an_couts = generaux.annexe_cout_par_code_n(client['type_labo'])
+        nature = Latex.echappe_caracteres(generaux.nature_client_par_code_n(client['type_labo']))
+        av_ds = Latex.echappe_caracteres(generaux.avantage_ds_par_code_n(client['type_labo']))
+        av_hc = Latex.echappe_caracteres(generaux.avantage_hc_par_code_n(client['type_labo']))
+        an_couts = Latex.echappe_caracteres(generaux.annexe_cout_par_code_n(client['type_labo']))
         reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
         if edition.version != "0":
             reference += "-" + edition.version
@@ -220,12 +221,14 @@ class Annexes(object):
             comptes_utilises = Outils.comptes_in_somme(sommes.sommes_comptes[code_client], comptes)
 
             for num_compte, id_compte in sorted(comptes_utilises.items()):
+                num_compte = Latex.echappe_caracteres(num_compte)
+                id_compte = Latex.echappe_caracteres(id_compte)
 
                 # ## COMPTE
 
                 sco = sommes.sommes_comptes[code_client][id_compte]
                 compte = comptes.donnees[id_compte]
-                intitule_compte = compte['numero'] + " - " + Latex.echappe_caracteres(compte['intitule'])
+                intitule_compte = Latex.echappe_caracteres(compte['numero'] + " - " + compte['intitule'])
 
                 titre2 = "Récapitulatif du compte : " + intitule_compte
                 contenu_compte_annexe2 += Annexes.section(code_client, client, edition, reference, titre2, nombre_2)
@@ -240,7 +243,7 @@ class Annexes(object):
 
                 if sco['c1'] > 0 and not (filtre == "OUI" and sco['c2'] == 0):
                     poste = inc_fact * 10
-                    intitule = intitule_compte + " - " + generaux.articles[2].intitule_long
+                    intitule = Latex.echappe_caracteres(intitule_compte + " - " + generaux.articles[2].intitule_long)
 
                     if sco['somme_j_mm'] > 0 and not (filtre == "OUI" and sco['mj'] == 0):
                         dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
@@ -257,7 +260,7 @@ class Annexes(object):
                         categorie = article.code_d
                         if sco['sommes_cat_m'][categorie] > 0 and not (filtre == "OUI"
                                                                        and sco['tot_cat'][article.code_d] == 0):
-                            intitule = intitule_compte + " - " + Latex.echappe_caracteres(article.intitule_long)
+                            intitule = Latex.echappe_caracteres(intitule_compte + " - " + article.intitule_long)
                             dico_fact_compte = {'intitule': intitule, 'poste': str(poste),
                                                 'mm': Outils.format_2_dec(sco['sommes_cat_m'][article.code_d]),
                                                 'mr': Outils.format_2_dec(sco['sommes_cat_r'][article.code_d]),
@@ -311,7 +314,8 @@ class Annexes(object):
                             if contenu_prestations_client_tab[article.code_d] == "":
                                 contenu_prestations_client_tab[article.code_d] = r'''
                                     \cline{2-4}
-                                    \multicolumn{1}{c}{} & \multicolumn{3}{|c|}{''' + article.intitule_long + r'''} \\
+                                    \multicolumn{1}{c}{} & \multicolumn{3}{|c|}{
+                                    ''' + Latex.echappe_caracteres(article.intitule_long) + r'''} \\
                                     \hline
                                     Compte & Montant & Rabais & Montant net \\
                                     \hline
@@ -350,7 +354,7 @@ class Annexes(object):
                                     'mj': Outils.format_2_dec(sco['mj']),
                                     'nmij': Outils.format_2_dec((sco['somme_j_mai']-sco['somme_j_mr'])),
                                     'moij': Outils.format_2_dec(sco['somme_j_moi']),
-                                    'int_proc': generaux.articles[2].intitule_long}
+                                    'int_proc': Latex.echappe_caracteres(generaux.articles[2].intitule_long)}
 
                 contenu_recap_poste = r'''
                     \cline{2-4}
@@ -491,14 +495,17 @@ class Annexes(object):
                             contenu_prests_compte += r'''
                                 \hline
                                 \multicolumn{1}{|l|}{
-                                \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                                \textbf{''' + intitule_compte + " - " + \
+                                                     Latex.echappe_caracteres(article.intitule_long) + r'''
                                 }} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
                                 & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais} \\
                                 \hline
                                 '''
                             for no_prestation, sip in sorted(somme[article.code_d].items()):
-                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                    'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
+                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']),
+                                                    'num': no_prestation,
+                                                    'quantite': "%.1f" % sip['quantite'],
+                                                    'unite': Latex.echappe_caracteres(sip['unite']),
                                                     'pu': Outils.format_2_dec(sip['pu']),
                                                     'montant': Outils.format_2_dec(sip['montant']),
                                                     'rabais': Outils.format_2_dec(sip['rabais'])}
@@ -591,13 +598,14 @@ class Annexes(object):
                                             if cae['remarque_op'] != "":
                                                 if rem != "":
                                                     rem += "; "
-                                                rem += "rem op : " + Latex.echappe_caracteres(cae['remarque_op'])
+                                                rem += "rem op : " + cae['remarque_op']
                                             if cae['remarque_staff'] != "":
                                                 if rem != "":
                                                     rem += "; "
-                                                rem += "rem CMi : " + Latex.echappe_caracteres(cae['remarque_staff'])
+                                                rem += "rem CMi : " + cae['remarque_staff']
 
-                                            dico_pos = {'date': date, 'heure': heure, 'rem': rem,
+                                            dico_pos = {'date': date, 'heure': heure,
+                                                        'rem': Latex.echappe_caracteres(rem),
                                                         'hp': Outils.format_heure(cae['duree_machine_hp']),
                                                         'hc': Outils.format_heure(cae['duree_machine_hc']),
                                                         'mo_hp': Outils.format_heure(cae['duree_operateur_hp']),
@@ -637,13 +645,16 @@ class Annexes(object):
                             contenu_prestations_compte += r'''
                                 \hline
                                 \multicolumn{1}{|l|}{
-                                \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                                \textbf{''' + intitule_compte + " - " + \
+                                                          Latex.echappe_caracteres(article.intitule_long) + r'''
                                 }} & Quantité & Unité & Rabais \\
                                 \hline
                                 '''
                             for no_prestation, sip in sorted(somme[article.code_d].items()):
-                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                    'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
+                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']),
+                                                    'num': no_prestation,
+                                                    'quantite': "%.1f" % sip['quantite'],
+                                                    'unite': Latex.echappe_caracteres(sip['unite']),
                                                     'rabais': Outils.format_2_dec(sip['rabais'])}
                                 contenu_prestations_compte += r'''
                                     %(num)s - %(nom)s & \hspace{5mm} %(quantite)s & %(unite)s
@@ -659,7 +670,7 @@ class Annexes(object):
                                             spu = sip['users'][id_user]
                                             dico_user = {'user': Latex.echappe_caracteres(nom + " " + prenom),
                                                          'quantite': "%.1f" % spu['quantite'],
-                                                         'unite': sip['unite'],
+                                                         'unite': Latex.echappe_caracteres(sip['unite']),
                                                          'rabais': Outils.format_2_dec(spu['rabais'])}
                                             contenu_prestations_compte += r'''
                                                 \hspace{5mm} %(user)s & %(quantite)s & %(unite)s & %(rabais)s \\
@@ -673,11 +684,12 @@ class Annexes(object):
                                                 if liv['remarque'] != "":
                                                     rem = "; Remarque : " + liv['remarque']
                                                 if liv['date_livraison'] != "":
-                                                    dl = "Dt livraison: " + \
-                                                         Latex.echappe_caracteres(liv['date_livraison']) + ";"
-                                                dico_pos = {'date_liv': dl, 'quantite': "%.1f" % liv['quantite'],
+                                                    dl = "Dt livraison: " + liv['date_livraison'] + ";"
+                                                dico_pos = {'date_liv': Latex.echappe_caracteres(dl),
+                                                            'quantite': "%.1f" % liv['quantite'],
                                                             'rabais': Outils.format_2_dec(liv['rabais_r']),
-                                                            'id': liv['id_livraison'], 'unite': sip['unite'],
+                                                            'id': Latex.echappe_caracteres(liv['id_livraison']),
+                                                            'unite': Latex.echappe_caracteres(sip['unite']),
                                                             'responsable': Latex.echappe_caracteres(liv['responsable']),
                                                             'commande': Latex.echappe_caracteres(liv['date_commande']),
                                                             'remarque': Latex.echappe_caracteres(rem)}
@@ -739,7 +751,8 @@ class Annexes(object):
                             tot1 += u1
                             tot2 += u2
                             tot3 += u3
-                            dico_article = {'intitule': article.intitule_long, 'u1': Outils.format_2_dec(u1),
+                            dico_article = {'intitule': Latex.echappe_caracteres(article.intitule_long),
+                                            'u1': Outils.format_2_dec(u1),
                                             'u2': Outils.format_2_dec(u2), 'u3': Outils.format_2_dec(u3)}
                             contenu_eligibles_compte += r'''
                                 %(intitule)s & %(u1)s & %(u2)s & %(u3)s \\
@@ -775,7 +788,7 @@ class Annexes(object):
 
                     for id_cout, som_cat in sorted(som_cats.items()):
 
-                        dico_cat = {'intitule': couts.donnees[id_cout]['intitule'],
+                        dico_cat = {'intitule': Latex.echappe_caracteres(couts.donnees[id_cout]['intitule']),
                                     'mu1': Outils.format_2_dec(som_cat['mu1']),
                                     'mu2': Outils.format_2_dec(som_cat['mu2']),
                                     'mu3': Outils.format_2_dec(som_cat['mu3']),
@@ -833,8 +846,8 @@ class Annexes(object):
                             \textbf{''' + intitule_compte + r'''} & \multicolumn{2}{c|}{Durée}
                             & \multicolumn{4}{c|}{PU [CHF/h]} & \multicolumn{4}{c|}{Montant [CHF]} \\
                             \hline
-                            \textbf{''' + couts.donnees[id_cout]['intitule'] + r'''} & Mach. & Oper.
-                            & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2}
+                            \textbf{''' + Latex.echappe_caracteres(couts.donnees[id_cout]['intitule']) + r'''}
+                            & Mach. & Oper. & \multicolumn{1}{c|}{U1} & \multicolumn{1}{c|}{U2}
                             & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{Oper.} & \multicolumn{1}{c|}{U1}
                             & \multicolumn{1}{c|}{U2} & \multicolumn{1}{c|}{U3} & \multicolumn{1}{c|}{Oper.} \\
                             \hline
@@ -900,15 +913,18 @@ class Annexes(object):
                             contenu_coutprests_compte += r'''
                                 \hline
                                 \multicolumn{1}{|l|}{
-                                \textbf{''' + intitule_compte + " - " + article.intitule_long + r'''
+                                \textbf{''' + intitule_compte + " - " + \
+                                                         Latex.echappe_caracteres(article.intitule_long) + r'''
                                 }} & \multicolumn{1}{c|}{Quantité} & Unité & \multicolumn{1}{c|}{P.U.}
                                 & \multicolumn{1}{c|}{Montant} & \multicolumn{1}{c|}{Rabais}
                                 & \multicolumn{1}{c|}{Net} \\
                                 \hline
                                 '''
                             for no_prestation, sip in sorted(somme[article.code_d].items()):
-                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']), 'num': no_prestation,
-                                                    'quantite': "%.1f" % sip['quantite'], 'unite': sip['unite'],
+                                dico_prestations = {'nom': Latex.echappe_caracteres(sip['nom']),
+                                                    'num': no_prestation,
+                                                    'quantite': "%.1f" % sip['quantite'],
+                                                    'unite': Latex.echappe_caracteres(sip['unite']),
                                                     'pux': Outils.format_2_dec(sip['pux']),
                                                     'montantx': Outils.format_2_dec(sip['montantx']),
                                                     'rabais': Outils.format_2_dec(sip['rabais']),
@@ -962,8 +978,8 @@ class Annexes(object):
             dico_recap_fact = {'emom': Outils.format_2_dec(scl['em']), 'emor': Outils.format_2_dec(scl['er']),
                                'emo': Outils.format_2_dec(scl['e']), 'resm': Outils.format_2_dec(scl['rm']),
                                'resr': Outils.format_2_dec(scl['rr']), 'res': Outils.format_2_dec(scl['r']),
-                               'int_emo': generaux.articles[0].intitule_long,
-                               'int_res': generaux.articles[1].intitule_long,
+                               'int_emo': Latex.echappe_caracteres(generaux.articles[0].intitule_long),
+                               'int_res': Latex.echappe_caracteres(generaux.articles[1].intitule_long),
                                'p_emo': generaux.poste_emolument, 'p_res': generaux.poste_reservation}
 
             contenu_recap_fact = r'''
@@ -1000,9 +1016,9 @@ class Annexes(object):
         dico_recap_poste_cl = {'emom': Outils.format_2_dec(scl['em']), 'emor': Outils.format_2_dec(scl['er']),
                                'emo': Outils.format_2_dec(scl['e']), 'resm': Outils.format_2_dec(scl['rm']),
                                'resr': Outils.format_2_dec(scl['rr']), 'res': Outils.format_2_dec(scl['r']),
-                               'int_emo': generaux.articles[0].intitule_long,
-                               'int_res': generaux.articles[1].intitule_long,
-                               'int_proc': generaux.articles[2].intitule_long,
+                               'int_emo': Latex.echappe_caracteres(generaux.articles[0].intitule_long),
+                               'int_res': Latex.echappe_caracteres(generaux.articles[1].intitule_long),
+                               'int_proc': Latex.echappe_caracteres(generaux.articles[2].intitule_long),
                                'mm': Outils.format_2_dec(scl['somme_t_mm']),
                                'mr': Outils.format_2_dec(scl['somme_t_mr']), 'mt': Outils.format_2_dec(scl['mt'])}
 
@@ -1296,8 +1312,8 @@ class Annexes(object):
                                         for num_compte, id_compte in sorted(comptes_utilises.items()):
                                             smuc = smu['comptes'][id_compte]
                                             compte = comptes.donnees[id_compte]
-                                            intitule_compte = compte['numero'] + " - "
-                                            intitule_compte += Latex.echappe_caracteres(compte['intitule'])
+                                            intitule_compte = Latex.echappe_caracteres(compte['numero']
+                                                                                       + " - " + compte['intitule'])
                                             dico_compte = {'compte': intitule_compte,
                                                            'hp': Outils.format_heure(smuc['duree_hp']),
                                                            'hc': Outils.format_heure(smuc['duree_hc'])}
@@ -1487,8 +1503,8 @@ class Annexes(object):
 
                                         sup = ""
                                         if res['si_supprime'] == "OUI":
-                                            sup = "Supprimé le : " + Latex.echappe_caracteres(res['date_suppression'])
-                                        dico_pos = {'date': date, 'heure': heure, 'sup': sup,
+                                            sup = "Supprimé le : " + res['date_suppression']
+                                        dico_pos = {'date': date, 'heure': heure, 'sup': Latex.echappe_caracteres(sup),
                                                     'hp': Outils.format_heure(res['duree_fact_hp']),
                                                     'hc': Outils.format_heure(res['duree_fact_hc'])}
                                         contenu_reserve_client += r'''
@@ -1533,7 +1549,7 @@ class Annexes(object):
         :param nombre: numéro de l'annexe
         :return: page de titre latex de l'annexe
         """
-        dic_titre = {'code': code_client, 'code_sap': client['code_sap'],
+        dic_titre = {'code': code_client, 'code_sap': Latex.echappe_caracteres(client['code_sap']),
                      'nom': Latex.echappe_caracteres(client['abrev_labo']),
                      'date': edition.mois_txt + " " + str(edition.annee),
                      'ref': reference, 'titre': titre, 'nombre': nombre}
@@ -1564,7 +1580,7 @@ class Annexes(object):
         :param nombre: numéro d'annexe de la section
         :return: section latex
         """
-        dic_section = {'code': code_client, 'code_sap': client['code_sap'],
+        dic_section = {'code': code_client, 'code_sap': Latex.echappe_caracteres(client['code_sap']),
                        'nom': Latex.echappe_caracteres(client['abrev_labo']),
                        'date': edition.mois_txt + " " + str(edition.annee),
                        'ref': reference, 'titre': titre, 'nombre': nombre}
