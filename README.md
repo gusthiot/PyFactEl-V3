@@ -1,7 +1,5 @@
 # PyFactEl-V3
 
-(PyFactEl en mode simulation, version 3)
-
 - installer Python 3 (https://www.python.org/downloads/)
     si l'option "rajouter Python au PATH" se présente, la cocher
 - installer TeX Live (https://www.tug.org/texlive/)
