@@ -1003,7 +1003,7 @@ class Annexes(object):
                 & ''' + Outils.format_2_dec(scl['somme_t']) + r'''\\
                 \hline
                 '''
-            contenu += Latex.tableau(contenu_recap_fact, structure_recap_fact, legende_recap_fact)
+            contenu += Latex.long_tableau(contenu_recap_fact, structure_recap_fact, legende_recap_fact)
         else:
             contenu += Latex.tableau_vide(r'''Table I.1 - Récapitulatif des postes de la facture :
                 table vide (aucun article facturable)''')
@@ -1165,7 +1165,7 @@ class Annexes(object):
             \hline
             ''' % dico_recap
 
-        contenu += Latex.tableau(contenu_recap, structure_recap, legende_recap)
+        contenu += Latex.long_tableau(contenu_recap, structure_recap, legende_recap)
 
         # ## 1.6
 
@@ -1197,7 +1197,7 @@ class Annexes(object):
                 \hline
                 ''' % dico_procedes_client
 
-            contenu += Latex.tableau(contenu_procedes_client, structure_procedes_client, legende_procedes_client)
+            contenu += Latex.long_tableau(contenu_procedes_client, structure_procedes_client, legende_procedes_client)
         else:
             contenu += Latex.tableau_vide(r'''Table I.6 - Récapitulatif des procédés :
                 table vide (pas d'utilisations machines)''')
@@ -1257,7 +1257,7 @@ class Annexes(object):
                     \hline
                     ''' % dico_bonus
 
-                contenu += Latex.tableau(contenu_bonus, structure_bonus, legende_bonus)
+                contenu += Latex.long_tableau(contenu_bonus, structure_bonus, legende_bonus)
             else:
                 contenu += Latex.tableau_vide(r'''Table I.8 - Récapitulatif des bonus :
                     table vide (pas d'utilisations machines)''')
