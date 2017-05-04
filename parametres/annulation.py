@@ -2,13 +2,13 @@ from outils import Outils
 from erreurs import ErreurConsistance
 
 
-class Suppression(object):
+class Annulation(object):
     """
-    Classe pour la suppression d'une facture
+    Classe pour la annuler la modification d'une facture
     """
 
-    nom_fichier = "supprfact.csv"
-    libelle = "Paramètres de Suppression"
+    nom_fichier = "annulversion.csv"
+    libelle = "Paramètres d'Annulation"
 
     def __init__(self, dossier_source):
         """
@@ -23,18 +23,19 @@ class Suppression(object):
         except IOError as e:
             Outils.fatal(e, "impossible d'ouvrir le fichier : "+Suppression.nom_fichier)
 
-        num = 5
+        num = 6
         if len(donnees_csv) != num:
             Outils.fatal(ErreurConsistance(),
-                         Suppression.libelle + ": nombre de lignes incorrect : " +
+                         Annulation.libelle + ": nombre de lignes incorrect : " +
                          str(len(donnees_csv)) + ", attendu : " + str(num))
         try:
             self.annee = int(donnees_csv[0][1])
             self.mois = int(donnees_csv[1][1])
         except ValueError as e:
-            Outils.fatal(e, Suppression.libelle +
+            Outils.fatal(e, Annulation.libelle +
                          "\nle mois et l'année doivent être des nombres")
 
-        self.version = donnees_csv[2][1]
-        self.client_unique = donnees_csv[3][1]
-        self.chemin = donnees_csv[4][1]
+        self.client_unique = donnees_csv[2][1]
+        self.chemin = donnees_csv[3][1]
+        self.annule_version = donnees_csv[4][1]
+        self.recharge_version = donnees_csv[5][1]
