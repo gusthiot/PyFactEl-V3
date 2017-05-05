@@ -135,8 +135,8 @@ class Annexes(object):
             client = clients.donnees[code_client]
             nature = generaux.nature_client_par_code_n(client['type_labo'])
             reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
-            if edition.version != "0":
-                reference += "-" + edition.version
+            if edition.version > 0:
+                reference += "-" + str(edition.version)
 
             contenu += r'''
                 \begin{titlepage}
@@ -192,8 +192,8 @@ class Annexes(object):
         av_hc = Latex.echappe_caracteres(generaux.avantage_hc_par_code_n(client['type_labo']))
         an_couts = Latex.echappe_caracteres(generaux.annexe_cout_par_code_n(client['type_labo']))
         reference = nature + str(edition.annee)[2:] + Outils.mois_string(edition.mois) + "." + code_client
-        if edition.version != "0":
-            reference += "-" + edition.version
+        if edition.version > 0:
+            reference += "-" + str(edition.version)
 
         filtre = generaux.filtrer_article_nul_par_code_n(client['type_labo'])
 
@@ -221,7 +221,6 @@ class Annexes(object):
             comptes_utilises = Outils.comptes_in_somme(sommes.sommes_comptes[code_client], comptes)
 
             for num_compte, id_compte in sorted(comptes_utilises.items()):
-                num_compte = Latex.echappe_caracteres(num_compte)
                 id_compte = Latex.echappe_caracteres(id_compte)
 
                 # ## COMPTE
