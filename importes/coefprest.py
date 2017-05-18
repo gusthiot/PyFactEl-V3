@@ -22,7 +22,6 @@ class CoefPrest(Fichier):
         """
         if self.verifie_coherence == 0:
             info = self.libelle + ". vous devez vérifier la cohérence avant de pouvoir obtenir les classes"
-            print(info)
             Outils.affiche_message(info)
             return []
         return self.classes
@@ -52,7 +51,6 @@ class CoefPrest(Fichier):
         """
         if self.verifie_date == 0:
             info = self.libelle + ". vous devez vérifier la date avant de vérifier la cohérence"
-            print(info)
             Outils.affiche_message(info)
             return 1
 
@@ -113,7 +111,6 @@ class CoefPrest(Fichier):
 
         if msg != "":
             msg = self.libelle + "\n" + msg
-            print("msg : " + msg)
             Outils.affiche_message(msg)
             return 1
         return 0

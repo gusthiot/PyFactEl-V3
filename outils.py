@@ -15,10 +15,6 @@ class Outils(object):
     """
 
     @staticmethod
-    def myprint(texte):
-        print(texte.encode('utf-8'))
-
-    @staticmethod
     def copier_dossier(source, dossier, destination):
         """
         copier un dossier

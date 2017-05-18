@@ -83,7 +83,6 @@ class Sommes(object):
 
         if self.verification.a_verifier != 0:
             info = "Sommes :  vous devez faire les vérifications avant de calculer les sommes"
-            print(info)
             Outils.affiche_message(info)
             return
 
@@ -214,7 +213,6 @@ class Sommes(object):
 
         if self.verification.a_verifier != 0:
             info = "Sommes :  vous devez faire les vérifications avant de calculer les sommes"
-            print(info)
             Outils.affiche_message(info)
             return
 
@@ -322,5 +320,4 @@ class Sommes(object):
 
         else:
             info = "Vous devez d'abord faire la somme par catégorie, avant la somme par client"
-            print(info)
             Outils.affiche_message(info)
